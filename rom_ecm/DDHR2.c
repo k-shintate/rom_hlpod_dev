@@ -227,17 +227,17 @@ void get_neib_subdomain_id_nonpara(
     const int       num_subdomains)
 {
 /*
-	hlpod_mat->num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes, np);
-	hlpod_mat->num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_neib_modes);
+	hlpod_vals->n_neib_vec = BB_std_calloc_1d_int(hlpod_vals->n_neib_vec, np);
+	hlpod_mat->num_modes_1stdd_neib[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_vals->n_neib_vec);
 	hlpod_mat->num_neib_modes_sum = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes_sum, np);	
 	hlpod_mat->num_neib_modes_sum[0] = num_my_modes;
 	for(int i = 1; i < np; i++){
-		hlpod_mat->num_neib_modes_sum[i] = hlpod_mat->num_neib_modes_sum[i-1] + hlpod_mat->num_neib_modes[i];
+		hlpod_mat->num_neib_modes_sum[i] = hlpod_mat->num_neib_modes_sum[i-1] + hlpod_mat->num_modes_1stdd_neib[i];
 	}
-	hlpod_mat->num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes, np);
-	hlpod_mat->num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_neib_modes);
+	hlpod_vals->n_neib_vec = BB_std_calloc_1d_int(hlpod_vals->n_neib_vec, np);
+	hlpod_mat->num_modes_1stdd_neib[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_vals->n_neib_vec);
 */
 
 	hlpod_ddhr->num_neib_modes_1stdd_sum = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd_sum, num_subdomains +1);

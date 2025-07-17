@@ -2,7 +2,6 @@
 
 #include "convdiff_core.h"
 #include "rom_dataset.h"
-#include "hrom_dataset.h"
 
 typedef struct
 {
@@ -71,7 +70,5 @@ typedef struct
 
 	ROM_PRM		 rom_prm;		        //input データ用
 	ROM		  	 rom;
-
-    HROM		 hrom;
 
 } FE_SYSTEM;

@@ -69,14 +69,14 @@ void HR_output_result_file_vtk(
 
 	fprintf(fp, "POINT_DATA %d\n", fe->total_num_nodes);
 	BB_vtk_write_point_vals_scalar(fp, vals->T, fe->total_num_nodes, "fem-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->POD_T, fe->total_num_nodes, "pod-temperature");
+	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->sol_vec, fe->total_num_nodes, "pod-temperature");
 	BB_vtk_write_point_vals_scalar(fp, hlpod_hr->HR_T, fe->total_num_nodes, "hr-temperature");
 	// for manufactured solution
 	BBFE_manusol_calc_nodal_error_scalar(
 			fe, vals->error, vals->T, hlpod_hr->HR_T);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-fem_abs_error");
 	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, hlpod_vals->POD_T, hlpod_hr->HR_T);
+			fe, vals->error, hlpod_vals->sol_vec, hlpod_hr->HR_T);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-pod_abs_error");
 
 	double* source;
@@ -115,14 +115,14 @@ void HR_output_result_file_vtk_para(
 
 	fprintf(fp, "POINT_DATA %d\n", fe->total_num_nodes);
 	BB_vtk_write_point_vals_scalar(fp, vals->T, fe->total_num_nodes, "fem-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->POD_T, fe->total_num_nodes, "pod-temperature");
+	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->sol_vec, fe->total_num_nodes, "pod-temperature");
 	BB_vtk_write_point_vals_scalar(fp, hlpod_ddhr->HR_T, fe->total_num_nodes, "hr-temperature");
 	// for manufactured solution
 	BBFE_manusol_calc_nodal_error_scalar(
 			fe, vals->error, vals->T, hlpod_ddhr->HR_T);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-fem_abs_error");
 	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, hlpod_vals->POD_T, hlpod_ddhr->HR_T);
+			fe, vals->error, hlpod_vals->sol_vec, hlpod_ddhr->HR_T);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-pod_abs_error");
 
 	double* source;
@@ -178,7 +178,7 @@ void HR_output_files(
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname_tem);
 	BBFE_write_ascii_nodal_vals_scalar(
 			&(sys->fe),
-			sys->hlpod_vals.POD_T,
+			sys->hlpod_vals.sol_vec,
 			filename,
 			sys->cond.directory);
 */
@@ -200,7 +200,7 @@ void HR_output_files(
 	double L2_error_pod_hr;
 	if(monolis_mpi_get_global_comm_size() == 1){
 		if(sys->hlpod_vals.num_2nd_subdomains==1){
-			L2_error_fem_hr = POD_elemmat_equivval_relative_L2_error_scalar(
+			L2_error_fem_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 					&(sys->fe),
 					&(sys->basis),
 					&(sys->monolis_com),
@@ -208,16 +208,16 @@ void HR_output_files(
 					sys->hlpod_hr.HR_T,
 					sys->vals.T);
 					
-			L2_error_pod_hr = POD_elemmat_equivval_relative_L2_error_scalar(
+			L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 					&(sys->fe),
 					&(sys->basis),
 					&(sys->monolis_com),
 					t,
-					sys->hlpod_vals.POD_T,
+					sys->hlpod_vals.sol_vec,
 					sys->hlpod_hr.HR_T);
 		}
 		else{
-			L2_error_fem_hr = POD_elemmat_equivval_relative_L2_error_scalar(
+			L2_error_fem_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 					&(sys->fe),
 					&(sys->basis),
 					&(sys->monolis_com),
@@ -225,17 +225,17 @@ void HR_output_files(
 					sys->vals.T,
 					sys->hlpod_ddhr.HR_T);
 					
-			L2_error_pod_hr = POD_elemmat_equivval_relative_L2_error_scalar(
+			L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 					&(sys->fe),
 					&(sys->basis),
 					&(sys->monolis_com),
 					t,
-					sys->hlpod_vals.POD_T,
+					sys->hlpod_vals.sol_vec,
 					sys->hlpod_ddhr.HR_T);
 		}
 	}
 	else{
-		L2_error_fem_hr = POD_elemmat_equivval_relative_L2_error_scalar(
+		L2_error_fem_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 				&(sys->fe),
 				&(sys->basis),
 				&(sys->monolis_com),
@@ -243,12 +243,12 @@ void HR_output_files(
 				sys->vals.T,
 				sys->hlpod_ddhr.HR_T);
 				
-		L2_error_pod_hr = POD_elemmat_equivval_relative_L2_error_scalar(
+		L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 				&(sys->fe),
 				&(sys->basis),
 				&(sys->monolis_com),
 				t,
-				sys->hlpod_vals.POD_T,
+				sys->hlpod_vals.sol_vec,
 				sys->hlpod_ddhr.HR_T);
 	}
 
@@ -256,7 +256,7 @@ void HR_output_files(
 
 	if(monolis_mpi_get_global_my_rank() == 0){
 		FILE* fp;
-		fp = BBFE_sys_hlpod_write_add_fopen(fp, "l2_error_fem_hrom.txt", sys->cond.directory);
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_fem_hrom.txt", sys->cond.directory);
 		fprintf(fp, "%e %e\n", t, L2_error_fem_hr);
 		fclose(fp);
 	}
@@ -265,7 +265,7 @@ void HR_output_files(
 
 	if(monolis_mpi_get_global_my_rank() == 0){
 		FILE* fp;
-		fp = BBFE_sys_hlpod_write_add_fopen(fp, "l2_error_rom_hrom.txt", sys->cond.directory);
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_rom_hrom.txt", sys->cond.directory);
 		fprintf(fp, "%e %e\n", t, L2_error_pod_hr);
 		fclose(fp);
 	}
@@ -476,7 +476,7 @@ void HROM_pre_offline(
 /*
 	get_meta_neib(
 		&(sys->monolis_com_pod_solv),
-		&(sys->meta_neib),
+		&(sys->hlpod_meta),
 		sys->cond.directory);
 
 	ddhr_lb_set_neib(
@@ -484,7 +484,7 @@ void HROM_pre_offline(
 		&(sys->fe),
 		&(sys->hlpod_mat),
 		&(sys->hlpod_ddhr),
-		&(sys->meta_neib),
+		&(sys->hlpod_meta),
 		num_2nd_subdomains,
 		sys->hlpod_vals.num_snapshot,
 		sys->cond.directory);
@@ -497,7 +497,7 @@ void HROM_pre_offline(
 		&(sys->bc),
 		&(sys->hlpod_ddhr),
 		&(sys->hlpod_mat),
-		&(sys->meta_neib),
+		&(sys->hlpod_meta),
 		sys->fe.total_num_elems,
 		sys->hlpod_vals.num_snapshot,
 		sys->hlpod_vals.pre_num_modes,
@@ -597,7 +597,7 @@ void HROM_pre_online(
 		&(sys->hlpod_mat),
 //		&(sys->lpod_prm),
 		&(sys->hlpod_ddhr),
-		&(sys->meta_neib),
+		&(sys->hlpod_meta),
 		sys->hlpod_vals.pre_num_modes,
 		sys->hlpod_vals.num_2nd_subdomains,
 		sys->cond.directory);
@@ -672,7 +672,7 @@ void HROM_nonparallel(
         double t2 = monolis_get_time();
 
         FILE* fp;
-        fp = BBFE_sys_hlpod_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
+        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1 + set_bc2 - set_bc1);
         fclose(fp);
 
@@ -699,7 +699,7 @@ void HROM_nonparallel(
         t2 = monolis_get_time();
 
         //FILE* fp;
-        fp = BBFE_sys_hlpod_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
+        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
 
@@ -746,7 +746,7 @@ void HROM_nonparallel(
         double t2 = monolis_get_time();
 
         FILE* fp;
-        fp = BBFE_sys_hlpod_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
+        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
         
@@ -786,7 +786,7 @@ void HROM_nonparallel(
         t2 = monolis_get_time();
 
         //FILE* fp;
-        fp = BBFE_sys_hlpod_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
+        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
 
@@ -857,7 +857,7 @@ void HROM_hierarchical_parallel(
 
     if(monolis_mpi_get_global_my_rank() == 0){
         FILE* fp;
-        fp = BBFE_sys_hlpod_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
+        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
     }
@@ -866,7 +866,7 @@ void HROM_hierarchical_parallel(
     BBFE_sys_monowrap_solve(
         &(sys.monolis_hr),
         &(sys.monolis_com_pod_solv),
-        sys.hlpod_mat.coordinates,
+        sys.hlpod_mat.mode_coef,
         MONOLIS_ITER_CG,
         MONOLIS_PREC_DIAG,
         sys.vals.mat_max_iter,
@@ -876,7 +876,7 @@ void HROM_hierarchical_parallel(
 	BBFE_sys_monowrap_solve_V(
 		&(sys.monolis_hr),
 		&(sys.monolis_com_pod_solv),
-		sys.hlpod_mat.coordinates,
+		sys.hlpod_mat.mode_coef,
 		MONOLIS_ITER_CG,
 		MONOLIS_PREC_DIAG,
 		sys.vals.mat_max_iter,
@@ -899,7 +899,7 @@ void HROM_hierarchical_parallel(
 
     if(monolis_mpi_get_global_my_rank() == 0){
         FILE* fp;
-        fp = BBFE_sys_hlpod_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
+        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
     }

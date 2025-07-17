@@ -21,7 +21,7 @@ void ddhr_lb_write_selected_elements_para(
         BBFE_BC*     	bc,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*    hlpod_mat,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
         const int       total_num_elem,
         const int       total_num_snapshot,
         const int       total_num_modes,
@@ -35,9 +35,10 @@ void ddhr_lb_write_selected_elements_para_1line(
 		MONOLIS_COM*  	monolis_com,
         BBFE_DATA*     	fe,
         BBFE_BC*     	bc,
+        HLPOD_VALUES* 	hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*    hlpod_mat,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
         const int       total_num_elem,
         const int       total_num_snapshot,
         const int       total_num_modes,
@@ -65,7 +66,7 @@ void get_neib_coordinates_pad(
 
 void get_meta_neib(
 		MONOLIS_COM*  	monolis_com,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
 		const char*     directory);
 
 void ddhr_lb_set_neib(
@@ -73,13 +74,14 @@ void ddhr_lb_set_neib(
 		//BBFE_DATA*     	fe,
 		HLPOD_MAT* 	hlpod_mat,
         HLPOD_DDHR*     hlpod_ddhr,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
 		const int 		num_subdomains,
         const int       num_snapshots,
 		const char*     directory);
 
 void ddhr_lb_set_element_para(
 		BBFE_DATA*     	fe,
+        HLPOD_VALUES* 	hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
 		const char*     directory);
@@ -98,11 +100,11 @@ void ddhr_lb_get_selected_elements_para_add(
 void ddhr_hlpod_calc_block_mat_bcsr_pad(
 		MONOLIS*     	monolis,
 		MONOLIS_COM*  	monolis_com,
-		LPOD_COM* 		lpod_com,
+		//LPOD_COM* 		lpod_com,
 		HLPOD_MAT* 	hlpod_mat,
 		//LPOD_PRM*		lpod_prm,
 		HLPOD_DDHR*     hlpod_ddhr,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
 		const int 		num_bases,
 		const int		num_2nddd,
 		const char*		directory);
@@ -110,11 +112,11 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 void ddhr_hlpod_calc_block_mat_bcsr(
 		MONOLIS*     	monolis,
 		MONOLIS_COM*  	monolis_com,
-		LPOD_COM* 		lpod_com,
+		//LPOD_COM* 		lpod_com,
 		HLPOD_MAT* 	hlpod_mat,
 		//LPOD_PRM*		lpod_prm,
 		HLPOD_DDHR*     hlpod_ddhr,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
 		const int 		num_bases,
 		const int		num_2nddd,
 		const char*		directory);
@@ -123,7 +125,7 @@ void ddhr_hlpod_WTf_to_monollis_rhs_bcsr(
 		MONOLIS*		monolis,
 		MONOLIS_COM*	monolis_com,
 		HLPOD_MAT*    hlpod_mat,
-		LPOD_COM*    	lpod_com,
+		//LPOD_COM*    	lpod_com,
 		HLPOD_DDHR*     hlpod_ddhr,
 		const int		num_bases);
 	
@@ -144,9 +146,10 @@ void ddhr_lb_get_selected_elements_para2(
 		MONOLIS_COM*  	monolis_com,
         BBFE_DATA*     	fe,
         BBFE_BC*     	bc,
+        HLPOD_VALUES* 	hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*    hlpod_mat,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
         const int       total_num_elem,
         const int       total_num_snapshot,
         const int       total_num_modes,
@@ -165,13 +168,14 @@ void ddhr_lb_set_selected_elems_para(
 //level1領域の最大基底本数の共有
 void get_neib_max_num_modes_pad(
 		MONOLIS_COM*  	monolis_com,
-		HLPOD_MAT* 	hlpod_mat,
+		HLPOD_MAT* 	    hlpod_mat,
 		const int       np,
 		const int       pre_num_modes);
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void get_neib_num_modes_pad(
 		MONOLIS_COM*  	monolis_com,
-		HLPOD_MAT* 	hlpod_mat,
+        HLPOD_VALUES* 	hlpod_vals,
+		HLPOD_MAT* 	    hlpod_mat,
 		const int       np,
 		const int       num_my_modes);

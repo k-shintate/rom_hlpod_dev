@@ -20,18 +20,20 @@ static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
 static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 
 void ddhr_memory_allocation_para_online(
+        HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
-	   HLPOD_MAT*    hlpod_mat,
+	    HLPOD_MAT*      hlpod_mat,
         const int       total_num_nodes)
 {
 	hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
-    hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, hlpod_mat->n_neib_vec, hlpod_mat->n_neib_vec);
-    hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_mat->n_neib_vec);
+    hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, hlpod_vals->n_neib_vec, hlpod_vals->n_neib_vec);
+    hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_vals->n_neib_vec);
 }
 
 void ddhr_memory_allocation_para(
+        HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*    hlpod_mat,
+		HLPOD_MAT*      hlpod_mat,
         const int       total_num_nodes,
         const int       total_num_elem,
         const int       total_num_snapshot,
@@ -49,11 +51,11 @@ void ddhr_memory_allocation_para(
     hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
 
 //for NNLS
-    hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_mat->n_neib_vec, max_num_elem, num_subdomains);
-    hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_mat->n_neib_vec, num_subdomains);
+    hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
+    hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_vals->n_neib_vec, num_subdomains);
 
-    hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, hlpod_mat->n_neib_vec, hlpod_mat->n_neib_vec);
-    hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_mat->n_neib_vec);
+    hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, hlpod_vals->n_neib_vec, hlpod_vals->n_neib_vec);
+    hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_vals->n_neib_vec);
 
 }
 
@@ -150,6 +152,7 @@ void ddhr_set_element_para(
 void ddhr_get_selected_elements_para(
         BBFE_DATA*     	fe,
         BBFE_BC*     	bc,
+        HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*    hlpod_mat,
         const int       total_num_elem,
@@ -167,7 +170,7 @@ void ddhr_get_selected_elements_para(
 
     double residual;
 
-    int NNLS_row = total_num_snapshot*hlpod_mat->n_neib_vec*2;	//2は残差ベクトル＋右辺ベクトルを採用しているため
+    int NNLS_row = total_num_snapshot*hlpod_vals->n_neib_vec*2;	//2は残差ベクトル＋右辺ベクトルを採用しているため
 	const int myrank = monolis_mpi_get_global_my_rank();
 
     double* ans_vec;
@@ -360,8 +363,8 @@ void ddhr_get_selected_elements_para(
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);	
 	/**/
 
-    BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_mat->n_neib_vec*2, total_num_elem, num_subdomains);
-    BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_mat->n_neib_vec*2, num_subdomains);
+    BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_vals->n_neib_vec*2, total_num_elem, num_subdomains);
+    BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_vals->n_neib_vec*2, num_subdomains);
 }
 /********/
 
@@ -632,22 +635,23 @@ void ddhr_set_selected_elems_para(
 
 void ddhr_monolis_set_matrix_para(
 	MONOLIS*     	monolis,
+    HLPOD_VALUES*   hlpod_vals,
 	HLPOD_DDHR*     hlpod_ddhr,
 	HLPOD_MAT*    hlpod_mat,
-	LPOD_COM*    	lpod_com,
+	//LPOD_COM*    	lpod_com,
     const int 		max_num_basis,
 	const int		num_subdomains)
 {
 	const int M = max_num_basis;
-	const int num_basis = hlpod_mat->num_basis;		//自領域
+	const int num_basis = hlpod_vals->num_modes;		//自領域
 
-	const int n_neib_vec = hlpod_mat->n_neib_vec;	//自領域+隣接領域
-	const int M_all = M * (1 + hlpod_mat->n_neib);	//自領域+隣接領域
+	const int n_neib_vec = hlpod_vals->n_neib_vec;	//自領域+隣接領域
+	//const int M_all = M * (1 + hlpod_vals->n_neib_vec);	//自領域+隣接領域
 
-	const int n_neib = hlpod_mat->n_neib;
-	const int n_internal_vertex = hlpod_mat->n_internal_vertex;
+	const int n_neib = hlpod_vals->n_neib_vec;
+	//const int n_internal_vertex = hlpod_mat->n_internal_vertex;
 
-	printf("M = %d, M_all = %d, num_basis = %d, n_neib_vec = %d", M, M_all, num_basis, n_neib_vec);
+	//printf("M = %d, M_all = %d, num_basis = %d, n_neib_vec = %d", M, M_all, num_basis, n_neib_vec);
 
 	/*add_matrix*/
 	//hlpod_mat->L = BB_std_calloc_2d_double(hlpod_mat->L, num_basis , n_neib_vec);
@@ -662,13 +666,13 @@ void ddhr_monolis_set_matrix_para(
 		}
 	}
 	
-	for(int j = 0; j < hlpod_mat->num_basis; j++){
-		for(int i = 0; i < hlpod_mat->num_basis; i++){
+	for(int j = 0; j < hlpod_vals->num_modes; j++){
+		for(int i = 0; i < hlpod_vals->num_modes; i++){
 			L_in[i][j] = hlpod_ddhr->reduced_mat[i][j];
 		}
 	}
 
-	for(int i = hlpod_mat->num_basis; i < M; i++){
+	for(int i = hlpod_vals->num_modes; i < M; i++){
 		L_in[i][i] = 1.0;
 	}
 
@@ -695,12 +699,12 @@ void ddhr_monolis_set_matrix_para(
 		}
 	}
 	int iS = 0;
-	int iE = lpod_com->num_neib_modes[0];
+	int iE = hlpod_mat->num_modes_1stdd_neib[0];
 	int index = 0;
 	for(int k = 0; k < n_neib; k++){
 
-		iS += lpod_com->num_neib_modes[k];
-		iE += lpod_com->num_neib_modes[k + 1];
+		iS += hlpod_mat->num_modes_1stdd_neib[k];
+		iE += hlpod_mat->num_modes_1stdd_neib[k + 1];
 		index = 0;
 		for(int j = iS; j < iE; j++){
 			for(int i = 0; i < num_basis; i++){
@@ -730,7 +734,7 @@ void ddhr_monolis_set_matrix_para(
 
 
 	/*線形の場合*/
-  	//hlpod_mat->coordinates = BB_std_calloc_1d_double(hlpod_mat->coordinates, M_all);
+  	//hlpod_mat->mode_coef = BB_std_calloc_1d_double(hlpod_mat->mode_coef, M_all);
   	//hlpod_mat->WTf = BB_std_calloc_1d_double(hlpod_mat->WTf, M_all);
 
 	//BB_std_free_2d_double(hlpod_mat->L, num_basis , n_neib_vec);
@@ -763,7 +767,8 @@ void lpod_pad_calc_block_solution_local_para(
 	const int		num_2nddd)
 	//LPOD_PRM*		lpod_prm)
 {
-	const int n_internal_vertex = hlpod_mat->n_internal_vertex;
+//	const int n_internal_vertex = hlpod_mat->n_internal_vertex;
+    const int n_internal_vertex = monolis_com->n_internal_vertex;
 
 	double t1 = monolis_get_time();
 
@@ -779,7 +784,7 @@ void lpod_pad_calc_block_solution_local_para(
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
 			for(int j = 0; j < hlpod_mat->n_internal_vertex_subd[k]; j++){
 				index_row = hlpod_mat->node_id[j + sum];
-				hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->coordinates[index_column + i];
+				hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->mode_coef[index_column + i];
 			}
 		}
 		index_column += hlpod_mat->num_modes_internal[k];
@@ -787,7 +792,8 @@ void lpod_pad_calc_block_solution_local_para(
 	}
 
 	for(int i = 0; i < bc->num_D_bcs; i++) {
-        int index = lpod_prm->D_bc_node_id[i];
+        //int index = lpod_prm->D_bc_node_id[i];
+        int index = 0;
 		if(index < n_internal_vertex){
 			hlpod_ddhr->HR_T[index] = bc->imposed_D_val[index];
 		}
@@ -835,7 +841,8 @@ void lpod_pad_calc_block_solution_local_para_pad(
 	const int		max_num_bases)
 //	LPOD_PRM*		lpod_prm)
 {
-	const int n_internal_vertex = hlpod_mat->n_internal_vertex;
+	//const int n_internal_vertex = hlpod_mat->n_internal_vertex;
+    const int n_internal_vertex = monolis_com->n_internal_vertex;
 
 	double t1 = monolis_get_time();
 
@@ -852,7 +859,7 @@ void lpod_pad_calc_block_solution_local_para_pad(
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
 			for(int j = 0; j < hlpod_mat->n_internal_vertex_subd[k]; j++){
 				index_row = hlpod_mat->node_id[j + sum];
-				hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->coordinates[index + i];
+				hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->mode_coef[index + i];
 			}
 		}
 		index_column += hlpod_mat->num_modes_internal[k];
@@ -862,7 +869,8 @@ void lpod_pad_calc_block_solution_local_para_pad(
 	}
 
 	for(int i = 0; i < bc->num_D_bcs; i++) {
-        int index = lpod_prm->D_bc_node_id[i];
+        //int index = lpod_prm->D_bc_node_id[i];
+        int index = 0;
 		if(index < n_internal_vertex){
 			hlpod_ddhr->HR_T[index] = bc->imposed_D_val[index];
 		}

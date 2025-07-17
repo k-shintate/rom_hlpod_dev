@@ -51,6 +51,14 @@ typedef struct
 
     int* num_modes_1stdd;            //number of pod modes in 1st subdomains (own, index format)
     int* num_modes_1stdd_neib;       //number of pod modes in 1st subdomains (own + neib)
+    
+
+    //追加
+    int* num_neib_modes_sum;
+    int* index;
+    int* item;
+    double* pod_coordinates_all;
+    int num_metagraph_nodes;
 
 } HLPOD_MAT;
 
@@ -68,6 +76,16 @@ typedef struct
     int* index;                     //index used in l-pod calculations in BCSR format
 
     int* n_dof_list;                //for arbit_dof_monolis_solver
+
+
+//追加
+    int* n_internal;
+    int* global_id;
+    int* my_global_id;
+    int num_neib;
+    int* neib_id;                  //id of 2nd subdomains (neib)
+
+
 
 } HLPOD_META;
 

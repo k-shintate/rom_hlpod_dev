@@ -15,6 +15,8 @@
 
 static const int BUFFER_SIZE = 10000;
 static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
+static const char* INPUT_FILENAME_NODE        = "node.dat";
+static const char* INPUT_FILENAME_ELEM        = "elem.dat";
 
 static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 
@@ -532,7 +534,7 @@ double ddhr_calc_tol(
 	const int       total_num_snapshot,
 	const int 		num_subdomains)
 {
-	int NNLS_row = total_num_snapshot*hlpod_mat->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
+	int NNLS_row = total_num_snapshot*hlpod_vals->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
     double norm = 0.0;
 
 	for(int m = 0; m < num_subdomains; m++){
@@ -553,14 +555,15 @@ double ddhr_calc_tol(
 
 double ddhr_calc_tol(
     MONOLIS_COM*  	monolis_com,
+    HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_DDHR*     hlpod_ddhr,
 	HLPOD_MAT*    hlpod_mat,
-    META_NEIB*		meta_neib,
+    HLPOD_META*		hlpod_meta,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int 		num_subdomains)
 {
-	int NNLS_row = total_num_snapshot*hlpod_mat->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
+	int NNLS_row = total_num_snapshot*hlpod_vals->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
     double norm = 0.0;
     double* RH;
 
@@ -589,7 +592,7 @@ double ddhr_calc_tol(
 
 		for (int p = 0; p < total_num_snapshot; p++) {
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_vals->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_vals->n_neib_vec * p; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					//matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -600,11 +603,11 @@ double ddhr_calc_tol(
 			int iS = hlpod_mat->index[m];
 			int iE = hlpod_mat->index[m + 1];
 			for (int n = iS; n < iE; n++) {
-				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
-					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
+				for (int l = 0; l < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; l++) {
+					if (hlpod_meta->my_global_id[hlpod_mat->item[n]] == hlpod_meta->global_id[l]) {
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_vals->n_neib_vec * p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_vals->n_neib_vec * p;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -647,9 +650,10 @@ void ddhr_lb_write_selected_elements_para_1line(
 	MONOLIS_COM*  	monolis_com,
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
+    HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_DDHR*     hlpod_ddhr,
 	HLPOD_MAT*    hlpod_mat,
-	META_NEIB*		meta_neib,
+	HLPOD_META*		hlpod_meta,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int       total_num_modes,
@@ -722,7 +726,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 	int index_NNLS2 = 0;
 
     double global_norm = ddhr_calc_tol(monolis_com,
-        hlpod_ddhr,	hlpod_mat, meta_neib, total_num_elem, total_num_snapshot, num_subdomains);
+        hlpod_vals, hlpod_ddhr,	hlpod_mat, hlpod_meta, total_num_elem, total_num_snapshot, num_subdomains);
 
 	for (int m = 0; m < num_subdomains; m++) {
 		int NNLS_row = hlpod_ddhr->num_modes_1stdd[m] * total_num_snapshot; //2は残差ベクトル＋右辺ベクトルを採用しているため
@@ -738,7 +742,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 
 		for (int p = 0; p < total_num_snapshot; p++) {
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_vals->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_vals->n_neib_vec * p; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -749,11 +753,11 @@ void ddhr_lb_write_selected_elements_para_1line(
 			int iS = hlpod_mat->index[m];
 			int iE = hlpod_mat->index[m + 1];
 			for (int n = iS; n < iE; n++) {
-				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
-					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
+				for (int l = 0; l < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; l++) {
+					if (hlpod_meta->my_global_id[hlpod_mat->item[n]] == hlpod_meta->global_id[l]) {
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_vals->n_neib_vec * p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_vals->n_neib_vec * p;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -916,8 +920,8 @@ void ddhr_lb_write_selected_elements_para_1line(
 	/**/
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_mat->n_neib_vec, max_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * hlpod_mat->n_neib_vec, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * hlpod_vals->n_neib_vec, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix,
@@ -939,9 +943,10 @@ void ddhr_lb_write_selected_elements_para(
 	MONOLIS_COM*  	monolis_com,
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
+    HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_DDHR*     hlpod_ddhr,
-	HLPOD_MAT*    hlpod_mat,
-	META_NEIB*		meta_neib,
+	HLPOD_MAT*      hlpod_mat,
+	HLPOD_META*		hlpod_meta,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int       total_num_modes,
@@ -1027,7 +1032,7 @@ void ddhr_lb_write_selected_elements_para(
 		
 		for(int p = 0; p < total_num_snapshot; p++){
 
-			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec*p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + hlpod_mat->n_neib_vec*p; j++){
+			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_vals->n_neib_vec*p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + hlpod_vals->n_neib_vec*p; j++){
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}                
@@ -1038,11 +1043,11 @@ void ddhr_lb_write_selected_elements_para(
 			int iS = hlpod_mat->index[m];
 			int iE = hlpod_mat->index[m + 1];
 			for(int n = iS; n < iE; n++){
-				for(int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++){
-					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]){
+				for(int l = 0; l < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; l++){
+					if (hlpod_meta->my_global_id[hlpod_mat->item[n]] == hlpod_meta->global_id[l]){
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec*p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec*p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_vals->n_neib_vec*p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_vals->n_neib_vec*p;
 						
 						for(int j = IS; j < IE; j++){
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -1057,7 +1062,7 @@ void ddhr_lb_write_selected_elements_para(
 				}
 			}
 
-			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m]+ hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot ; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot; j++){
+			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m]+ hlpod_vals->n_neib_vec*p + hlpod_vals->n_neib_vec*total_num_snapshot ; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + hlpod_vals->n_neib_vec*p + hlpod_vals->n_neib_vec*total_num_snapshot; j++){
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS2][i] = hlpod_ddhr->matrix[j][i][m];
 				}                
@@ -1071,11 +1076,11 @@ void ddhr_lb_write_selected_elements_para(
 			iE = hlpod_mat->index[m + 1];
 
 			for(int n = iS; n < iE; n++){
-				for(int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++){
+				for(int l = 0; l < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; l++){
 
-					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]){
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot;
+					if (hlpod_meta->my_global_id[hlpod_mat->item[n]] == hlpod_meta->global_id[l]){
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_vals->n_neib_vec*p + hlpod_vals->n_neib_vec*total_num_snapshot;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_vals->n_neib_vec*p + hlpod_vals->n_neib_vec*total_num_snapshot;
 
 						for(int j = IS; j < IE; j++){
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -1232,8 +1237,8 @@ void ddhr_lb_write_selected_elements_para(
 	/**/
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_mat->n_neib_vec*2, max_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_mat->n_neib_vec*2, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_vals->n_neib_vec*2, max_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_vals->n_neib_vec*2, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix, 
@@ -1253,23 +1258,25 @@ void ddhr_lb_write_selected_elements_para(
 
 
 void get_neib_coordinates_pre(
-	HLPOD_MAT*	hlpod_mat,
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_MAT*	    hlpod_mat,
 	const int       max_num_basis)	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 {
-	const int num_basis = max_num_basis * (1 + hlpod_mat->n_neib);	//自領域+隣接領域
+	const int num_basis = max_num_basis * (1 + hlpod_vals->n_neib_vec);	//自領域+隣接領域
 //level2 のメタグラフではなく、level1のグラフに対する座標の計算
 	hlpod_mat->pod_coordinates_all = BB_std_calloc_1d_double(hlpod_mat->pod_coordinates_all, num_basis);
 }
 
 void get_neib_coordinates(
 	MONOLIS_COM*  	monolis_com,
-	HLPOD_MAT*	hlpod_mat,
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_MAT*	    hlpod_mat,
 	const int       max_num_basis)	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 {
-	const int num_basis = max_num_basis * (1 + hlpod_mat->n_neib);	//自領域+隣接領域
+	const int num_basis = max_num_basis * (1 + hlpod_vals->n_neib_vec);	//自領域+隣接領域
 
 	for(int i = 0; i < max_num_basis; i++){
-		hlpod_mat->pod_coordinates_all[i] = hlpod_mat->coordinates[i];
+		hlpod_mat->pod_coordinates_all[i] = hlpod_mat->mode_coef[i];
 	}
 
 	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, hlpod_mat->pod_coordinates_all);
@@ -1277,12 +1284,13 @@ void get_neib_coordinates(
 
 void get_neib_coordinates_pad(
 	MONOLIS_COM*  	monolis_com,
-	HLPOD_MAT*	hlpod_mat,
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_MAT*	    hlpod_mat,
 	const int       max_num_basis,	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 	const int 		num_subdomains,
 	const int		max_num_bases)
 {
-	const int num_basis = max_num_basis * (1 + hlpod_mat->n_neib);	//自領域+隣接領域
+	const int num_basis = max_num_basis * (1 + hlpod_vals->n_neib_vec);	//自領域+隣接領域
 
 	int index_row = 0;
 	int index_column = 0;
@@ -1290,7 +1298,7 @@ void get_neib_coordinates_pad(
 
 	for(int k = 0; k < num_subdomains; k++){
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
-			hlpod_mat->pod_coordinates_all[index_column + i] = hlpod_mat->coordinates[index + i];
+			hlpod_mat->pod_coordinates_all[index_column + i] = hlpod_mat->mode_coef[index + i];
 		}
 
 		index_column += hlpod_mat->num_modes_internal[k];
@@ -1303,7 +1311,7 @@ void get_neib_coordinates_pad(
 
 void get_meta_neib(
 	MONOLIS_COM*  	monolis_com,
-	META_NEIB*		meta_neib,
+	HLPOD_META*		hlpod_meta,
 	const char*     directory)
 {
 	/*ファイル読み込み関連*/
@@ -1319,28 +1327,28 @@ void get_meta_neib(
 	snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.recv.%d", monolis_mpi_get_global_my_rank());
 	fp = ROM_BB_read_fopen(fp, filename, directory);
 
-	fscanf(fp, "%d %d", &(meta_neib->num_neib) , &(tmp));
-	meta_neib->neib_id = BB_std_calloc_1d_int(meta_neib->neib_id, meta_neib->num_neib);
+	fscanf(fp, "%d %d", &(hlpod_meta->num_neib) , &(tmp));
+	hlpod_meta->neib_id = BB_std_calloc_1d_int(hlpod_meta->neib_id, hlpod_meta->num_neib);
 
-	for(int i = 0; i < meta_neib->num_neib; i++) {
-		fscanf(fp, "%d", &(meta_neib->neib_id[i]));
+	for(int i = 0; i < hlpod_meta->num_neib; i++) {
+		fscanf(fp, "%d", &(hlpod_meta->neib_id[i]));
 	}
 	fclose(fp);
 
-	meta_neib->n_internal = BB_std_calloc_1d_int(meta_neib->n_internal, meta_neib->num_neib);
+	hlpod_meta->n_internal = BB_std_calloc_1d_int(hlpod_meta->n_internal, hlpod_meta->num_neib);
 	int index_internal = 0;
 	//int n_internal_sum = 0;
-	meta_neib->n_internal_sum = 0;
-	for(int m = 0; m < meta_neib->num_neib; m++){
-		snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d", meta_neib->neib_id[m]);
+	hlpod_meta->n_internal_sum = 0;
+	for(int m = 0; m < hlpod_meta->num_neib; m++){
+		snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d", hlpod_meta->neib_id[m]);
 		fp = ROM_BB_read_fopen(fp, filename, directory);
 		fscanf(fp, "%s %d", id, &(tmp));
-		fscanf(fp, "%d", &(meta_neib->n_internal[m]));
-		meta_neib->n_internal_sum += meta_neib->n_internal[m];
+		fscanf(fp, "%d", &(hlpod_meta->n_internal[m]));
+		hlpod_meta->n_internal_sum += hlpod_meta->n_internal[m];
 		fclose(fp);
 	}
 
-	meta_neib->global_id = BB_std_calloc_1d_int(meta_neib->global_id, meta_neib->n_internal_sum + monolis_com->n_internal_vertex);
+	hlpod_meta->global_id = BB_std_calloc_1d_int(hlpod_meta->global_id, hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex);
 
 	snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", monolis_mpi_get_global_my_rank());
 	fp = ROM_BB_read_fopen(fp, filename, directory);
@@ -1348,19 +1356,19 @@ void get_meta_neib(
 	fscanf(fp, "%d %d", &(num_metagraph_nodes) , &(tmp));
 
 	for(int i = 0; i < monolis_com->n_internal_vertex; i++) {
-		fscanf(fp, "%d", &(meta_neib->global_id[i]));
+		fscanf(fp, "%d", &(hlpod_meta->global_id[i]));
 		index_internal++;
 	}
 	fclose(fp);
 
-	for (int m = 0; m < meta_neib->num_neib; m++){
-		snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", meta_neib->neib_id[m]);
+	for (int m = 0; m < hlpod_meta->num_neib; m++){
+		snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", hlpod_meta->neib_id[m]);
 		fp = ROM_BB_read_fopen(fp, filename, directory);
 		fscanf(fp, "%s", id);
 		fscanf(fp, "%d %d", &(num_metagraph_nodes) , &(tmp));
 
-		for(int i = 0; i < meta_neib->n_internal[m]; i++) {
-			fscanf(fp, "%d", &(meta_neib->global_id[index_internal]));
+		for(int i = 0; i < hlpod_meta->n_internal[m]; i++) {
+			fscanf(fp, "%d", &(hlpod_meta->global_id[index_internal]));
 			index_internal++;
 		}
 		fclose(fp);
@@ -1371,11 +1379,11 @@ void get_meta_neib(
 	fp = ROM_BB_read_fopen(fp, filename, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(num_metagraph_nodes) , &(tmp));
-	meta_neib->my_global_id = BB_std_calloc_1d_int(meta_neib->my_global_id, num_metagraph_nodes);
+	hlpod_meta->my_global_id = BB_std_calloc_1d_int(hlpod_meta->my_global_id, num_metagraph_nodes);
 
 	for(int i = 0; i < num_metagraph_nodes; i++) {
-		fscanf(fp, "%d", &(meta_neib->my_global_id[i]));
-		printf("%d\n", meta_neib->my_global_id[i]);
+		fscanf(fp, "%d", &(hlpod_meta->my_global_id[i]));
+		printf("%d\n", hlpod_meta->my_global_id[i]);
 	}
 	fclose(fp);
 	/******/
@@ -1386,7 +1394,7 @@ void ddhr_lb_set_neib(
 		//BBFE_DATA*     	fe,
 		HLPOD_MAT* 	hlpod_mat,
 		HLPOD_DDHR*     hlpod_ddhr,
-		META_NEIB*		meta_neib,
+		HLPOD_META*		hlpod_meta,
 		const int 		num_subdomains,
 		const int       num_snapshots,
 		const char*     directory)
@@ -1439,7 +1447,7 @@ void ddhr_lb_set_neib(
 
 	double t = monolis_get_time_global_sync();
 
-	hlpod_ddhr->num_neib_modes_1stdd = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd, meta_neib->n_internal_sum + monolis_com->n_internal_vertex);
+	hlpod_ddhr->num_neib_modes_1stdd = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd, hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex);
 
 	snprintf(filename, BUFFER_SIZE, "DDECM/n_modes_internal.%d.txt", monolis_mpi_get_global_my_rank());
 	fp = ROM_BB_read_fopen(fp, filename, directory);
@@ -1452,19 +1460,19 @@ void ddhr_lb_set_neib(
 	}
 	fclose(fp);
 
-	for (int m = 0; m < meta_neib->num_neib; m++){
-		snprintf(filename, BUFFER_SIZE, "DDECM/n_modes_internal.%d.txt", meta_neib->neib_id[m]);
+	for (int m = 0; m < hlpod_meta->num_neib; m++){
+		snprintf(filename, BUFFER_SIZE, "DDECM/n_modes_internal.%d.txt", hlpod_meta->neib_id[m]);
 		fp = ROM_BB_read_fopen(fp, filename, directory);
 
 		fscanf(fp, "%d",&(tmp));
-		for(int i = 0; i < meta_neib->n_internal[m]; i++) {
+		for(int i = 0; i < hlpod_meta->n_internal[m]; i++) {
 			fscanf(fp, "%d", &(hlpod_ddhr->num_neib_modes_1stdd[index_internal]));
 			index_internal++;
 		}
 		fclose(fp);
 	}
 
-	for(int i = 0; i < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; i++) {
+	for(int i = 0; i < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; i++) {
 		printf("%d\n", hlpod_ddhr->num_neib_modes_1stdd[i]);
 	}
 
@@ -1477,12 +1485,12 @@ void ddhr_lb_set_neib(
 
 		for (int i = iS; i < iE; i++) {
 			int item_index = hlpod_mat->item[i];
-			int global_id_value = meta_neib->my_global_id[item_index];
+			int global_id_value = hlpod_meta->my_global_id[item_index];
 
 			printf("global_id = %d\n", global_id_value);
 
-			for (int j = 0; j < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; j++) {
-				if (global_id_value == meta_neib->global_id[j]) {
+			for (int j = 0; j < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; j++) {
+				if (global_id_value == hlpod_meta->global_id[j]) {
 					hlpod_ddhr->num_modes_1stdd[k] += hlpod_ddhr->num_neib_modes_1stdd[j];
 				}
 			}
@@ -1498,9 +1506,9 @@ void ddhr_lb_set_neib(
 		hlpod_ddhr->num_modes_1stdd[k] += hlpod_ddhr->num_neib_modes_1stdd[k];
 	}
 
-	hlpod_ddhr->num_neib_modes_1stdd_sum = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd_sum, meta_neib->n_internal_sum + monolis_com->n_internal_vertex + 1);
+	hlpod_ddhr->num_neib_modes_1stdd_sum = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd_sum, hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex + 1);
 	hlpod_ddhr->num_neib_modes_1stdd_sum[0] = 0;
-	for(int i = 0; i < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; i++){
+	for(int i = 0; i < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; i++){
 		hlpod_ddhr->num_neib_modes_1stdd_sum[i + 1] = hlpod_ddhr->num_neib_modes_1stdd_sum[i] + hlpod_ddhr->num_neib_modes_1stdd[i];
 	}
 
@@ -1557,7 +1565,7 @@ void ddhr_lb_set_element_para2(
 		local_elems_id[i] = i;
 	}
 
-	std_bubble_sort_with_id(global_elems_id, local_elems_id, fe->total_num_elems);
+	ROM_BB_bubble_sort_with_id(global_elems_id, local_elems_id, fe->total_num_elems);
 /**/
 
 	hlpod_ddhr->parallel_elems_id = BB_std_calloc_1d_int(hlpod_ddhr->parallel_elems_id , fe->total_num_elems);
@@ -1628,7 +1636,7 @@ void ddhr_lb_set_element_para2(
 
 		for(int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 			fscanf(fp, "%d", &(global_id));
-			int val = binarySearch(global_elems_id, global_id, fe->total_num_elems);
+			int val = ROM_BB_binarySearch(global_elems_id, global_id, fe->total_num_elems);
 			hlpod_ddhr->elem_id_local[index][m] = local_elems_id[val];
 			index++;
 
@@ -1835,22 +1843,23 @@ void ddhr_lb_get_selected_elements_para_add(
 void ddhr_hlpod_calc_block_mat_bcsr_pad(
 	MONOLIS*     	monolis,
 	MONOLIS_COM*  	monolis_com,
-	LPOD_COM* 		lpod_com,
+	//LPOD_COM* 		lpod_com,
+    HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_MAT* 	hlpod_mat,
 	//LPOD_PRM*		lpod_prm,
 	HLPOD_DDHR*     hlpod_ddhr,
-	META_NEIB*		meta_neib,
+	HLPOD_META*		hlpod_meta,
 	const int 		max_num_bases,
 	const int		num_2nddd,
 	const char*		directory)
 {
 	const int M = max_num_bases;
-	const int total_num_bases = hlpod_mat->num_basis;		//自領域
+	const int total_num_bases = hlpod_vals->num_modes;		//自領域
 
-	const int n_neib_vec = lpod_com->n_neib_vec;			//自領域+隣接領域
+	//const int n_neib_vec = hlpod_vals->n_neib_vec;			//自領域+隣接領域
 	const int M_all = M * hlpod_mat->num_metagraph_nodes;
 
-	const int n_neib = hlpod_mat->n_neib;
+	const int n_neib = hlpod_vals->n_neib_vec;
 
 	double t1 = monolis_get_time();
 	/*add_matrix*/
@@ -1905,9 +1914,9 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 		int iE = hlpod_mat->index[k + 1];
 
 		for(int i = iS; i < iE; i++){
-			for(int j = 0; j < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; j++){
+			for(int j = 0; j < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; j++){
 
-				if (meta_neib->my_global_id[hlpod_mat->item[i]] == meta_neib->global_id[j]){
+				if (hlpod_meta->my_global_id[hlpod_mat->item[i]] == hlpod_meta->global_id[j]){
 					
 					int IS = hlpod_ddhr->num_internal_modes_1stdd_sum[k];
 					int IE = hlpod_ddhr->num_internal_modes_1stdd_sum[k+1];
@@ -1950,7 +1959,7 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 	//lpod_prm->time_add_matrix = t2-t1;
 
 	/*線形の場合*/
-	//hlpod_mat->coordinates = BB_std_calloc_1d_double(hlpod_mat->coordinates, M_all);
+	//hlpod_mat->mode_coef = BB_std_calloc_1d_double(hlpod_mat->mode_coef, M_all);
 	//hlpod_mat->WTf = BB_std_calloc_1d_double(hlpod_mat->WTf, M_all);
 	/***********/
 
@@ -1961,22 +1970,23 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 void ddhr_hlpod_calc_block_mat_bcsr(
 	MONOLIS*     	monolis,
 	MONOLIS_COM*  	monolis_com,
-	LPOD_COM* 		lpod_com,
+	//LPOD_COM* 		lpod_com,
+    HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_MAT* 	hlpod_mat,
 	//LPOD_PRM*		lpod_prm,
 	HLPOD_DDHR*     hlpod_ddhr,
-	META_NEIB*		meta_neib,
+	HLPOD_META*		hlpod_meta,
 	const int 		num_bases,
 	const int		num_2nddd,
 	const char*		directory)
 {
 	const int M = num_bases;
-	const int total_num_bases = hlpod_mat->num_basis;		//自領域
+	const int total_num_bases = hlpod_vals->num_modes;		//自領域
 
-	const int n_neib_vec = lpod_com->n_neib_vec;			//自領域+隣接領域
+	const int n_neib_vec = hlpod_vals->n_neib_vec;			//自領域+隣接領域
 	const int M_all = M * hlpod_mat->num_metagraph_nodes;
 
-	const int n_neib = hlpod_mat->n_neib;
+	const int n_neib = hlpod_vals->n_neib_vec;
 
 	double t1 = monolis_get_time();
 	/*add_matrix*/
@@ -2008,9 +2018,9 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 		int iE = hlpod_mat->index[k + 1];
 
 		for(int i = iS; i < iE; i++){
-			for(int j = 0; j < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; j++){
+			for(int j = 0; j < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; j++){
 
-				if ( meta_neib->my_global_id[hlpod_mat->item[i]] == meta_neib->global_id[j]){
+				if ( hlpod_meta->my_global_id[hlpod_mat->item[i]] == hlpod_meta->global_id[j]){
 					for(int m = 0; m < M; m++){
 						for(int n = 0; n < M; n++){
 							//L_in[m][n] = hlpod_mat->L[k * M + m][j * M + n];
@@ -2034,7 +2044,7 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 	//lpod_prm->time_add_matrix = t2-t1;
 
 	/*線形の場合*/
-	//hlpod_mat->coordinates = BB_std_calloc_1d_double(hlpod_mat->coordinates, M_all);
+	//hlpod_mat->mode_coef = BB_std_calloc_1d_double(hlpod_mat->mode_coef, M_all);
 	//hlpod_mat->WTf = BB_std_calloc_1d_double(hlpod_mat->WTf, M_all);
 	/***********/
 
@@ -2047,7 +2057,7 @@ void ddhr_hlpod_WTf_to_monollis_rhs_bcsr(
 	MONOLIS*		monolis,
 	MONOLIS_COM*	monolis_com,
 	HLPOD_MAT*    hlpod_mat,
-	LPOD_COM*    	lpod_com,
+	//LPOD_COM*    	lpod_com,
 	HLPOD_DDHR*     hlpod_ddhr,
 	const int		num_bases)
 {
@@ -2055,20 +2065,22 @@ void ddhr_hlpod_WTf_to_monollis_rhs_bcsr(
 	const int M_all = num_bases * hlpod_mat->num_metagraph_nodes;
 
 	for(int i = 0; i < M_all; i++){
-		hlpod_mat->coordinates[i] = 0.0;
+		hlpod_mat->mode_coef[i] = 0.0;
 	}
 
 	for(int i = 0; i < M; i++){
 		monolis->mat.R.B[i] = hlpod_ddhr->reduced_RH[i];
 	}
 }
+
 void ddhr_lb_get_selected_elements_para2(
 	MONOLIS_COM*  	monolis_com,
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
+    HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_DDHR*     hlpod_ddhr,
 	HLPOD_MAT*    hlpod_mat,
-	META_NEIB*		meta_neib,
+	HLPOD_META*		hlpod_meta,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int       total_num_modes,
@@ -2129,7 +2141,7 @@ void ddhr_lb_get_selected_elements_para2(
 
 		for (int p = 0; p < total_num_snapshot; p++) {
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_vals->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_vals->n_neib_vec * p; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -2140,11 +2152,11 @@ void ddhr_lb_get_selected_elements_para2(
 			int iS = hlpod_mat->index[m];
 			int iE = hlpod_mat->index[m + 1];
 			for (int n = iS; n < iE; n++) {
-				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
-					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
+				for (int l = 0; l < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; l++) {
+					if (hlpod_meta->my_global_id[hlpod_mat->item[n]] == hlpod_meta->global_id[l]) {
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_vals->n_neib_vec * p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_vals->n_neib_vec * p;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -2159,7 +2171,7 @@ void ddhr_lb_get_selected_elements_para2(
 				}
 			}
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_vals->n_neib_vec * p + hlpod_vals->n_neib_vec * total_num_snapshot; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_vals->n_neib_vec * p + hlpod_vals->n_neib_vec * total_num_snapshot; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS2][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -2172,11 +2184,11 @@ void ddhr_lb_get_selected_elements_para2(
 			iE = hlpod_mat->index[m + 1];
 
 			for (int n = iS; n < iE; n++) {
-				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
+				for (int l = 0; l < hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex; l++) {
 
-					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot;
+					if (hlpod_meta->my_global_id[hlpod_mat->item[n]] == hlpod_meta->global_id[l]) {
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_vals->n_neib_vec * p + hlpod_vals->n_neib_vec * total_num_snapshot;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_vals->n_neib_vec * p + hlpod_vals->n_neib_vec * total_num_snapshot;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -2333,8 +2345,8 @@ void ddhr_lb_get_selected_elements_para2(
 	/**/
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_mat->n_neib_vec * 2, max_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * hlpod_mat->n_neib_vec * 2, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_vals->n_neib_vec * 2, max_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * hlpod_vals->n_neib_vec * 2, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix,
@@ -2355,8 +2367,9 @@ void ddhr_lb_get_selected_elements_para2(
 void ddhr_lb_get_selected_elements_para(
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
-		HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*    hlpod_mat,
+    HLPOD_VALUES* 	hlpod_vals,
+    HLPOD_DDHR*     hlpod_ddhr,
+	HLPOD_MAT*    hlpod_mat,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int       total_num_modes,
@@ -2375,7 +2388,7 @@ void ddhr_lb_get_selected_elements_para(
 
 	double residual;
 
-	int NNLS_row = total_num_snapshot*hlpod_mat->n_neib_vec*2;	//2は残差ベクトル＋右辺ベクトルを採用しているため
+	int NNLS_row = total_num_snapshot*hlpod_vals->n_neib_vec*2;	//2は残差ベクトル＋右辺ベクトルを採用しているため
 
 	double* ans_vec;
 	double** matrix;
@@ -2558,8 +2571,8 @@ void ddhr_lb_get_selected_elements_para(
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);	
 	/**/
 
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_mat->n_neib_vec*2, total_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_mat->n_neib_vec*2, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_vals->n_neib_vec*2, total_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_vals->n_neib_vec*2, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix, 
@@ -2650,32 +2663,34 @@ void ddhr_lb_set_selected_elems_para(
 //level1領域の最大基底本数の共有
 void get_neib_max_num_modes_pad(
 	MONOLIS_COM*  	monolis_com,
-	HLPOD_MAT* 	hlpod_mat,
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_MAT* 	    hlpod_mat,
     const int       np,
 	const int       num_my_modes)
 {
-	hlpod_mat->max_num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->max_num_neib_modes, np);
+	hlpod_mat->num_modes_2nddd_max = BB_std_calloc_1d_int(hlpod_mat->num_modes_2nddd_max, np);
 
-	hlpod_mat->max_num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->max_num_neib_modes);
+	hlpod_mat->num_modes_2nddd_max[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_modes_2nddd_max);
 }
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void get_neib_num_modes_pad(
 	MONOLIS_COM*  	monolis_com,
-	HLPOD_MAT* 	hlpod_mat,
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_MAT* 	    hlpod_mat,
     const int       np,
 	const int       num_my_modes)
 {
-	hlpod_mat->num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes, np);
+	hlpod_mat->num_modes_1stdd_neib = BB_std_calloc_1d_int(hlpod_mat->num_modes_1stdd_neib, np);
 
-	hlpod_mat->num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_neib_modes);
+	hlpod_mat->num_modes_1stdd_neib[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_modes_1stdd_neib);
 
 	hlpod_mat->num_neib_modes_sum = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes_sum, np);	
 	hlpod_mat->num_neib_modes_sum[0] = num_my_modes;
 	for(int i = 1; i < np; i++){
-		hlpod_mat->num_neib_modes_sum[i] = hlpod_mat->num_neib_modes_sum[i-1] + hlpod_mat->num_neib_modes[i];
+		hlpod_mat->num_neib_modes_sum[i] = hlpod_mat->num_neib_modes_sum[i-1] + hlpod_mat->num_modes_1stdd_neib[i];
 	}
 }
 
