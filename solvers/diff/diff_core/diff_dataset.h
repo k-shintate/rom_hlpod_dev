@@ -73,5 +73,7 @@ typedef struct
 	ROM		  	 rom;
 
     HROM		 hrom;
+	MONOLIS      monolis_hr;
+	MONOLIS      monolis_hr0;
 
 } FE_SYSTEM;

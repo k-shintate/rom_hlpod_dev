@@ -59,6 +59,8 @@ typedef struct
     int* item;
     double* pod_coordinates_all;
     int num_metagraph_nodes;
+    int* hr_D_bc_node_id;
+    int num_hr_D_bc_nodes;
 
 } HLPOD_MAT;
 
