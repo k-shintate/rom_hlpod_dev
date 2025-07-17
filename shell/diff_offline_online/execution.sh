@@ -18,7 +18,7 @@ directory="result_diff/${nm}-${np}-${nd}"
 
 cd solvers/diff
 
-make clean
+make
 make
 
 cp -r hlpod_diff ./../../$directory

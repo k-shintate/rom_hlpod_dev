@@ -18,7 +18,7 @@ directory="result_fluid_sups/${nm}-${np}-${nd}"
 
 cd solvers/fluid_sups
 
-make clean
+make
 make
 
 cp -r hlpod_fluid_sups_offline ./../../$directory

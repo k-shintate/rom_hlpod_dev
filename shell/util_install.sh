@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd utils/load_balancing
-make clean
+make
 make
 
 mkdir -p ./../bin

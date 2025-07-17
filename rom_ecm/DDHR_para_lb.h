@@ -1,0 +1,173 @@
+#pragma once
+
+#include "monolis_nnls_c.h"
+
+void ddhr_lb_get_selected_elements_internal_overlap(
+	    HLPOD_DDHR*     hlpod_ddhr,
+//		const int		num_parallel_subdomains,
+		const char*		directory);
+
+void ddhr_lb_read_selected_elements_para(
+		const int 		num_subdomains,
+		const char*		directory);
+
+void ddhr_lb_write_selected_elements_para(
+		MONOLIS_COM*  	monolis_com,
+        BBFE_DATA*     	fe,
+        BBFE_BC*     	bc,
+	    HLPOD_DDHR*     hlpod_ddhr,
+		LPOD_MATRIX*    lpod_mat,
+		META_NEIB*		meta_neib,
+        const int       total_num_elem,
+        const int       total_num_snapshot,
+        const int       total_num_modes,
+		const int 		num_subdomains,
+        const int       max_iter, //NNLS
+        const double    tol,      //NNLS
+		const char*		directory);
+
+//1列のみ(残差に関する項のみ：任意列数に拡張する必要あり)
+void ddhr_lb_write_selected_elements_para_1line(
+		MONOLIS_COM*  	monolis_com,
+        BBFE_DATA*     	fe,
+        BBFE_BC*     	bc,
+	    HLPOD_DDHR*     hlpod_ddhr,
+		LPOD_MATRIX*    lpod_mat,
+		META_NEIB*		meta_neib,
+        const int       total_num_elem,
+        const int       total_num_snapshot,
+        const int       total_num_modes,
+		const int 		num_subdomains,
+        const int       max_iter, //NNLS
+        const double    tol,      //NNLS
+		const char*		directory);
+
+void get_neib_coordinates_pre(
+		LPOD_MATRIX*	lpod_mat,
+		const int       max_num_basis);
+
+void get_neib_coordinates(
+		MONOLIS_COM*  	monolis_com,
+		LPOD_MATRIX*	lpod_mat,
+		const int       max_num_basis);
+
+//p-adaptive
+void get_neib_coordinates_pad(
+		MONOLIS_COM*  	monolis_com,
+		LPOD_MATRIX*	lpod_mat,
+		const int       max_num_basis,
+		const int 		num_subdomains,
+		const int		max_num_bases);
+
+void get_meta_neib(
+		MONOLIS_COM*  	monolis_com,
+		META_NEIB*		meta_neib,
+		const char*     directory);
+
+void ddhr_lb_set_neib(
+		MONOLIS_COM*  	monolis_com,
+		//BBFE_DATA*     	fe,
+		LPOD_MATRIX* 	lpod_mat,
+        HLPOD_DDHR*     hlpod_ddhr,
+		META_NEIB*		meta_neib,
+		const int 		num_subdomains,
+        const int       num_snapshots,
+		const char*     directory);
+
+void ddhr_lb_set_element_para(
+		BBFE_DATA*     	fe,
+        HLPOD_DDHR*     hlpod_ddhr,
+		const int 		num_subdomains,
+		const char*     directory);
+
+void ddhr_lb_set_element_para2(
+		BBFE_DATA*     	fe,
+        HLPOD_DDHR*     hlpod_ddhr,
+		const int 		num_subdomains,
+		const char*     directory);
+
+void ddhr_lb_get_selected_elements_para_add(
+	    HLPOD_DDHR*     hlpod_ddhr,
+		const int		num_parallel_subdomains,
+		const char*		directory);
+
+void ddhr_hlpod_calc_block_mat_bcsr_pad(
+		MONOLIS*     	monolis,
+		MONOLIS_COM*  	monolis_com,
+		LPOD_COM* 		lpod_com,
+		LPOD_MATRIX* 	lpod_mat,
+		LPOD_PRM*		lpod_prm,
+		HLPOD_DDHR*     hlpod_ddhr,
+		META_NEIB*		meta_neib,
+		const int 		num_bases,
+		const int		num_2nddd,
+		const char*		directory);
+
+void ddhr_hlpod_calc_block_mat_bcsr(
+		MONOLIS*     	monolis,
+		MONOLIS_COM*  	monolis_com,
+		LPOD_COM* 		lpod_com,
+		LPOD_MATRIX* 	lpod_mat,
+		LPOD_PRM*		lpod_prm,
+		HLPOD_DDHR*     hlpod_ddhr,
+		META_NEIB*		meta_neib,
+		const int 		num_bases,
+		const int		num_2nddd,
+		const char*		directory);
+
+void ddhr_hlpod_WTf_to_monollis_rhs_bcsr(
+		MONOLIS*		monolis,
+		MONOLIS_COM*	monolis_com,
+		LPOD_MATRIX*    lpod_mat,
+		LPOD_COM*    	lpod_com,
+		HLPOD_DDHR*     hlpod_ddhr,
+		const int		num_bases);
+	
+void ddhr_lb_get_selected_elements_para(
+        BBFE_DATA*     	fe,
+        BBFE_BC*     	bc,
+	    HLPOD_DDHR*     hlpod_ddhr,
+		LPOD_MATRIX*    lpod_mat,
+        const int       total_num_elem,
+        const int       total_num_snapshot,
+        const int       total_num_modes,
+		const int 		num_subdomains,
+        const int       max_iter, //NNLS
+        const double    tol,      //NNLS
+		const char*		directory);
+
+void ddhr_lb_get_selected_elements_para2(
+		MONOLIS_COM*  	monolis_com,
+        BBFE_DATA*     	fe,
+        BBFE_BC*     	bc,
+	    HLPOD_DDHR*     hlpod_ddhr,
+		LPOD_MATRIX*    lpod_mat,
+		META_NEIB*		meta_neib,
+        const int       total_num_elem,
+        const int       total_num_snapshot,
+        const int       total_num_modes,
+		const int 		num_subdomains,
+        const int       max_iter, //NNLS
+        const double    tol,      //NNLS
+		const char*		directory);
+
+void ddhr_lb_set_selected_elems_para(
+		BBFE_DATA*     	fe,
+        HLPOD_DDHR*     hlpod_ddhr,
+        const int		total_num_nodes,
+		const int		num_subdomains,
+		const char*     directory);
+
+//level1領域の最大基底本数の共有
+void get_neib_max_num_modes_pad(
+		MONOLIS_COM*  	monolis_com,
+		LPOD_MATRIX* 	lpod_mat,
+		const int       np,
+		const int       pre_num_modes);
+
+//level1領域の選択された基底(p-adaptive)本数の共有
+void get_neib_num_modes_pad(
+		MONOLIS_COM*  	monolis_com,
+		LPOD_MATRIX* 	lpod_mat,
+		const int       np,
+		const int       num_my_modes);

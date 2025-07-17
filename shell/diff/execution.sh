@@ -18,8 +18,8 @@ directory="result_diff/${nm}-${np}-${nd}"
 
 cd solvers/diff
 
-make clean
-make
+make -f Makefile_ROM clean
+make -f Makefile_ROM
 
 cp -r hlpod_diff_offline ./../../$directory
 cp -r hlpod_diff_online ./../../$directory

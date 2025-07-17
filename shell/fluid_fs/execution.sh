@@ -18,7 +18,7 @@ directory="result_fluid_fs/${nm}-${np}-${nd}"
 
 cd solvers/fluid_fs
 
-make clean
+make
 make
 
 cp -r hlpod_fluid_fs_offline ./../../$directory

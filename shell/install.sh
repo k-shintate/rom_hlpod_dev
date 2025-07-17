@@ -29,3 +29,10 @@ make
 cp *.h ../include/rom_sys
 cp *.a ../lib/
 cd ..
+
+cd rom_ecm
+make clean
+make
+cp *.h ../include/rom_ecm
+cp *.a ../lib/
+cd ..
