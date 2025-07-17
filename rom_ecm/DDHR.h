@@ -1,9 +1,10 @@
 #pragma once
 
-#include "pod_dataset.h"
-#include "hlpod_write_fe.h"
-
 #include "monolis_nnls_c.h"
+#include "hrom_dataset.h"
+#include "hlpod_core_fe.h"
+#include "write_std.h"
+#include "write_BB.h"
 
 void ddhr_memory_allocation(
         const int       total_num_nodes,
@@ -21,8 +22,8 @@ void ddhr_set_element(
 void ddhr_set_matvec_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
         const int       index_snap,
@@ -33,8 +34,8 @@ void ddhr_set_matvec_for_NNLS(
 void ddhr_set_matvec_residuals_RH_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int		num_subdomains,
         const int       index_snap,
@@ -47,8 +48,8 @@ void ddhr_set_matvec_residuals_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
         const int       index_snap,
@@ -74,7 +75,7 @@ void ddhr_set_reduced_mat(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS* 	basis,
     	BBFE_BC*     	bc,
-    	POD_MATRIX*     pod_mat,
+    	HLPOD_MAT*     hlpod_mat,
         HLPOD_DDHR*     hlpod_ddhr,
         const int 		num_modes,
 		const int 		num_subdomains,
@@ -85,7 +86,7 @@ void ddhr_set_D_bc(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS* 	basis,
     	BBFE_BC*     	bc,
-    	POD_MATRIX*     pod_mat,
+    	HLPOD_MAT*     hlpod_mat,
         HLPOD_DDHR*     hlpod_ddhr,
         const int		num_modes,
 		const int 		num_subdomains,
@@ -96,7 +97,7 @@ void ddhr_set_reduced_vec(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
         HLPOD_DDHR*     hlpod_ddhr,
-    	POD_MATRIX*     pod_mat,
+    	HLPOD_MAT*     hlpod_mat,
         const int		num_modes,
 		const int 		num_subdomains,
         const double    dt,
@@ -104,13 +105,13 @@ void ddhr_set_reduced_vec(
 
 void ddhr_calc_solution(
 	BBFE_DATA* 		fe,
-	POD_MATRIX*     pod_mat,
+	HLPOD_MAT*     hlpod_mat,
 	HLPOD_DDHR*     hlpod_ddhr,
 	BBFE_BC*     	bc,
     int 			num_base,
 	const int		num_subdomains,
-	const int		dof,
-	LPOD_PRM*		lpod_prm);
+	const int		dof);
+//	LPOD_PRM*		lpod_prm);
 
 
 void ddhr_monolis_set_matrix(
@@ -121,14 +122,14 @@ void ddhr_monolis_set_matrix(
 
 void ddhr_monolis_set_matrix2(
 	MONOLIS*     	monolis,
-	POD_MATRIX*     pod_mat,
+	HLPOD_MAT*     hlpod_mat,
 	HLPOD_DDHR*     hlpod_ddhr,
     const int 		num_base,
 	const int		num_2nddd);
 
 void ddhr_to_monollis_rhs(
 	MONOLIS*		monolis,
-	POD_MATRIX*     pod_mat,
+	HLPOD_MAT*     hlpod_mat,
     HLPOD_DDHR*     hlpod_ddhr,
 	const int 		num_base,
 	const int		num_subdomains);

@@ -5,7 +5,7 @@
 #include "HR.h"
 */
 
-#include "hlpod_core_fe.h"
+#include "HR.h"
 
 static const int BUFFER_SIZE = 10000;
 static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
@@ -368,11 +368,11 @@ void hr_get_selected_elements(
 
 void hr_calc_solution(
 	BBFE_DATA* 		fe,
-	POD_MATRIX*     pod_mat,
+	HLPOD_MAT*     hlpod_mat,
 	HLPOD_HR*       hlpod_hr,
 	BBFE_BC*     	bc,
-    int 			num_base,
-	LPOD_PRM*		lpod_prm)
+    int 			num_base)
+//	LPOD_PRM*		lpod_prm)
 {
 	int nl = fe->total_num_nodes;
 	int k = num_base;
@@ -385,7 +385,7 @@ void hr_calc_solution(
 
 	for(int i = 0; i < k; i++){
 		for(int j = 0; j < nl; j++){
-			hlpod_hr->HR_T[j] += pod_mat->pod_basis[j][i] * pod_mat->pod_coordinates[i];
+			hlpod_hr->HR_T[j] += hlpod_mat->pod_modes[j][i] * hlpod_mat->mode_coef[i];
 		}
 	}
 
@@ -396,7 +396,7 @@ void hr_calc_solution(
 	}
 
 	double t2 = monolis_get_time();
-	lpod_prm->time_calc_sol = t2-t1;
+	//lpod_prm->time_calc_sol = t2-t1;
 }
 
 
@@ -492,7 +492,7 @@ void hr_set_selected_elems(
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname);
 
 	FILE* fp;
-	fp = BBFE_sys_hlpod_write_fopen(fp, filename, directory);
+	fp = ROM_BB_write_fopen(fp, filename, directory);
 
 	switch( fe->local_num_nodes ) {
 		case 4:

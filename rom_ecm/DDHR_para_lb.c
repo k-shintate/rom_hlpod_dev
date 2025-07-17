@@ -11,7 +11,7 @@
 #include "hlpod_write.h"
 */
 
-#include "hlpod_core_fe.h"
+#include "DDHR_para_lb.h"
 
 static const int BUFFER_SIZE = 10000;
 static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
@@ -50,7 +50,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 	int meta_n_neib;
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d", myrank);
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", id, &(ndof));
 	fscanf(fp, "%d", &(num_subdomains));
 	fclose(fp);
@@ -60,7 +60,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(ndof), &(ndof));
 	for (int i = 0; i < num_subdomains; i++) {
@@ -75,7 +75,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		printf("num_subdomains = %d, n = %d \n\n", num_subdomains, n);
 
 		snprintf(fname, BUFFER_SIZE, "parted.0/parted.0/%s.recv.%d", INPUT_FILENAME_NODE, subdomain_id[n]);
-		fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+		fp = ROM_BB_read_fopen(fp, fname, directory);
 		fscanf(fp, "%d %d", &(meta_n_neib), &(ndof));
 		int* meta_list_neib;
 		meta_list_neib = BB_std_calloc_1d_int(meta_list_neib, meta_n_neib);
@@ -86,13 +86,13 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		/*自領域*/
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[n]);
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
 
 		fscanf(fp1, "%d", &(val));
 		num_selected_elems += val;
 		fclose(fp1);
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[n]);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp2, "%d", &(val));
 		num_selected_elems_D_bc += val;
@@ -101,7 +101,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		/*隣接領域*/
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", meta_list_neib[m]);
-			fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
+			fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
 
 			fscanf(fp1, "%d", &(val));
 			num_selected_elems += val;
@@ -110,7 +110,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", meta_list_neib[m]);
-			fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+			fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 			fscanf(fp2, "%d", &(val));
 			num_selected_elems_D_bc += val;
@@ -128,7 +128,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		/*自領域*/
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[n]);
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
 		fscanf(fp1, "%d", &(val));
 		for (int j = 0; j < val; j++) {
 			fscanf(fp1, "%d %lf", &(ovl_selected_elems[j + index]), &(ovl_selected_elems_weight[j + index]));
@@ -140,7 +140,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		/*隣接領域*/
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", meta_list_neib[m]);
-			fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
+			fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
 			fscanf(fp1, "%d", &(val));
 			for (int j = 0; j < val; j++) {
 				fscanf(fp1, "%d %lf", &(ovl_selected_elems[j + index]), &(ovl_selected_elems_weight[j + index]));
@@ -152,7 +152,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		index = 0;
 		/*自領域*/
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[n]);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 		fscanf(fp2, "%d", &(val));
 		for (int j = 0; j < val; j++) {
 			fscanf(fp2, "%d %lf", &(ovl_selected_elems_D_bc[j + index]), &(ovl_selected_elems_weight_D_bc[j + index]));
@@ -163,7 +163,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		/*隣接領域*/
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", meta_list_neib[m]);
-			fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+			fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 			fscanf(fp2, "%d", &(val));
 			for (int j = 0; j < val; j++) {
 				fscanf(fp2, "%d %lf", &(ovl_selected_elems_D_bc[j + index]), &(ovl_selected_elems_weight_D_bc[j + index]));
@@ -190,7 +190,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		//読み込む対象の要素のidを読み込み
 		snprintf(fname, BUFFER_SIZE, "parted.0/parted.0/%s.%d", INPUT_FILENAME_ELEM_ID, subdomain_id[n]);
-		fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+		fp = ROM_BB_read_fopen(fp, fname, directory);
 		fscanf(fp, "%s", id);
 		fscanf(fp, "%d %d", &(total_num_elems), &(tmp));
 		ovl_elem_global_id = BB_std_calloc_1d_int(ovl_elem_global_id, total_num_elems);
@@ -228,7 +228,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		t = monolis_get_time_global_sync();
 
 		snprintf(fname1, BUFFER_SIZE, "DDECM/selected_elem_overlap.%d.txt", subdomain_id[n]);
-		fp1 = BBFE_sys_hlpod_write_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
 
 		index1 = 0;
 		index2 = 0;
@@ -269,7 +269,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		int** conn;
 
 		snprintf(fname, BUFFER_SIZE, "parted.0/parted.0/%s.%d", INPUT_FILENAME_ELEM, subdomain_id[n]);
-		fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+		fp = ROM_BB_read_fopen(fp, fname, directory);
 
 		fscanf(fp, "%d %d", &(total_num_elems), &(local_dof));
 		conn = BB_std_calloc_2d_int(conn, total_num_elems, local_dof);
@@ -281,7 +281,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		fclose(fp);
 
 		snprintf(fname, BUFFER_SIZE, "parted.0/parted.0/node.dat.n_internal.%d", subdomain_id[n]);
-		fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+		fp = ROM_BB_read_fopen(fp, fname, directory);
 		fscanf(fp, "%s %d", id, &(tmp));
 		fscanf(fp, "%d", &(n_internal));
 		fclose(fp);
@@ -328,7 +328,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		}
 
 		snprintf(fname1, BUFFER_SIZE, "DDECM/num_selected_node.%d.txt", subdomain_id[n]);
-		fp1 = BBFE_sys_hlpod_write_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
 		fprintf(fp1, "%d\n", num_selected_nodes);
 		fclose(fp1);
 		/**************/
@@ -367,7 +367,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		snprintf(fname1, BUFFER_SIZE, "DDECM/selected_elem_internal.%d.txt", subdomain_id[n]);
 
-		fp1 = BBFE_sys_hlpod_write_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
 
 		index1 = 0;
 		index2 = 0;
@@ -437,7 +437,7 @@ void ddhr_lb_read_selected_elements_para(
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(ndof), &(ndof));
 	for (int i = 0; i < num_subdomains; i++) {
@@ -460,8 +460,8 @@ void ddhr_lb_read_selected_elements_para(
 	snprintf(fname3, BUFFER_SIZE, "DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
 	snprintf(fname4, BUFFER_SIZE, "DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
 
-	fp3 = BBFE_sys_hlpod_write_fopen(fp3, fname3, directory);
-	fp4 = BBFE_sys_hlpod_write_fopen(fp4, fname4, directory);
+	fp3 = ROM_BB_write_fopen(fp3, fname3, directory);
+	fp4 = ROM_BB_write_fopen(fp4, fname4, directory);
 
 	int Index1 = 0;
 	int Index2 = 0;
@@ -476,8 +476,8 @@ void ddhr_lb_read_selected_elements_para(
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[m]);
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[m]);
 
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp1, "%d", &(num_selected_elems));
 		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
@@ -495,8 +495,8 @@ void ddhr_lb_read_selected_elements_para(
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[m]);
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[m]);
 
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp1, "%d", &(num_selected_elems));
 		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
@@ -527,12 +527,12 @@ void ddhr_lb_read_selected_elements_para(
 double ddhr_calc_tol(
     MONOLIS_COM*  	monolis_com,
 	HLPOD_DDHR*     hlpod_ddhr,
-	LPOD_MATRIX*    lpod_mat,
+	HLPOD_MAT*    hlpod_mat,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int 		num_subdomains)
 {
-	int NNLS_row = total_num_snapshot*lpod_mat->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
+	int NNLS_row = total_num_snapshot*hlpod_mat->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
     double norm = 0.0;
 
 	for(int m = 0; m < num_subdomains; m++){
@@ -554,13 +554,13 @@ double ddhr_calc_tol(
 double ddhr_calc_tol(
     MONOLIS_COM*  	monolis_com,
 	HLPOD_DDHR*     hlpod_ddhr,
-	LPOD_MATRIX*    lpod_mat,
+	HLPOD_MAT*    hlpod_mat,
     META_NEIB*		meta_neib,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int 		num_subdomains)
 {
-	int NNLS_row = total_num_snapshot*lpod_mat->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
+	int NNLS_row = total_num_snapshot*hlpod_mat->n_neib_vec;	//2は残差ベクトル＋右辺ベクトルを採用しているため
     double norm = 0.0;
     double* RH;
 
@@ -589,7 +589,7 @@ double ddhr_calc_tol(
 
 		for (int p = 0; p < total_num_snapshot; p++) {
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + lpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + lpod_mat->n_neib_vec * p; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					//matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -597,14 +597,14 @@ double ddhr_calc_tol(
 				index_NNLS1++;
 			}
 
-			int iS = lpod_mat->index[m];
-			int iE = lpod_mat->index[m + 1];
+			int iS = hlpod_mat->index[m];
+			int iE = hlpod_mat->index[m + 1];
 			for (int n = iS; n < iE; n++) {
 				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
-					if (meta_neib->my_global_id[lpod_mat->item[n]] == meta_neib->global_id[l]) {
+					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + lpod_mat->n_neib_vec * p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + lpod_mat->n_neib_vec * p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -648,7 +648,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
 	HLPOD_DDHR*     hlpod_ddhr,
-	LPOD_MATRIX*    lpod_mat,
+	HLPOD_MAT*    hlpod_mat,
 	META_NEIB*		meta_neib,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
@@ -673,7 +673,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(ndof), &(ndof));
 	for (int i = 0; i < num_subdomains; i++) {
@@ -722,7 +722,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 	int index_NNLS2 = 0;
 
     double global_norm = ddhr_calc_tol(monolis_com,
-        hlpod_ddhr,	lpod_mat, meta_neib, total_num_elem, total_num_snapshot, num_subdomains);
+        hlpod_ddhr,	hlpod_mat, meta_neib, total_num_elem, total_num_snapshot, num_subdomains);
 
 	for (int m = 0; m < num_subdomains; m++) {
 		int NNLS_row = hlpod_ddhr->num_modes_1stdd[m] * total_num_snapshot; //2は残差ベクトル＋右辺ベクトルを採用しているため
@@ -738,7 +738,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 
 		for (int p = 0; p < total_num_snapshot; p++) {
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + lpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + lpod_mat->n_neib_vec * p; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -746,14 +746,14 @@ void ddhr_lb_write_selected_elements_para_1line(
 				index_NNLS1++;
 			}
 
-			int iS = lpod_mat->index[m];
-			int iE = lpod_mat->index[m + 1];
+			int iS = hlpod_mat->index[m];
+			int iE = hlpod_mat->index[m + 1];
 			for (int n = iS; n < iE; n++) {
 				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
-					if (meta_neib->my_global_id[lpod_mat->item[n]] == meta_neib->global_id[l]) {
+					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + lpod_mat->n_neib_vec * p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + lpod_mat->n_neib_vec * p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -885,8 +885,8 @@ void ddhr_lb_write_selected_elements_para_1line(
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[m]);
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[m]);
 
-		fp1 = BBFE_sys_hlpod_write_fopen(fp1, fname1, directory);
-		fp2 = BBFE_sys_hlpod_write_fopen(fp2, fname2, directory);
+		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+		fp2 = ROM_BB_write_fopen(fp2, fname2, directory);
 
 		fprintf(fp1, "%d\n", index1);
 		fprintf(fp2, "%d\n", index2);
@@ -915,9 +915,9 @@ void ddhr_lb_write_selected_elements_para_1line(
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);
 	/**/
 
-	int max_num_elem = findMax(hlpod_ddhr->num_elems, num_subdomains);
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * lpod_mat->n_neib_vec, max_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * lpod_mat->n_neib_vec, num_subdomains);
+	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_mat->n_neib_vec, max_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * hlpod_mat->n_neib_vec, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix,
@@ -940,7 +940,7 @@ void ddhr_lb_write_selected_elements_para(
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
 	HLPOD_DDHR*     hlpod_ddhr,
-	LPOD_MATRIX*    lpod_mat,
+	HLPOD_MAT*    hlpod_mat,
 	META_NEIB*		meta_neib,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
@@ -965,7 +965,7 @@ void ddhr_lb_write_selected_elements_para(
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(ndof), &(ndof));
 	for(int i = 0; i < num_subdomains; i++){
@@ -1027,7 +1027,7 @@ void ddhr_lb_write_selected_elements_para(
 		
 		for(int p = 0; p < total_num_snapshot; p++){
 
-			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + lpod_mat->n_neib_vec*p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + lpod_mat->n_neib_vec*p; j++){
+			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec*p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + hlpod_mat->n_neib_vec*p; j++){
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}                
@@ -1035,14 +1035,14 @@ void ddhr_lb_write_selected_elements_para(
 				index_NNLS1++;
 			}
 
-			int iS = lpod_mat->index[m];
-			int iE = lpod_mat->index[m + 1];
+			int iS = hlpod_mat->index[m];
+			int iE = hlpod_mat->index[m + 1];
 			for(int n = iS; n < iE; n++){
 				for(int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++){
-					if (meta_neib->my_global_id[lpod_mat->item[n]] == meta_neib->global_id[l]){
+					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]){
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + lpod_mat->n_neib_vec*p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + lpod_mat->n_neib_vec*p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec*p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec*p;
 						
 						for(int j = IS; j < IE; j++){
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -1057,7 +1057,7 @@ void ddhr_lb_write_selected_elements_para(
 				}
 			}
 
-			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m]+ lpod_mat->n_neib_vec*p + lpod_mat->n_neib_vec*total_num_snapshot ; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + lpod_mat->n_neib_vec*p + lpod_mat->n_neib_vec*total_num_snapshot; j++){
+			for(int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m]+ hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot ; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m+1] + hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot; j++){
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS2][i] = hlpod_ddhr->matrix[j][i][m];
 				}                
@@ -1067,15 +1067,15 @@ void ddhr_lb_write_selected_elements_para(
 
 
 			//2列目に関する項
-			iS = lpod_mat->index[m];
-			iE = lpod_mat->index[m + 1];
+			iS = hlpod_mat->index[m];
+			iE = hlpod_mat->index[m + 1];
 
 			for(int n = iS; n < iE; n++){
 				for(int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++){
 
-					if (meta_neib->my_global_id[lpod_mat->item[n]] == meta_neib->global_id[l]){
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + lpod_mat->n_neib_vec*p + lpod_mat->n_neib_vec*total_num_snapshot;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + lpod_mat->n_neib_vec*p + lpod_mat->n_neib_vec*total_num_snapshot;
+					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]){
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec*p + hlpod_mat->n_neib_vec*total_num_snapshot;
 
 						for(int j = IS; j < IE; j++){
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -1199,8 +1199,8 @@ void ddhr_lb_write_selected_elements_para(
 		snprintf(fname1, BUFFER_SIZE,"DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[m]);
 		snprintf(fname2, BUFFER_SIZE,"DDECM/lb_selected_elem.%d.txt", subdomain_id[m]);
 
-		fp1 = BBFE_sys_hlpod_write_fopen(fp1, fname1, directory);
-		fp2 = BBFE_sys_hlpod_write_fopen(fp2, fname2, directory);
+		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+		fp2 = ROM_BB_write_fopen(fp2, fname2, directory);
 
 		fprintf(fp1, "%d\n", index1);
 		fprintf(fp2, "%d\n", index2);
@@ -1231,9 +1231,9 @@ void ddhr_lb_write_selected_elements_para(
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);    
 	/**/
 
-	int max_num_elem = findMax(hlpod_ddhr->num_elems, num_subdomains);
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*lpod_mat->n_neib_vec*2, max_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*lpod_mat->n_neib_vec*2, num_subdomains);
+	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_mat->n_neib_vec*2, max_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_mat->n_neib_vec*2, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix, 
@@ -1253,52 +1253,52 @@ void ddhr_lb_write_selected_elements_para(
 
 
 void get_neib_coordinates_pre(
-	LPOD_MATRIX*	lpod_mat,
+	HLPOD_MAT*	hlpod_mat,
 	const int       max_num_basis)	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 {
-	const int num_basis = max_num_basis * (1 + lpod_mat->n_neib);	//自領域+隣接領域
+	const int num_basis = max_num_basis * (1 + hlpod_mat->n_neib);	//自領域+隣接領域
 //level2 のメタグラフではなく、level1のグラフに対する座標の計算
-	lpod_mat->pod_coordinates_all = BB_std_calloc_1d_double(lpod_mat->pod_coordinates_all, num_basis);
+	hlpod_mat->pod_coordinates_all = BB_std_calloc_1d_double(hlpod_mat->pod_coordinates_all, num_basis);
 }
 
 void get_neib_coordinates(
 	MONOLIS_COM*  	monolis_com,
-	LPOD_MATRIX*	lpod_mat,
+	HLPOD_MAT*	hlpod_mat,
 	const int       max_num_basis)	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 {
-	const int num_basis = max_num_basis * (1 + lpod_mat->n_neib);	//自領域+隣接領域
+	const int num_basis = max_num_basis * (1 + hlpod_mat->n_neib);	//自領域+隣接領域
 
 	for(int i = 0; i < max_num_basis; i++){
-		lpod_mat->pod_coordinates_all[i] = lpod_mat->coordinates[i];
+		hlpod_mat->pod_coordinates_all[i] = hlpod_mat->coordinates[i];
 	}
 
-	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, lpod_mat->pod_coordinates_all);
+	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, hlpod_mat->pod_coordinates_all);
 }
 
 void get_neib_coordinates_pad(
 	MONOLIS_COM*  	monolis_com,
-	LPOD_MATRIX*	lpod_mat,
+	HLPOD_MAT*	hlpod_mat,
 	const int       max_num_basis,	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 	const int 		num_subdomains,
 	const int		max_num_bases)
 {
-	const int num_basis = max_num_basis * (1 + lpod_mat->n_neib);	//自領域+隣接領域
+	const int num_basis = max_num_basis * (1 + hlpod_mat->n_neib);	//自領域+隣接領域
 
 	int index_row = 0;
 	int index_column = 0;
 	int index = 0;
 
 	for(int k = 0; k < num_subdomains; k++){
-		for(int i = 0; i < lpod_mat->num_modes_internal[k]; i++){
-			lpod_mat->pod_coordinates_all[index_column + i] = lpod_mat->coordinates[index + i];
+		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
+			hlpod_mat->pod_coordinates_all[index_column + i] = hlpod_mat->coordinates[index + i];
 		}
 
-		index_column += lpod_mat->num_modes_internal[k];
-		index += lpod_mat->num_modes_internal[k];
-		index += max_num_bases - lpod_mat->num_modes_internal[k];
+		index_column += hlpod_mat->num_modes_internal[k];
+		index += hlpod_mat->num_modes_internal[k];
+		index += max_num_bases - hlpod_mat->num_modes_internal[k];
 	}
 
-	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, lpod_mat->pod_coordinates_all);
+	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, hlpod_mat->pod_coordinates_all);
 }
 
 void get_meta_neib(
@@ -1317,7 +1317,7 @@ void get_meta_neib(
 	int* n_internal;
 
 	snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.recv.%d", monolis_mpi_get_global_my_rank());
-	fp = BBFE_sys_hlpod_read_fopen(fp, filename, directory);
+	fp = ROM_BB_read_fopen(fp, filename, directory);
 
 	fscanf(fp, "%d %d", &(meta_neib->num_neib) , &(tmp));
 	meta_neib->neib_id = BB_std_calloc_1d_int(meta_neib->neib_id, meta_neib->num_neib);
@@ -1333,7 +1333,7 @@ void get_meta_neib(
 	meta_neib->n_internal_sum = 0;
 	for(int m = 0; m < meta_neib->num_neib; m++){
 		snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d", meta_neib->neib_id[m]);
-		fp = BBFE_sys_hlpod_read_fopen(fp, filename, directory);
+		fp = ROM_BB_read_fopen(fp, filename, directory);
 		fscanf(fp, "%s %d", id, &(tmp));
 		fscanf(fp, "%d", &(meta_neib->n_internal[m]));
 		meta_neib->n_internal_sum += meta_neib->n_internal[m];
@@ -1343,7 +1343,7 @@ void get_meta_neib(
 	meta_neib->global_id = BB_std_calloc_1d_int(meta_neib->global_id, meta_neib->n_internal_sum + monolis_com->n_internal_vertex);
 
 	snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", monolis_mpi_get_global_my_rank());
-	fp = BBFE_sys_hlpod_read_fopen(fp, filename, directory);
+	fp = ROM_BB_read_fopen(fp, filename, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(num_metagraph_nodes) , &(tmp));
 
@@ -1355,7 +1355,7 @@ void get_meta_neib(
 
 	for (int m = 0; m < meta_neib->num_neib; m++){
 		snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", meta_neib->neib_id[m]);
-		fp = BBFE_sys_hlpod_read_fopen(fp, filename, directory);
+		fp = ROM_BB_read_fopen(fp, filename, directory);
 		fscanf(fp, "%s", id);
 		fscanf(fp, "%d %d", &(num_metagraph_nodes) , &(tmp));
 
@@ -1368,7 +1368,7 @@ void get_meta_neib(
 
 	//int* my_global_id;
 	snprintf(filename, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", monolis_mpi_get_global_my_rank());
-	fp = BBFE_sys_hlpod_read_fopen(fp, filename, directory);
+	fp = ROM_BB_read_fopen(fp, filename, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(num_metagraph_nodes) , &(tmp));
 	meta_neib->my_global_id = BB_std_calloc_1d_int(meta_neib->my_global_id, num_metagraph_nodes);
@@ -1384,7 +1384,7 @@ void get_meta_neib(
 void ddhr_lb_set_neib(
 		MONOLIS_COM*  	monolis_com,
 		//BBFE_DATA*     	fe,
-		LPOD_MATRIX* 	lpod_mat,
+		HLPOD_MAT* 	hlpod_mat,
 		HLPOD_DDHR*     hlpod_ddhr,
 		META_NEIB*		meta_neib,
 		const int 		num_subdomains,
@@ -1403,7 +1403,7 @@ void ddhr_lb_set_neib(
 
 	/*隣接関係の読み込み 別の関数にした方がよい*/ 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d",myrank);
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", id, &(ndof));
 	fscanf(fp, "%d", &(num_2nd_subdomains));		//自領域を構成するpod計算領域数
 	fclose(fp);
@@ -1413,7 +1413,7 @@ void ddhr_lb_set_neib(
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d",myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(ndof), &(ndof));
 	for(int i = 0; i < num_2nd_subdomains; i++){
@@ -1428,11 +1428,11 @@ void ddhr_lb_set_neib(
 
 	//1stddの基底本数の共有
 	snprintf(filename, BUFFER_SIZE,"DDECM/n_modes_internal.%d.txt", myrank);
-	fp = BBFE_sys_hlpod_write_fopen(fp, filename, directory);
+	fp = ROM_BB_write_fopen(fp, filename, directory);
 
 	fprintf(fp, "%d\n", monolis_com->n_internal_vertex);
 	for(int j = 0; j < monolis_com->n_internal_vertex; j++){
-		fprintf(fp, "%d\n", lpod_mat->num_modes_internal[j]);
+		fprintf(fp, "%d\n", hlpod_mat->num_modes_internal[j]);
 	}
 	fclose(fp);
 	/**/
@@ -1442,7 +1442,7 @@ void ddhr_lb_set_neib(
 	hlpod_ddhr->num_neib_modes_1stdd = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd, meta_neib->n_internal_sum + monolis_com->n_internal_vertex);
 
 	snprintf(filename, BUFFER_SIZE, "DDECM/n_modes_internal.%d.txt", monolis_mpi_get_global_my_rank());
-	fp = BBFE_sys_hlpod_read_fopen(fp, filename, directory);
+	fp = ROM_BB_read_fopen(fp, filename, directory);
 
 	int index_internal = 0;
 	fscanf(fp, "%d",&(tmp));
@@ -1454,7 +1454,7 @@ void ddhr_lb_set_neib(
 
 	for (int m = 0; m < meta_neib->num_neib; m++){
 		snprintf(filename, BUFFER_SIZE, "DDECM/n_modes_internal.%d.txt", meta_neib->neib_id[m]);
-		fp = BBFE_sys_hlpod_read_fopen(fp, filename, directory);
+		fp = ROM_BB_read_fopen(fp, filename, directory);
 
 		fscanf(fp, "%d",&(tmp));
 		for(int i = 0; i < meta_neib->n_internal[m]; i++) {
@@ -1472,11 +1472,11 @@ void ddhr_lb_set_neib(
 
 	//1stddの隣接領域を含めた総基底本数の計算
 	for (int k = 0; k < monolis_com->n_internal_vertex; k++) {
-		int iS = lpod_mat->index[k];
-		int iE = lpod_mat->index[k + 1];
+		int iS = hlpod_mat->index[k];
+		int iE = hlpod_mat->index[k + 1];
 
 		for (int i = iS; i < iE; i++) {
-			int item_index = lpod_mat->item[i];
+			int item_index = hlpod_mat->item[i];
 			int global_id_value = meta_neib->my_global_id[item_index];
 
 			printf("global_id = %d\n", global_id_value);
@@ -1545,7 +1545,7 @@ void ddhr_lb_set_element_para2(
 
 	snprintf(fname, BUFFER_SIZE, "parted.0/%s.id.%d", INPUT_FILENAME_ELEM, myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(tmp), &(tmp));
 	for(int i = 0; i < fe->total_num_elems; i++){
@@ -1564,7 +1564,7 @@ void ddhr_lb_set_element_para2(
 
 	snprintf(fname, BUFFER_SIZE, "parted.0/%s.id.%d", INPUT_FILENAME_ELEM, myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(tmp), &(tmp));
 	for(int i = 0; i < fe->total_num_elems; i++){
@@ -1575,7 +1575,7 @@ void ddhr_lb_set_element_para2(
 
 /*隣接関係の読み込み 別の関数にした方がよい*/ 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d",myrank);
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", id, &(ndof));
 	fscanf(fp, "%d", &(num_2nd_subdomains));
 	fclose(fp);
@@ -1585,7 +1585,7 @@ void ddhr_lb_set_element_para2(
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d",myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(ndof), &(ndof));
 	for(int i = 0; i < num_2nd_subdomains; i++){
@@ -1598,7 +1598,7 @@ void ddhr_lb_set_element_para2(
 
 	snprintf(fname, BUFFER_SIZE, "parted.0/elem.dat.n_internal.%d", myrank);
 
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", char_id, &(tmp));
 	fscanf(fp, "%d", &(num_elems_internal));
 	printf("num_elems_internal = %d\n", num_elems_internal);
@@ -1609,11 +1609,11 @@ void ddhr_lb_set_element_para2(
 	for(int m = 0; m < num_subdomains; m++){	
 		snprintf(fname, BUFFER_SIZE, "parted.0/parted.0/%s.n_internal.%d", INPUT_FILENAME_ELEM, subdomain_id[m]);
 
-		fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+		fp = ROM_BB_read_fopen(fp, fname, directory);
 		fscanf(fp, "%s %d", char_id, &(tmp));
 		fscanf(fp, "%d", &(hlpod_ddhr->num_elems[m]));
 	}
-	int max_num_elem = findMax(hlpod_ddhr->num_elems, num_subdomains);
+	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 
 	hlpod_ddhr->elem_id_local = BB_std_calloc_2d_int(hlpod_ddhr->elem_id_local, max_num_elem, num_subdomains);
 
@@ -1622,7 +1622,7 @@ void ddhr_lb_set_element_para2(
 	for(int m = 0; m < num_subdomains; m++){	
 		snprintf(fname, BUFFER_SIZE, "parted.0/parted.0/%s.%d", INPUT_FILENAME_ELEM_ID, subdomain_id[m]);
 
-		fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+		fp = ROM_BB_read_fopen(fp, fname, directory);
 		fscanf(fp, "%s", char_id);
 		fscanf(fp, "%d %d", &(tmp), &(tmp));
 
@@ -1642,7 +1642,7 @@ void ddhr_lb_set_element_para2(
 	//DDECM_paraで追加した内容
 	snprintf(fname, BUFFER_SIZE, "parted.0/%s.n_internal.%d", INPUT_FILENAME_ELEM, monolis_mpi_get_global_my_rank());
 	//snprintf(fname, BUFFER_SIZE, "parted.0//%s.%d", INPUT_FILENAME_ELEM_ID, subdomain_id[m]);
-	fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", char_id, &(tmp));
 	fscanf(fp, "%d", &(hlpod_ddhr->num_internal_elems));
 	fclose(fp);
@@ -1653,7 +1653,7 @@ void ddhr_lb_set_element_para2(
 		snprintf(fname, BUFFER_SIZE, "parted.0/%s.%d", INPUT_FILENAME_ELEM_ID, monolis_mpi_get_global_my_rank());
 		//snprintf(fname, BUFFER_SIZE, "parted.0/parted.0/%s.%d", INPUT_FILENAME_ELEM_ID, subdomain_id[m]);
 
-		fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+		fp = ROM_BB_read_fopen(fp, fname, directory);
 		fscanf(fp, "%s", char_id);
 		fscanf(fp, "%d %d", &(hlpod_ddhr->total_num_elems[m]), &(tmp));
 
@@ -1698,7 +1698,7 @@ void ddhr_lb_get_selected_elements_para_add(
 
 	for(int m = 0; m < num_parallel_subdomains; m++){
 		snprintf(fname1, BUFFER_SIZE,"DDECM/selected_elem.%d.txt", m);
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
 
 		fscanf(fp1, "%d", &(val));
 		num_selected_elems += val;
@@ -1707,7 +1707,7 @@ void ddhr_lb_get_selected_elements_para_add(
 
 	for(int m = 0; m < num_parallel_subdomains; m++){
 		snprintf(fname2, BUFFER_SIZE,"DDECM/selected_elem_D_bc.%d.txt", m);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp2, "%d", &(val));
 		num_selected_elems_D_bc += val;
@@ -1723,7 +1723,7 @@ void ddhr_lb_get_selected_elements_para_add(
 
 	for(int m = 0; m < num_parallel_subdomains; m++){
 		snprintf(fname1, BUFFER_SIZE,"DDECM/selected_elem.%d.txt", m);
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
 
 		fscanf(fp1, "%d", &(val));
 
@@ -1739,7 +1739,7 @@ void ddhr_lb_get_selected_elements_para_add(
 	index = 0;
 	for(int m = 0; m < num_parallel_subdomains; m++){
 		snprintf(fname2, BUFFER_SIZE,"DDECM/selected_elem_D_bc.%d.txt", m);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp2, "%d", &(val));
 
@@ -1836,8 +1836,8 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 	MONOLIS*     	monolis,
 	MONOLIS_COM*  	monolis_com,
 	LPOD_COM* 		lpod_com,
-	LPOD_MATRIX* 	lpod_mat,
-	LPOD_PRM*		lpod_prm,
+	HLPOD_MAT* 	hlpod_mat,
+	//LPOD_PRM*		lpod_prm,
 	HLPOD_DDHR*     hlpod_ddhr,
 	META_NEIB*		meta_neib,
 	const int 		max_num_bases,
@@ -1845,12 +1845,12 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 	const char*		directory)
 {
 	const int M = max_num_bases;
-	const int total_num_bases = lpod_mat->num_basis;		//自領域
+	const int total_num_bases = hlpod_mat->num_basis;		//自領域
 
 	const int n_neib_vec = lpod_com->n_neib_vec;			//自領域+隣接領域
-	const int M_all = M * lpod_mat->num_metagraph_nodes;
+	const int M_all = M * hlpod_mat->num_metagraph_nodes;
 
-	const int n_neib = lpod_mat->n_neib;
+	const int n_neib = hlpod_mat->n_neib;
 
 	double t1 = monolis_get_time();
 	/*add_matrix*/
@@ -1870,7 +1870,7 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 		for(int m = iS; m < iE; m++){
 			index2 = 0;
 			for(int n = iS; n < iE; n++){
-				//L_in[m][n] = lpod_mat->L[k * M + m][k * M + n];
+				//L_in[m][n] = hlpod_mat->L[k * M + m][k * M + n];
 				L_in[index1][index2] = hlpod_ddhr->reduced_mat[m][n];
 			
 				monolis_add_scalar_to_sparse_matrix_R(
@@ -1901,13 +1901,13 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 
 	for(int k = 0; k < monolis_com->n_internal_vertex; k++){
 
-		int iS = lpod_mat->index[k];
-		int iE = lpod_mat->index[k + 1];
+		int iS = hlpod_mat->index[k];
+		int iE = hlpod_mat->index[k + 1];
 
 		for(int i = iS; i < iE; i++){
 			for(int j = 0; j < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; j++){
 
-				if (meta_neib->my_global_id[lpod_mat->item[i]] == meta_neib->global_id[j]){
+				if (meta_neib->my_global_id[hlpod_mat->item[i]] == meta_neib->global_id[j]){
 					
 					int IS = hlpod_ddhr->num_internal_modes_1stdd_sum[k];
 					int IE = hlpod_ddhr->num_internal_modes_1stdd_sum[k+1];
@@ -1926,7 +1926,7 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 							monolis_add_scalar_to_sparse_matrix_R(
 								monolis,
 								k,
-								lpod_mat->item[i],
+								hlpod_mat->item[i],
 								index1,
 								index2,
 								L_in[index1][index2]);
@@ -1947,14 +1947,14 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 
 
 	double t2 = monolis_get_time();
-	lpod_prm->time_add_matrix = t2-t1;
+	//lpod_prm->time_add_matrix = t2-t1;
 
 	/*線形の場合*/
-	//lpod_mat->coordinates = BB_std_calloc_1d_double(lpod_mat->coordinates, M_all);
-	//lpod_mat->WTf = BB_std_calloc_1d_double(lpod_mat->WTf, M_all);
+	//hlpod_mat->coordinates = BB_std_calloc_1d_double(hlpod_mat->coordinates, M_all);
+	//hlpod_mat->WTf = BB_std_calloc_1d_double(hlpod_mat->WTf, M_all);
 	/***********/
 
-	//BB_std_free_2d_double(lpod_mat->L, total_num_bases , n_neib_vec);
+	//BB_std_free_2d_double(hlpod_mat->L, total_num_bases , n_neib_vec);
 	BB_std_free_2d_double(L_in, M, M);
 }
 
@@ -1962,8 +1962,8 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 	MONOLIS*     	monolis,
 	MONOLIS_COM*  	monolis_com,
 	LPOD_COM* 		lpod_com,
-	LPOD_MATRIX* 	lpod_mat,
-	LPOD_PRM*		lpod_prm,
+	HLPOD_MAT* 	hlpod_mat,
+	//LPOD_PRM*		lpod_prm,
 	HLPOD_DDHR*     hlpod_ddhr,
 	META_NEIB*		meta_neib,
 	const int 		num_bases,
@@ -1971,12 +1971,12 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 	const char*		directory)
 {
 	const int M = num_bases;
-	const int total_num_bases = lpod_mat->num_basis;		//自領域
+	const int total_num_bases = hlpod_mat->num_basis;		//自領域
 
 	const int n_neib_vec = lpod_com->n_neib_vec;			//自領域+隣接領域
-	const int M_all = M * lpod_mat->num_metagraph_nodes;
+	const int M_all = M * hlpod_mat->num_metagraph_nodes;
 
-	const int n_neib = lpod_mat->n_neib;
+	const int n_neib = hlpod_mat->n_neib;
 
 	double t1 = monolis_get_time();
 	/*add_matrix*/
@@ -1987,7 +1987,7 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 	for(int k = 0; k < monolis_com->n_internal_vertex; k++){
 		for(int m = 0; m < M; m++){
 			for(int n = 0; n < M; n++){
-				//L_in[m][n] = lpod_mat->L[k * M + m][k * M + n];
+				//L_in[m][n] = hlpod_mat->L[k * M + m][k * M + n];
 				L_in[m][n] = hlpod_ddhr->reduced_mat[k * M + m][k * M + n];
 
 				monolis_add_scalar_to_sparse_matrix_R(
@@ -2004,22 +2004,22 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 	
 	for(int k = 0; k < monolis_com->n_internal_vertex; k++){
 
-		int iS = lpod_mat->index[k];
-		int iE = lpod_mat->index[k + 1];
+		int iS = hlpod_mat->index[k];
+		int iE = hlpod_mat->index[k + 1];
 
 		for(int i = iS; i < iE; i++){
 			for(int j = 0; j < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; j++){
 
-				if ( meta_neib->my_global_id[lpod_mat->item[i]] == meta_neib->global_id[j]){
+				if ( meta_neib->my_global_id[hlpod_mat->item[i]] == meta_neib->global_id[j]){
 					for(int m = 0; m < M; m++){
 						for(int n = 0; n < M; n++){
-							//L_in[m][n] = lpod_mat->L[k * M + m][j * M + n];
+							//L_in[m][n] = hlpod_mat->L[k * M + m][j * M + n];
 							L_in[m][n] = hlpod_ddhr->reduced_mat[k * M + m][j * M + n];
 
 							monolis_add_scalar_to_sparse_matrix_R(
 								monolis,
 								k,
-								lpod_mat->item[i],
+								hlpod_mat->item[i],
 								m,
 								n,
 								L_in[m][n]);
@@ -2031,14 +2031,14 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 	}
 
 	double t2 = monolis_get_time();
-	lpod_prm->time_add_matrix = t2-t1;
+	//lpod_prm->time_add_matrix = t2-t1;
 
 	/*線形の場合*/
-	//lpod_mat->coordinates = BB_std_calloc_1d_double(lpod_mat->coordinates, M_all);
-	//lpod_mat->WTf = BB_std_calloc_1d_double(lpod_mat->WTf, M_all);
+	//hlpod_mat->coordinates = BB_std_calloc_1d_double(hlpod_mat->coordinates, M_all);
+	//hlpod_mat->WTf = BB_std_calloc_1d_double(hlpod_mat->WTf, M_all);
 	/***********/
 
-	//BB_std_free_2d_double(lpod_mat->L, total_num_bases , n_neib_vec);
+	//BB_std_free_2d_double(hlpod_mat->L, total_num_bases , n_neib_vec);
 	BB_std_free_2d_double(L_in, M, M);
 
 }
@@ -2046,16 +2046,16 @@ void ddhr_hlpod_calc_block_mat_bcsr(
 void ddhr_hlpod_WTf_to_monollis_rhs_bcsr(
 	MONOLIS*		monolis,
 	MONOLIS_COM*	monolis_com,
-	LPOD_MATRIX*    lpod_mat,
+	HLPOD_MAT*    hlpod_mat,
 	LPOD_COM*    	lpod_com,
 	HLPOD_DDHR*     hlpod_ddhr,
 	const int		num_bases)
 {
 	const int M = num_bases * monolis_com->n_internal_vertex;
-	const int M_all = num_bases * lpod_mat->num_metagraph_nodes;
+	const int M_all = num_bases * hlpod_mat->num_metagraph_nodes;
 
 	for(int i = 0; i < M_all; i++){
-		lpod_mat->coordinates[i] = 0.0;
+		hlpod_mat->coordinates[i] = 0.0;
 	}
 
 	for(int i = 0; i < M; i++){
@@ -2067,7 +2067,7 @@ void ddhr_lb_get_selected_elements_para2(
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
 	HLPOD_DDHR*     hlpod_ddhr,
-	LPOD_MATRIX*    lpod_mat,
+	HLPOD_MAT*    hlpod_mat,
 	META_NEIB*		meta_neib,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
@@ -2129,7 +2129,7 @@ void ddhr_lb_get_selected_elements_para2(
 
 		for (int p = 0; p < total_num_snapshot; p++) {
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + lpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + lpod_mat->n_neib_vec * p; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS1][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -2137,14 +2137,14 @@ void ddhr_lb_get_selected_elements_para2(
 				index_NNLS1++;
 			}
 
-			int iS = lpod_mat->index[m];
-			int iE = lpod_mat->index[m + 1];
+			int iS = hlpod_mat->index[m];
+			int iE = hlpod_mat->index[m + 1];
 			for (int n = iS; n < iE; n++) {
 				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
-					if (meta_neib->my_global_id[lpod_mat->item[n]] == meta_neib->global_id[l]) {
+					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
 
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + lpod_mat->n_neib_vec * p;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + lpod_mat->n_neib_vec * p;
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -2159,7 +2159,7 @@ void ddhr_lb_get_selected_elements_para2(
 				}
 			}
 
-			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + lpod_mat->n_neib_vec * p + lpod_mat->n_neib_vec * total_num_snapshot; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + lpod_mat->n_neib_vec * p + lpod_mat->n_neib_vec * total_num_snapshot; j++) {
+			for (int j = hlpod_ddhr->num_internal_modes_1stdd_sum[m] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot; j < hlpod_ddhr->num_internal_modes_1stdd_sum[m + 1] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot; j++) {
 				for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
 					matrix[index_NNLS2][i] = hlpod_ddhr->matrix[j][i][m];
 				}
@@ -2168,15 +2168,15 @@ void ddhr_lb_get_selected_elements_para2(
 			}
 
 
-			iS = lpod_mat->index[m];
-			iE = lpod_mat->index[m + 1];
+			iS = hlpod_mat->index[m];
+			iE = hlpod_mat->index[m + 1];
 
 			for (int n = iS; n < iE; n++) {
 				for (int l = 0; l < meta_neib->n_internal_sum + monolis_com->n_internal_vertex; l++) {
 
-					if (meta_neib->my_global_id[lpod_mat->item[n]] == meta_neib->global_id[l]) {
-						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + lpod_mat->n_neib_vec * p + lpod_mat->n_neib_vec * total_num_snapshot;
-						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + lpod_mat->n_neib_vec * p + lpod_mat->n_neib_vec * total_num_snapshot;
+					if (meta_neib->my_global_id[hlpod_mat->item[n]] == meta_neib->global_id[l]) {
+						int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[l] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot;
+						int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[l + 1] + hlpod_mat->n_neib_vec * p + hlpod_mat->n_neib_vec * total_num_snapshot;
 
 						for (int j = IS; j < IE; j++) {
 							for (int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
@@ -2303,8 +2303,8 @@ void ddhr_lb_get_selected_elements_para2(
 	snprintf(fname1, BUFFER_SIZE, "DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
 	snprintf(fname2, BUFFER_SIZE, "DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
 
-	fp1 = BBFE_sys_hlpod_write_fopen(fp1, fname1, directory);
-	fp2 = BBFE_sys_hlpod_write_fopen(fp2, fname2, directory);
+	fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+	fp2 = ROM_BB_write_fopen(fp2, fname2, directory);
 
 	fprintf(fp1, "%d\n", Index1);
 	fprintf(fp2, "%d\n", Index2);
@@ -2332,9 +2332,9 @@ void ddhr_lb_get_selected_elements_para2(
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);
 	/**/
 
-	int max_num_elem = findMax(hlpod_ddhr->num_elems, num_subdomains);
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * lpod_mat->n_neib_vec * 2, max_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * lpod_mat->n_neib_vec * 2, num_subdomains);
+	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_mat->n_neib_vec * 2, max_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * hlpod_mat->n_neib_vec * 2, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix,
@@ -2356,7 +2356,7 @@ void ddhr_lb_get_selected_elements_para(
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
 		HLPOD_DDHR*     hlpod_ddhr,
-		LPOD_MATRIX*    lpod_mat,
+		HLPOD_MAT*    hlpod_mat,
 	const int       total_num_elem,
 	const int       total_num_snapshot,
 	const int       total_num_modes,
@@ -2375,7 +2375,7 @@ void ddhr_lb_get_selected_elements_para(
 
 	double residual;
 
-	int NNLS_row = total_num_snapshot*lpod_mat->n_neib_vec*2;	//2は残差ベクトル＋右辺ベクトルを採用しているため
+	int NNLS_row = total_num_snapshot*hlpod_mat->n_neib_vec*2;	//2は残差ベクトル＋右辺ベクトルを採用しているため
 
 	double* ans_vec;
 	double** matrix;
@@ -2529,8 +2529,8 @@ void ddhr_lb_get_selected_elements_para(
 	snprintf(fname1, BUFFER_SIZE,"DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
 	snprintf(fname2, BUFFER_SIZE,"DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
 
-	fp1 = BBFE_sys_hlpod_write_fopen(fp1, fname1, directory);
-	fp2 = BBFE_sys_hlpod_write_fopen(fp2, fname2, directory);
+	fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+	fp2 = ROM_BB_write_fopen(fp2, fname2, directory);
 
 	fprintf(fp1, "%d\n", Index1);
 	fprintf(fp2, "%d\n", Index2);
@@ -2558,8 +2558,8 @@ void ddhr_lb_get_selected_elements_para(
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);	
 	/**/
 
-	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*lpod_mat->n_neib_vec*2, total_num_elem, num_subdomains);
-	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*lpod_mat->n_neib_vec*2, num_subdomains);
+	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_mat->n_neib_vec*2, total_num_elem, num_subdomains);
+	BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_mat->n_neib_vec*2, num_subdomains);
 
 	/*input
 	hlpod_ddhr->matrix, 
@@ -2621,7 +2621,7 @@ void ddhr_lb_set_selected_elems_para(
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname);
 
 	FILE* fp;
-	fp = BBFE_sys_hlpod_write_fopen(fp, filename, directory);
+	fp = ROM_BB_write_fopen(fp, filename, directory);
 
 	switch( fe->local_num_nodes ) {
 		case 4:
@@ -2650,32 +2650,32 @@ void ddhr_lb_set_selected_elems_para(
 //level1領域の最大基底本数の共有
 void get_neib_max_num_modes_pad(
 	MONOLIS_COM*  	monolis_com,
-	LPOD_MATRIX* 	lpod_mat,
+	HLPOD_MAT* 	hlpod_mat,
     const int       np,
 	const int       num_my_modes)
 {
-	lpod_mat->max_num_neib_modes = BB_std_calloc_1d_int(lpod_mat->max_num_neib_modes, np);
+	hlpod_mat->max_num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->max_num_neib_modes, np);
 
-	lpod_mat->max_num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, lpod_mat->max_num_neib_modes);
+	hlpod_mat->max_num_neib_modes[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->max_num_neib_modes);
 }
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void get_neib_num_modes_pad(
 	MONOLIS_COM*  	monolis_com,
-	LPOD_MATRIX* 	lpod_mat,
+	HLPOD_MAT* 	hlpod_mat,
     const int       np,
 	const int       num_my_modes)
 {
-	lpod_mat->num_neib_modes = BB_std_calloc_1d_int(lpod_mat->num_neib_modes, np);
+	hlpod_mat->num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes, np);
 
-	lpod_mat->num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, lpod_mat->num_neib_modes);
+	hlpod_mat->num_neib_modes[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_neib_modes);
 
-	lpod_mat->num_neib_modes_sum = BB_std_calloc_1d_int(lpod_mat->num_neib_modes_sum, np);	
-	lpod_mat->num_neib_modes_sum[0] = num_my_modes;
+	hlpod_mat->num_neib_modes_sum = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes_sum, np);	
+	hlpod_mat->num_neib_modes_sum[0] = num_my_modes;
 	for(int i = 1; i < np; i++){
-		lpod_mat->num_neib_modes_sum[i] = lpod_mat->num_neib_modes_sum[i-1] + lpod_mat->num_neib_modes[i];
+		hlpod_mat->num_neib_modes_sum[i] = hlpod_mat->num_neib_modes_sum[i-1] + hlpod_mat->num_neib_modes[i];
 	}
 }
 

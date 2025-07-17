@@ -9,7 +9,7 @@
 #include "hlpod_write.h"
 */
 
-#include "hlpod_core_fe.h"
+#include "DDHR2.h"
 
 static const int BUFFER_SIZE = 10000;
 static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
@@ -25,7 +25,7 @@ void ddhr_memory_allocation2(
 {
 	printf("\n%d\n", num_subdomains);
 
-	int max_num_elem = findMax(hlpod_ddhr->num_elems, num_subdomains);
+	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 
     hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
 
@@ -56,14 +56,14 @@ void ddhr_set_element2(
 	for(int m = 0; m < num_subdomains; m++){
         snprintf(fname, BUFFER_SIZE, "parted.0/elem.dat.n_internal.%d", m);
 
-        fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+        fp = ROM_BB_read_fopen(fp, fname, directory);
         fscanf(fp, "%s %d", char_id, &(tmp));
         fscanf(fp, "%d", &(num_elems[m]));
 		printf("num_elems = %d\n", num_elems[m]);
         fclose(fp);
 	}
 
-	int max_num_elem = findMax(num_elems, num_subdomains);
+	int max_num_elem = ROM_BB_findMax(num_elems, num_subdomains);
 
 	hlpod_ddhr->elem_id_local = BB_std_calloc_2d_int(hlpod_ddhr->elem_id_local, max_num_elem, num_subdomains);
 	hlpod_ddhr->num_elems = BB_std_calloc_1d_int(hlpod_ddhr->num_elems, num_subdomains);
@@ -75,7 +75,7 @@ void ddhr_set_element2(
     for(int m = 0; m < num_subdomains; m++){	
         snprintf(fname, BUFFER_SIZE, "parted.0/%s.%d", INPUT_FILENAME_ELEM_ID, m);
 
-        fp = BBFE_sys_hlpod_read_fopen(fp, fname, directory);
+        fp = ROM_BB_read_fopen(fp, fname, directory);
         fscanf(fp, "%s", char_id);
         fscanf(fp, "%d %d", &(num_elems[m]), &(tmp));
 
@@ -114,8 +114,8 @@ void ddhr_lb_read_selected_elements(
 //	snprintf(fname3, BUFFER_SIZE, "DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
 //	snprintf(fname4, BUFFER_SIZE, "DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
 
-//	fp3 = BBFE_sys_hlpod_write_fopen(fp3, fname3, directory);
-//	fp4 = BBFE_sys_hlpod_write_fopen(fp4, fname4, directory);
+//	fp3 = ROM_BB_write_fopen(fp3, fname3, directory);
+//	fp4 = ROM_BB_write_fopen(fp4, fname4, directory);
 
 	int Index1 = 0;
 	int Index2 = 0;
@@ -130,8 +130,8 @@ void ddhr_lb_read_selected_elements(
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
 
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp1, "%d", &(num_selected_elems));
 		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
@@ -154,7 +154,7 @@ void ddhr_lb_read_selected_elements(
 	for (int m = 0; m < num_subdomains; m++) {
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
 
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
 
 		fscanf(fp1, "%d", &(num_selected_elems));
         for(int i = 0; i < num_selected_elems; i++){
@@ -168,7 +168,7 @@ void ddhr_lb_read_selected_elements(
     for (int m = 0; m < num_subdomains; m++) {
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
 
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
 
@@ -191,8 +191,8 @@ void ddhr_lb_read_selected_elements(
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[m]);
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[m]);
 
-		fp1 = BBFE_sys_hlpod_read_fopen(fp1, fname1, directory);
-		fp2 = BBFE_sys_hlpod_read_fopen(fp2, fname2, directory);
+		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp1, "%d", &(num_selected_elems));
 		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
@@ -222,28 +222,28 @@ void ddhr_lb_read_selected_elements(
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void get_neib_subdomain_id_nonpara(
-    POD_MATRIX* 	pod_mat,
+    HLPOD_MAT* 	hlpod_mat,
 	HLPOD_DDHR* 	hlpod_ddhr,
     const int       num_subdomains)
 {
 /*
-	lpod_mat->num_neib_modes = BB_std_calloc_1d_int(lpod_mat->num_neib_modes, np);
-	lpod_mat->num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, lpod_mat->num_neib_modes);
-	lpod_mat->num_neib_modes_sum = BB_std_calloc_1d_int(lpod_mat->num_neib_modes_sum, np);	
-	lpod_mat->num_neib_modes_sum[0] = num_my_modes;
+	hlpod_mat->num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes, np);
+	hlpod_mat->num_neib_modes[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_neib_modes);
+	hlpod_mat->num_neib_modes_sum = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes_sum, np);	
+	hlpod_mat->num_neib_modes_sum[0] = num_my_modes;
 	for(int i = 1; i < np; i++){
-		lpod_mat->num_neib_modes_sum[i] = lpod_mat->num_neib_modes_sum[i-1] + lpod_mat->num_neib_modes[i];
+		hlpod_mat->num_neib_modes_sum[i] = hlpod_mat->num_neib_modes_sum[i-1] + hlpod_mat->num_neib_modes[i];
 	}
-	lpod_mat->num_neib_modes = BB_std_calloc_1d_int(lpod_mat->num_neib_modes, np);
-	lpod_mat->num_neib_modes[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, lpod_mat->num_neib_modes);
+	hlpod_mat->num_neib_modes = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes, np);
+	hlpod_mat->num_neib_modes[0] = num_my_modes;
+	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->num_neib_modes);
 */
 
 	hlpod_ddhr->num_neib_modes_1stdd_sum = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd_sum, num_subdomains +1);
 	hlpod_ddhr->num_neib_modes_1stdd_sum[0] = 0;
 	for(int i = 1; i < num_subdomains + 1; i++){
-		hlpod_ddhr->num_neib_modes_1stdd_sum[i] = hlpod_ddhr->num_neib_modes_1stdd_sum[i-1] + pod_mat->num_modes_internal[i-1];
+		hlpod_ddhr->num_neib_modes_1stdd_sum[i] = hlpod_ddhr->num_neib_modes_1stdd_sum[i-1] + hlpod_mat->num_modes_internal[i-1];
 	}
 }
 
@@ -419,7 +419,7 @@ void ddhr_get_selected_elements2(
 
     }
 
-	int max_num_elem = findMax(hlpod_ddhr->num_elems, num_subdomains);
+	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 	BB_std_free_3d_double(hlpod_ddhr->matrix, NNLS_row, max_num_elem, num_subdomains);
     BB_std_free_2d_double(hlpod_ddhr->RH, NNLS_row, num_subdomains);
 
@@ -486,7 +486,7 @@ void ddhr_set_selected_elems(
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname);
 
 	FILE* fp;
-	fp = BBFE_sys_hlpod_write_fopen(fp, filename, directory);
+	fp = ROM_BB_write_fopen(fp, filename, directory);
 
 	switch( fe->local_num_nodes ) {
 		case 4:

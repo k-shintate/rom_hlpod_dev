@@ -6,7 +6,7 @@ static const char* CODENAME = "FE_sys/read >";
 static const int BUFFER_SIZE = 10000;
 
 
-FILE* ROM_BB_read_fopen_read_fopen(
+FILE* ROM_BB_read_fopen(
 		FILE*        fp,
 		const char*  filename,
 		const char*  directory)

@@ -8,6 +8,7 @@ mkdir include
 mkdir include/rom_BB
 mkdir include/rom_std
 mkdir include/rom_sys
+mkdir include/rom_ecm
 
 cd rom_BB
 make clean

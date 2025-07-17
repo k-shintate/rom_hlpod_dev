@@ -2,7 +2,7 @@
 CC = mpic++
 CFLAGS = -Wall -Wextra -pedantic -O3
 LDFLAGS =
-INCLUDES = -I/usr/local/include -I../../test_thermal/include -I../../test_thermal/submodule/monolis/include -I../rom_BB -I../rom_std -I../FOM
+INCLUDES = -I/usr/local/include -I../../test_thermal/include -I../../test_thermal/submodule/monolis/include -I../rom_BB -I../rom_std
 LIBS = -L/usr/local/lib -lm -L../../test_thermal/lib/BB -lBB -lBBFE_std -lBBFE_sys -lBBFE_elemmat
 
 TARGET_LIB = librom_sys.a

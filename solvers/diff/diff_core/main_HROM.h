@@ -4,7 +4,7 @@
 void HR_output_result_file_vtk(
 		BBFE_DATA*      fe,
 		VALUES*         vals,
-		POD_VALUES*     pod_vals,
+		HLPOD_VALUES*     hlpod_vals,
 		HLPOD_HR*       hlpod_hr,		
 		const char*     filename,
 		const char*     directory,

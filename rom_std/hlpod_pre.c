@@ -23,7 +23,7 @@ void ROM_std_hlpod_get_meta_neib(
 
     /* neib_id 配列を確保して隣接IDを読む */
     snprintf(fname, BUFFER_SIZE, "%s.recv.%d", metagraph, myrank);
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
 
     fscanf(fp, "%d %d", &(num_neib), &tmp);
 
@@ -55,7 +55,7 @@ void ROM_std_hlpod_get_meta_neib(
     /* 隣接ノードIDを読み込み */
     for (int m = 0; m < num_neib; m++) {
         snprintf(fname, BUFFER_SIZE, "%s.id.%d", metagraph, neib_id[m]);
-        fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+        fp = ROM_BB_read_fopen(fp, fname, directory);
 
         fscanf(fp, "%s", id);
         fscanf(fp, "%d %d", &num_meta_nodes, &tmp);
@@ -88,7 +88,7 @@ void ROM_std_hlpod_get_subdomain_id(
     hlpod_vals->num_2nd_subdomains = ROM_std_hlpod_read_n_internal(fp, fname, directory);
 
     snprintf(fname, BUFFER_SIZE, "%s.id.%d", metagraph, myrank);
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
 
     fscanf(fp, "%s", id);
     fscanf(fp, "%d %d", &num_meta_nodes, &tmp);
@@ -228,7 +228,7 @@ void ROM_std_hlpod_set_nonzero_pattern_bcsr(
 
     fname = monolis_get_global_input_file_name(MONOLIS_DEFAULT_TOP_DIR, MONOLIS_DEFAULT_PART_DIR, label);
 
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
 
     fscanf(fp, "%d", &(num_nodes));
 
@@ -250,7 +250,7 @@ void ROM_std_hlpod_set_nonzero_pattern_bcsr(
     hlpod_meta->index[0] = 0;
 
     fname = monolis_get_global_input_file_name(MONOLIS_DEFAULT_TOP_DIR, MONOLIS_DEFAULT_PART_DIR, label);
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
     fscanf(fp, "%d", &(num_nodes));
 
     for(int i = 0; i < num_nodes; i++) {
@@ -296,7 +296,7 @@ void ROM_std_hlpod_set_nonzero_pattern_bcsr_para(
     const int myrank = monolis_mpi_get_global_my_rank();
 
     snprintf(fname, BUFFER_SIZE, "%s.%d", metagraph, myrank);
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
 
     fscanf(fp, "%d", &(num_nodes));
 
@@ -318,7 +318,7 @@ void ROM_std_hlpod_set_nonzero_pattern_bcsr_para(
     hlpod_meta->index[0] = 0;
 
     snprintf(fname, BUFFER_SIZE, "%s.%d", metagraph, myrank);
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
     fscanf(fp, "%d", &(num_nodes));
 
     for(int i = 0; i < num_nodes; i++) {

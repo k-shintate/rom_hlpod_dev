@@ -65,7 +65,7 @@ void ROM_offline_set_reynolds_num_cases(
 	int num_case_density;
 	int num_case_viscosity;
 
-	fp = ROM_BB_read_fopen_read_fopen(fp, INPUT_FILENAME_DENSITY, directory);
+	fp = ROM_BB_read_fopen(fp, INPUT_FILENAME_DENSITY, directory);
 
 	fscanf(fp, "%s %d", id, &(vals->num_cases));
 	num_case_density = vals->num_cases;
@@ -75,7 +75,7 @@ void ROM_offline_set_reynolds_num_cases(
 	}
 	fclose(fp);
 
-	fp = ROM_BB_read_fopen_read_fopen(fp, INPUT_FILENAME_VISCOSITY, directory);
+	fp = ROM_BB_read_fopen(fp, INPUT_FILENAME_VISCOSITY, directory);
 
 	fscanf(fp, "%s %d", id, &(num_case_viscosity));
 	if(num_case_density != num_case_viscosity){
@@ -170,14 +170,14 @@ void set_target_parameter(
 	double target_vals;
 
 	snprintf(fname, BUFFER_SIZE, "target_density.dat");
-	fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", id, &(tmp));
 	fscanf(fp, "%lf", &(target_vals));
 	vals->density = target_vals;
 	fclose(fp);
 
 	snprintf(fname, BUFFER_SIZE, "target_viscosity.dat");
-	fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+	fp = ROM_BB_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", id, &(tmp));
 	fscanf(fp, "%lf", &(target_vals));
 	vals->viscosity = target_vals;

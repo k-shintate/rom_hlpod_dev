@@ -1,10 +1,14 @@
 #pragma once
 
-#include "pod_dataset.h"
+//#include "pod_dataset.h"
 //#include "diff_dataset.h"
-#include "hlpod_write_fe.h"
+//#include "hlpod_write_fe.h"
 
 #include "monolis_nnls_c.h"
+#include "hrom_dataset.h"
+#include "hlpod_core_fe.h"
+#include "write_std.h"
+#include "write_BB.h"
 
 void hr_memory_allocation(
         const int       total_num_nodes,
@@ -32,11 +36,11 @@ void hr_get_selected_elements(
 
 void hr_calc_solution(
         BBFE_DATA* 		fe,
-        POD_MATRIX*     pod_mat,
+        HLPOD_MAT*     hlpod_mat,
         HLPOD_HR*       hlpod_hr,
         BBFE_BC*     	bc,
-        int 			num_base,
-        LPOD_PRM*		lpod_prm);
+        int 			num_base);
+//        LPOD_PRM*		lpod_prm);
 
 
 void hr_monolis_set_matrix(

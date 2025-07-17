@@ -9,8 +9,8 @@
 void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        LPOD_MATRIX*     lpod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int		num_subdomains,
         const int       index_snap,
@@ -19,7 +19,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
         const double    dt,
 		double       	t)
 {
-    printf("\n\nindex_snap = %d, num_modes = %d, num_subdomains = %d\n\n", index_snap, lpod_mat->n_neib_vec, num_subdomains);
+    printf("\n\nindex_snap = %d, num_modes = %d, num_subdomains = %d\n\n", index_snap, hlpod_mat->n_neib_vec, num_subdomains);
 
     int ns = index_snap;
     int nm = num_modes;
@@ -63,7 +63,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 			double h_e = cbrt(vol);
 
 			BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-			BBFE_elemmat_set_local_array_scalar(local_T, fe, pod_vals->POD_T, e);
+			BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_vals->POD_T, e);
 
 			for(int p=0; p<np; p++) {
 				BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -102,26 +102,26 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 				int index = fe->conn[e][i];
 
 				/*
-				for(int k = 0; k < lpod_mat->n_neib_vec; k++){
-					//hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k][m][n] += integ_val * lpod_mat->neib_vec[index][k];
-					//hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k][n] += integ_val * lpod_mat->neib_vec[index][k];
+				for(int k = 0; k < hlpod_mat->n_neib_vec; k++){
+					//hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k][m][n] += integ_val * hlpod_mat->neib_vec[index][k];
+					//hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k][n] += integ_val * hlpod_mat->neib_vec[index][k];
 
-					//hlpod_ddhr->matrix[ns*(lpod_mat->n_neib_vec) + k + num_snapshot*(lpod_mat->n_neib_vec)][m][n] -= integ_val * lpod_mat->neib_vec[index][k];
-					//hlpod_ddhr->RH[ns*(lpod_mat->n_neib_vec) + k + num_snapshot*(lpod_mat->n_neib_vec)][n] -= integ_val * lpod_mat->neib_vec[index][k]; 
+					//hlpod_ddhr->matrix[ns*(hlpod_mat->n_neib_vec) + k + num_snapshot*(hlpod_mat->n_neib_vec)][m][n] -= integ_val * hlpod_mat->neib_vec[index][k];
+					//hlpod_ddhr->RH[ns*(hlpod_mat->n_neib_vec) + k + num_snapshot*(hlpod_mat->n_neib_vec)][n] -= integ_val * hlpod_mat->neib_vec[index][k]; 
 
-					hlpod_ddhr->matrix[ns*(lpod_mat->n_neib_vec) + k][m][n] -= integ_val * lpod_mat->neib_vec[index][k];
-					hlpod_ddhr->RH[ns*(lpod_mat->n_neib_vec) + k][n] -= integ_val * lpod_mat->neib_vec[index][k]; 
+					hlpod_ddhr->matrix[ns*(hlpod_mat->n_neib_vec) + k][m][n] -= integ_val * hlpod_mat->neib_vec[index][k];
+					hlpod_ddhr->RH[ns*(hlpod_mat->n_neib_vec) + k][n] -= integ_val * hlpod_mat->neib_vec[index][k]; 
 				}
 				*/
 
-				int subdomain_id = lpod_mat->subdomain_id_in_nodes[index];
+				int subdomain_id = hlpod_mat->subdomain_id_in_nodes[index];
 
 				int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id];
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
 
 				for(int k = IS; k < IE; k++){
-					hlpod_ddhr->matrix[ns*(lpod_mat->n_neib_vec) + k][m][n] -= integ_val * lpod_mat->neib_vec[index][k];
-					hlpod_ddhr->RH[ns*(lpod_mat->n_neib_vec) + k][n] -= integ_val * lpod_mat->neib_vec[index][k]; 
+					hlpod_ddhr->matrix[ns*(hlpod_mat->n_neib_vec) + k][m][n] -= integ_val * hlpod_mat->neib_vec[index][k];
+					hlpod_ddhr->RH[ns*(hlpod_mat->n_neib_vec) + k][n] -= integ_val * hlpod_mat->neib_vec[index][k]; 
 				}
 
 			}
@@ -147,8 +147,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
-        LPOD_MATRIX*    lpod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*    hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
         const int       index_snap,
@@ -160,8 +160,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
     int ns = index_snap;
 
 	double** local_matrix;  double* local_vec;
-	local_matrix   = BB_std_calloc_2d_double(local_matrix, lpod_mat->n_neib_vec, lpod_mat->n_neib_vec);
-    local_vec   = BB_std_calloc_1d_double(local_vec, lpod_mat->n_neib_vec);
+	local_matrix   = BB_std_calloc_2d_double(local_matrix, hlpod_mat->n_neib_vec, hlpod_mat->n_neib_vec);
+    local_vec   = BB_std_calloc_1d_double(local_vec, hlpod_mat->n_neib_vec);
 
  	int nl = fe->local_num_nodes;
 	int np = basis->num_integ_points;
@@ -235,11 +235,11 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 					int index_i = fe->conn[e][i];
 					int index_j = fe->conn[e][j];
 
-					int subdomain_id_i = lpod_mat->subdomain_id_in_nodes[index_i];
+					int subdomain_id_i = hlpod_mat->subdomain_id_in_nodes[index_i];
 					int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_i];
 					int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_i + 1];
 
-					int subdomain_id_j = lpod_mat->subdomain_id_in_nodes[index_j];
+					int subdomain_id_j = hlpod_mat->subdomain_id_in_nodes[index_j];
 					int JS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_j];
 					int JE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_j + 1];
 
@@ -247,93 +247,93 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 					//Dirichlet境界条件を含むかを判別    
 					/*
 					if( bc->D_bc_exists[index_j]) {
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){
-							double val = lpod_mat->neib_vec[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){
+							double val = hlpod_mat->neib_vec[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
 
-							//hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1][m][n] += -val;
-							//hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1][n] += -val;
+							//hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1][m][n] += -val;
+							//hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1][n] += -val;
 
-							//hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][m][n] += val;
-							//hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][n] += val;
+							//hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][m][n] += val;
+							//hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][n] += val;
 
-							hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1][m][n] += val;
-							hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1][n] += val;
+							hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1][m][n] += val;
+							hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1][n] += val;
 						}
 					}
 					*/
 					if( bc->D_bc_exists[index_j]) {
 						for(int k1 = IS; k1 < IE; k1++){
-							double val = lpod_mat->neib_vec[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
+							double val = hlpod_mat->neib_vec[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
 
-							//hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1][m][n] += -val;
-							//hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1][n] += -val;
+							//hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1][m][n] += -val;
+							//hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1][n] += -val;
 
-							//hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][m][n] += val;
-							//hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][n] += val;
+							//hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][m][n] += val;
+							//hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][n] += val;
 
-							hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1][m][n] += val;
-							hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1][n] += val;
+							hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1][m][n] += val;
+							hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1][n] += val;
 						}
 					}
 
 					else{
 						/*
-						for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
+						for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
 							local_vec[k2] = 0.0;
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
 								local_matrix[k1][k2] = 0.0;
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
-								local_matrix[k1][k2] += lpod_mat->neib_vec[index_i][k1] * integ_val * lpod_mat->neib_vec[index_j][k2];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
+								local_matrix[k1][k2] += hlpod_mat->neib_vec[index_i][k1] * integ_val * hlpod_mat->neib_vec[index_j][k2];
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){            
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
-								local_vec[k1] += local_matrix[k1][k2] * lpod_mat->coordinates[k2];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){            
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
+								local_vec[k1] += local_matrix[k1][k2] * hlpod_mat->coordinates[k2];
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){   
-							hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][m][n] += local_vec[k1];
-							hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][n] += local_vec[k1];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){   
+							hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][m][n] += local_vec[k1];
+							hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][n] += local_vec[k1];
 						}
 						*/
 						
 /*
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++) {
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++) {
 							local_vec[k1] = 0.0;
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++) {
-								local_matrix[k1][k2] = lpod_mat->neib_vec[index_i][k1] * integ_val * lpod_mat->neib_vec[index_j][k2];
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++) {
+								local_matrix[k1][k2] = hlpod_mat->neib_vec[index_i][k1] * integ_val * hlpod_mat->neib_vec[index_j][k2];
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++) {   
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++) {   
 
 							int index1 = 0;
 							int index2 = 0;
 
 							for(int ki = 0; ki < num_neib; ki++){
-								for(int kj = 0; kj < lpod_mat->num_neib_modes[ki]; kj++){							
-									local_vec[k1] += local_matrix[k1][index2] * lpod_mat->pod_coordinates_all[index1 + kj];
+								for(int kj = 0; kj < hlpod_mat->num_neib_modes[ki]; kj++){							
+									local_vec[k1] += local_matrix[k1][index2] * hlpod_mat->pod_coordinates_all[index1 + kj];
 									
 									index2++;
 								}
-								index1 += lpod_mat->max_num_neib_modes[ki];
+								index1 += hlpod_mat->max_num_neib_modes[ki];
 							}
 
 						}
 
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++) {
-							//int index = ns * lpod_mat->n_neib_vec + k1 + num_snapshot * lpod_mat->n_neib_vec;
-							int index = ns * lpod_mat->n_neib_vec + k1;
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++) {
+							//int index = ns * hlpod_mat->n_neib_vec + k1 + num_snapshot * hlpod_mat->n_neib_vec;
+							int index = ns * hlpod_mat->n_neib_vec + k1;
 
 							hlpod_ddhr->matrix[index][m][n] += local_vec[k1];
 							hlpod_ddhr->RH[index][n] += local_vec[k1];
@@ -342,8 +342,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 /*
 						for(int k1 = IS; k1 < IE; k1++) {
 							local_vec[k1] = 0.0;
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++) {
-								local_matrix[k1][k2] = lpod_mat->neib_vec[index_i][k1] * integ_val * lpod_mat->neib_vec[index_j][k2];
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++) {
+								local_matrix[k1][k2] = hlpod_mat->neib_vec[index_i][k1] * integ_val * hlpod_mat->neib_vec[index_j][k2];
 							}
 						}
 
@@ -353,19 +353,19 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 							int index2 = 0;
 
 							for(int ki = 0; ki < num_neib; ki++){
-								for(int kj = 0; kj < lpod_mat->num_neib_modes[ki]; kj++){							
-									local_vec[k1] += local_matrix[k1][index2] * lpod_mat->pod_coordinates_all[index1 + kj];
+								for(int kj = 0; kj < hlpod_mat->num_neib_modes[ki]; kj++){							
+									local_vec[k1] += local_matrix[k1][index2] * hlpod_mat->pod_coordinates_all[index1 + kj];
 									
 									index2++;
 								}
-								index1 += lpod_mat->max_num_neib_modes[ki];
+								index1 += hlpod_mat->max_num_neib_modes[ki];
 							}
 
 						}
 
 						for(int k1 = IS; k1 < IE; k1++) {
-							//int index = ns * lpod_mat->n_neib_vec + k1 + num_snapshot * lpod_mat->n_neib_vec;
-							int index = ns * lpod_mat->n_neib_vec + k1;
+							//int index = ns * hlpod_mat->n_neib_vec + k1 + num_snapshot * hlpod_mat->n_neib_vec;
+							int index = ns * hlpod_mat->n_neib_vec + k1;
 
 							hlpod_ddhr->matrix[index][m][n] += local_vec[k1];
 							hlpod_ddhr->RH[index][n] += local_vec[k1];
@@ -374,26 +374,26 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 
 
 						for(int k1 = IS; k1 < IE; k1++) {
-							double A = lpod_mat->neib_vec[index_i][k1] * integ_val;
+							double A = hlpod_mat->neib_vec[index_i][k1] * integ_val;
 							local_vec[k1] = 0.0;
 
 							int index1 = 0;
 							int index2 = 0;
 
 							for(int ki = 0; ki < num_neib; ki++) {
-								for(int kj = 0; kj < lpod_mat->num_neib_modes[ki]; kj++) {							
-									double B = lpod_mat->neib_vec[index_j][index2];
-									double C = lpod_mat->pod_coordinates_all[index1 + kj];
+								for(int kj = 0; kj < hlpod_mat->num_neib_modes[ki]; kj++) {							
+									double B = hlpod_mat->neib_vec[index_j][index2];
+									double C = hlpod_mat->pod_coordinates_all[index1 + kj];
 
 									local_vec[k1] += A * B * C;
 									index2++;
 								}
-								index1 += lpod_mat->max_num_neib_modes[ki];
+								index1 += hlpod_mat->max_num_neib_modes[ki];
 							}
 						}
 
 						for(int k1 = IS; k1 < IE; k1++) {
-							int index = ns * lpod_mat->n_neib_vec + k1;
+							int index = ns * hlpod_mat->n_neib_vec + k1;
 
 							hlpod_ddhr->matrix[index][m][n] += local_vec[k1];
 							hlpod_ddhr->RH[index][n] += local_vec[k1];
@@ -425,8 +425,8 @@ void ddhr_set_matvec_only_residuals_for_NNLS2(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
         const int       index_snap,
@@ -513,7 +513,7 @@ void ddhr_set_matvec_only_residuals_for_NNLS2(
 					//Dirichlet境界条件を含むかを判別    
 					if( bc->D_bc_exists[index_j]) {
 						for(int k1 = 0; k1 < num_modes*num_subdomains; k1++){
-							double val = pod_mat->pod_basis[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
+							double val = hlpod_mat->pod_modes[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
 
 							//hlpod_ddhr->matrix[ns*num_modes*num_subdomains + k1][m][n] += -val;
 							//hlpod_ddhr->RH[ns*num_modes*num_subdomains + k1][n] += -val;
@@ -537,13 +537,13 @@ void ddhr_set_matvec_only_residuals_for_NNLS2(
 
 						for(int k1 = 0; k1 < num_modes*num_subdomains; k1++){
 							for(int k2 = 0; k2 < num_modes*num_subdomains; k2++){
-								local_matrix[k1][k2] += pod_mat->pod_basis[index_i][k1] * integ_val * pod_mat->pod_basis[index_j][k2];
+								local_matrix[k1][k2] += hlpod_mat->pod_modes[index_i][k1] * integ_val * hlpod_mat->pod_modes[index_j][k2];
 							}
 						}
 
 						for(int k1 = 0; k1 < num_modes*num_subdomains; k1++){            
 							for(int k2 = 0; k2 < num_modes*num_subdomains; k2++){
-								local_vec[k1] += local_matrix[k1][k2]* pod_mat->pod_coordinates[k2];
+								local_vec[k1] += local_matrix[k1][k2]* hlpod_mat->mode_coef[k2];
 							}
 						}
 
@@ -576,8 +576,8 @@ void ddhr_set_matvec_only_residuals_for_NNLS2(
 void ddhr_set_matvec_RH_for_NNLS2_only_residuals(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int		num_subdomains,
         const int       index_snap,
@@ -629,7 +629,7 @@ void ddhr_set_matvec_RH_for_NNLS2_only_residuals(
 			double h_e = cbrt(vol);
 
 			BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-			BBFE_elemmat_set_local_array_scalar(local_T, fe, pod_vals->POD_T, e);
+			BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_vals->POD_T, e);
 
 			for(int p=0; p<np; p++) {
 				BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -667,14 +667,14 @@ void ddhr_set_matvec_RH_for_NNLS2_only_residuals(
 
 				int index = fe->conn[e][i];
 				for(int k = 0; k < num_modes*num_subdomains; k++){
-					//hlpod_ddhr->matrix[ns*num_modes*num_subdomains + k][m][n] += integ_val * pod_mat->pod_basis[index][k];
-					//hlpod_ddhr->RH[ns*num_modes*num_subdomains + k][n] += integ_val * pod_mat->pod_basis[index][k];
+					//hlpod_ddhr->matrix[ns*num_modes*num_subdomains + k][m][n] += integ_val * hlpod_mat->pod_modes[index][k];
+					//hlpod_ddhr->RH[ns*num_modes*num_subdomains + k][n] += integ_val * hlpod_mat->pod_modes[index][k];
 
-					//hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][m][n] -= integ_val * pod_mat->pod_basis[index][k];
-					//hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][n] -= integ_val * pod_mat->pod_basis[index][k]; 
+					//hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][m][n] -= integ_val * hlpod_mat->pod_modes[index][k];
+					//hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][n] -= integ_val * hlpod_mat->pod_modes[index][k]; 
 
-					hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k][m][n] -= integ_val * pod_mat->pod_basis[index][k];
-					hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k][n] -= integ_val * pod_mat->pod_basis[index][k]; 
+					hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k][m][n] -= integ_val * hlpod_mat->pod_modes[index][k];
+					hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k][n] -= integ_val * hlpod_mat->pod_modes[index][k]; 
 				}
 				
 			}
@@ -701,8 +701,8 @@ void ddhr_set_matvec_RH_for_NNLS2_only_residuals(
 void ddhr_set_matvec_RH_for_NNLS_para(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        LPOD_MATRIX*     lpod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int		num_subdomains,
         const int       index_snap,
@@ -711,7 +711,7 @@ void ddhr_set_matvec_RH_for_NNLS_para(
         const double    dt,
 		double       	t)
 {
-    printf("\n\nindex_snap = %d, num_modes = %d, num_subdomains = %d\n\n", index_snap, lpod_mat->n_neib_vec, num_subdomains);
+    printf("\n\nindex_snap = %d, num_modes = %d, num_subdomains = %d\n\n", index_snap, hlpod_mat->n_neib_vec, num_subdomains);
 
     int ns = index_snap;
     int nm = num_modes;
@@ -755,7 +755,7 @@ void ddhr_set_matvec_RH_for_NNLS_para(
 			double h_e = cbrt(vol);
 
 			BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-			BBFE_elemmat_set_local_array_scalar(local_T, fe, pod_vals->POD_T, e);
+			BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_vals->POD_T, e);
 
 			for(int p=0; p<np; p++) {
 				BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -792,12 +792,12 @@ void ddhr_set_matvec_RH_for_NNLS_para(
 						np, val_ip, basis->integ_weight, Jacobian_ip);
 
 				int index = fe->conn[e][i];
-				for(int k = 0; k < lpod_mat->n_neib_vec; k++){
-					hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k][m][n] += integ_val * lpod_mat->neib_vec[index][k];
-					hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k][n] += integ_val * lpod_mat->neib_vec[index][k];
+				for(int k = 0; k < hlpod_mat->n_neib_vec; k++){
+					hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k][m][n] += integ_val * hlpod_mat->neib_vec[index][k];
+					hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k][n] += integ_val * hlpod_mat->neib_vec[index][k];
 
-					hlpod_ddhr->matrix[ns*(lpod_mat->n_neib_vec) + k + num_snapshot*(lpod_mat->n_neib_vec)][m][n] -= integ_val * lpod_mat->neib_vec[index][k];
-					hlpod_ddhr->RH[ns*(lpod_mat->n_neib_vec) + k + num_snapshot*(lpod_mat->n_neib_vec)][n] -= integ_val * lpod_mat->neib_vec[index][k]; 
+					hlpod_ddhr->matrix[ns*(hlpod_mat->n_neib_vec) + k + num_snapshot*(hlpod_mat->n_neib_vec)][m][n] -= integ_val * hlpod_mat->neib_vec[index][k];
+					hlpod_ddhr->RH[ns*(hlpod_mat->n_neib_vec) + k + num_snapshot*(hlpod_mat->n_neib_vec)][n] -= integ_val * hlpod_mat->neib_vec[index][k]; 
 				}
 				
 			}
@@ -823,8 +823,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
-        LPOD_MATRIX*    lpod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*    hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
         const int       index_snap,
@@ -836,8 +836,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para(
     int ns = index_snap;
 
 	double** local_matrix;  double* local_vec;
-	local_matrix   = BB_std_calloc_2d_double(local_matrix, lpod_mat->n_neib_vec, lpod_mat->n_neib_vec);
-    local_vec   = BB_std_calloc_1d_double(local_vec, lpod_mat->n_neib_vec);
+	local_matrix   = BB_std_calloc_2d_double(local_matrix, hlpod_mat->n_neib_vec, hlpod_mat->n_neib_vec);
+    local_vec   = BB_std_calloc_1d_double(local_vec, hlpod_mat->n_neib_vec);
 
  	int nl = fe->local_num_nodes;
 	int np = basis->num_integ_points;
@@ -913,72 +913,72 @@ void ddhr_set_matvec_residuals_for_NNLS_para(
 
 					//Dirichlet境界条件を含むかを判別    
 					if( bc->D_bc_exists[index_j]) {
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){
-							double val = lpod_mat->neib_vec[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){
+							double val = hlpod_mat->neib_vec[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
 
-							hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1][m][n] += -val;
-							hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1][n] += -val;
+							hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1][m][n] += -val;
+							hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1][n] += -val;
 
-							hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][m][n] += val;
-							hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][n] += val;
+							hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][m][n] += val;
+							hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][n] += val;
 						}
 					}
 
 					else{
 						/*
-						for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
+						for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
 							local_vec[k2] = 0.0;
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
 								local_matrix[k1][k2] = 0.0;
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
-								local_matrix[k1][k2] += lpod_mat->neib_vec[index_i][k1] * integ_val * lpod_mat->neib_vec[index_j][k2];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
+								local_matrix[k1][k2] += hlpod_mat->neib_vec[index_i][k1] * integ_val * hlpod_mat->neib_vec[index_j][k2];
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){            
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++){
-								local_vec[k1] += local_matrix[k1][k2] * lpod_mat->coordinates[k2];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){            
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++){
+								local_vec[k1] += local_matrix[k1][k2] * hlpod_mat->coordinates[k2];
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++){   
-							hlpod_ddhr->matrix[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][m][n] += local_vec[k1];
-							hlpod_ddhr->RH[ns*lpod_mat->n_neib_vec + k1 + num_snapshot*lpod_mat->n_neib_vec][n] += local_vec[k1];
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++){   
+							hlpod_ddhr->matrix[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][m][n] += local_vec[k1];
+							hlpod_ddhr->RH[ns*hlpod_mat->n_neib_vec + k1 + num_snapshot*hlpod_mat->n_neib_vec][n] += local_vec[k1];
 						}
 						*/
 						
 						
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++) {
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++) {
 							local_vec[k1] = 0.0;
-							for(int k2 = 0; k2 < lpod_mat->n_neib_vec; k2++) {
-								local_matrix[k1][k2] = lpod_mat->neib_vec[index_i][k1] * integ_val * lpod_mat->neib_vec[index_j][k2];
+							for(int k2 = 0; k2 < hlpod_mat->n_neib_vec; k2++) {
+								local_matrix[k1][k2] = hlpod_mat->neib_vec[index_i][k1] * integ_val * hlpod_mat->neib_vec[index_j][k2];
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++) {   
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++) {   
 
 							int index1 = 0;
 							int index2 = 0;
 
 							for(int ki = 0; ki < num_neib; ki++){
-								for(int kj = 0; kj < lpod_mat->num_neib_modes[ki]; kj++){							
-									local_vec[k1] += local_matrix[k1][index2] * lpod_mat->pod_coordinates_all[index1 + kj];
+								for(int kj = 0; kj < hlpod_mat->num_neib_modes[ki]; kj++){							
+									local_vec[k1] += local_matrix[k1][index2] * hlpod_mat->pod_coordinates_all[index1 + kj];
 									
 									index2++;
 								}
-								index1 += lpod_mat->max_num_neib_modes[ki];
+								index1 += hlpod_mat->max_num_neib_modes[ki];
 							}
 						}
 
-						for(int k1 = 0; k1 < lpod_mat->n_neib_vec; k1++) {
-							int index = ns * lpod_mat->n_neib_vec + k1 + num_snapshot * lpod_mat->n_neib_vec;
+						for(int k1 = 0; k1 < hlpod_mat->n_neib_vec; k1++) {
+							int index = ns * hlpod_mat->n_neib_vec + k1 + num_snapshot * hlpod_mat->n_neib_vec;
 							hlpod_ddhr->matrix[index][m][n] += local_vec[k1];
 							hlpod_ddhr->RH[index][n] += local_vec[k1];
 						}
@@ -1005,8 +1005,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para(
 void ddhr_set_matvec_RH_for_NNLS2(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int		num_subdomains,
         const int       index_snap,
@@ -1058,7 +1058,7 @@ void ddhr_set_matvec_RH_for_NNLS2(
 			double h_e = cbrt(vol);
 
 			BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-			BBFE_elemmat_set_local_array_scalar(local_T, fe, pod_vals->POD_T, e);
+			BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_vals->POD_T, e);
 
 			for(int p=0; p<np; p++) {
 				BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -1096,11 +1096,11 @@ void ddhr_set_matvec_RH_for_NNLS2(
 
 				int index = fe->conn[e][i];
 				for(int k = 0; k < num_modes*num_subdomains; k++){
-					hlpod_ddhr->matrix[ns*num_modes*num_subdomains + k][m][n] += integ_val * pod_mat->pod_basis[index][k];
-					hlpod_ddhr->RH[ns*num_modes*num_subdomains + k][n] += integ_val * pod_mat->pod_basis[index][k];
+					hlpod_ddhr->matrix[ns*num_modes*num_subdomains + k][m][n] += integ_val * hlpod_mat->pod_modes[index][k];
+					hlpod_ddhr->RH[ns*num_modes*num_subdomains + k][n] += integ_val * hlpod_mat->pod_modes[index][k];
 
-					hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][m][n] -= integ_val * pod_mat->pod_basis[index][k];
-					hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][n] -= integ_val * pod_mat->pod_basis[index][k]; 
+					hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][m][n] -= integ_val * hlpod_mat->pod_modes[index][k];
+					hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][n] -= integ_val * hlpod_mat->pod_modes[index][k]; 
 				}
 				
 			}
@@ -1125,8 +1125,8 @@ void ddhr_set_matvec_residuals_for_NNLS2(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
         const int       index_snap,
@@ -1213,7 +1213,7 @@ void ddhr_set_matvec_residuals_for_NNLS2(
 					//Dirichlet境界条件を含むかを判別    
 					if( bc->D_bc_exists[index_j]) {
 						for(int k1 = 0; k1 < num_modes*num_subdomains; k1++){
-							double val = pod_mat->pod_basis[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
+							double val = hlpod_mat->pod_modes[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
 
 							hlpod_ddhr->matrix[ns*num_modes*num_subdomains + k1][m][n] += -val;
 							hlpod_ddhr->RH[ns*num_modes*num_subdomains + k1][n] += -val;
@@ -1234,13 +1234,13 @@ void ddhr_set_matvec_residuals_for_NNLS2(
 
 						for(int k1 = 0; k1 < num_modes*num_subdomains; k1++){
 							for(int k2 = 0; k2 < num_modes*num_subdomains; k2++){
-								local_matrix[k1][k2] += pod_mat->pod_basis[index_i][k1] * integ_val * pod_mat->pod_basis[index_j][k2];
+								local_matrix[k1][k2] += hlpod_mat->pod_modes[index_i][k1] * integ_val * hlpod_mat->pod_modes[index_j][k2];
 							}
 						}
 
 						for(int k1 = 0; k1 < num_modes*num_subdomains; k1++){            
 							for(int k2 = 0; k2 < num_modes*num_subdomains; k2++){
-								local_vec[k1] += local_matrix[k1][k2]* pod_mat->pod_coordinates[k2];
+								local_vec[k1] += local_matrix[k1][k2]* hlpod_mat->mode_coef[k2];
 							}
 						}
 
@@ -1271,8 +1271,8 @@ void ddhr_set_matvec_residuals_for_NNLS2(
 void hr_set_matvec_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_HR*       hlpod_hr,
         const int       index_snap,
         const int       num_modes,
@@ -1319,7 +1319,7 @@ void hr_set_matvec_for_NNLS(
 		double h_e = cbrt(vol);
 
 		BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-		BBFE_elemmat_set_local_array_scalar(local_T, fe, pod_vals->POD_T, e);
+		BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_vals->POD_T, e);
 
 		for(int p=0; p<np; p++) {
 			BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -1357,8 +1357,8 @@ void hr_set_matvec_for_NNLS(
 
             int index = fe->conn[e][i];
             for(int k = 0; k < num_modes; k++){
-                hlpod_hr->matrix[ ns * num_modes + k][e] += integ_val * pod_mat->pod_basis[index][k];
-                hlpod_hr->RH[ns * num_modes + k] += integ_val * pod_mat->pod_basis[index][k];
+                hlpod_hr->matrix[ ns * num_modes + k][e] += integ_val * hlpod_mat->pod_modes[index][k];
+                hlpod_hr->RH[ns * num_modes + k] += integ_val * hlpod_mat->pod_modes[index][k];
             }
             
 		}
@@ -1382,8 +1382,8 @@ void hr_set_matvec_for_NNLS(
 void hr_set_matvec_RH_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_HR*       hlpod_hr,
         const int       index_snap,
         const int       num_snapshot,
@@ -1431,7 +1431,7 @@ void hr_set_matvec_RH_for_NNLS(
 		double h_e = cbrt(vol);
 
 		BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-		BBFE_elemmat_set_local_array_scalar(local_T, fe, pod_vals->POD_T, e);
+		BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_vals->POD_T, e);
 
 		for(int p=0; p<np; p++) {
 			BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -1469,11 +1469,11 @@ void hr_set_matvec_RH_for_NNLS(
 
             int index = fe->conn[e][i];
             for(int k = 0; k < num_modes; k++){
-                hlpod_hr->matrix[ ns * num_modes + k][e] += integ_val * pod_mat->pod_basis[index][k];
-                hlpod_hr->RH[ns * num_modes + k] += integ_val * pod_mat->pod_basis[index][k];
+                hlpod_hr->matrix[ ns * num_modes + k][e] += integ_val * hlpod_mat->pod_modes[index][k];
+                hlpod_hr->RH[ns * num_modes + k] += integ_val * hlpod_mat->pod_modes[index][k];
 
-                hlpod_hr->matrix[ ns * num_modes + k + num_modes * num_snapshot][e] -= integ_val * pod_mat->pod_basis[index][k];
-                hlpod_hr->RH[ns * num_modes + k + num_modes * num_snapshot] -= integ_val * pod_mat->pod_basis[index][k];
+                hlpod_hr->matrix[ ns * num_modes + k + num_modes * num_snapshot][e] -= integ_val * hlpod_mat->pod_modes[index][k];
+                hlpod_hr->RH[ns * num_modes + k + num_modes * num_snapshot] -= integ_val * hlpod_mat->pod_modes[index][k];
             }
             
 		}
@@ -1498,8 +1498,8 @@ void hr_set_matvec_residuals_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
-        POD_MATRIX*     pod_mat,
-        POD_VALUES*     pod_vals,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
         HLPOD_HR*       hlpod_hr,
         const int       index_snap,
         const int       num_snapshot,
@@ -1582,7 +1582,7 @@ void hr_set_matvec_residuals_for_NNLS(
                 //Dirichlet境界条件を含むかを判別    
                 if( bc->D_bc_exists[index_j]) {
                     for(int k1 = 0; k1 < num_modes; k1++){
-                        double val = pod_mat->pod_basis[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
+                        double val = hlpod_mat->pod_modes[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
                         hlpod_hr->matrix[ ns * num_modes + k1][e] += -val;
                         hlpod_hr->RH[ns * num_modes + k1] += -val;
 
@@ -1593,13 +1593,13 @@ void hr_set_matvec_residuals_for_NNLS(
                 else{
                     for(int k1 = 0; k1 < num_modes; k1++){
                         for(int k2 = 0; k2 < num_modes; k2++){
-                            local_matrix[k1][k2] += pod_mat->pod_basis[index_i][k1] * integ_val * pod_mat->pod_basis[index_j][k2];
+                            local_matrix[k1][k2] += hlpod_mat->pod_modes[index_i][k1] * integ_val * hlpod_mat->pod_modes[index_j][k2];
                         }
                     }
 
                     for(int k1 = 0; k1 < num_modes; k1++){            
                         for(int k2 = 0; k2 < num_modes; k2++){
-                            local_vec[k1] += local_matrix[k1][k2]* pod_mat->pod_coordinates[k2];
+                            local_vec[k1] += local_matrix[k1][k2]* hlpod_mat->mode_coef[k2];
                         }
                     }
                     for(int k1 = 0; k1 < num_modes; k1++){   

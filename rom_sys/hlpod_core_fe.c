@@ -1,6 +1,6 @@
 
 #include "hlpod_core_fe.h"
-
+#include "write_std.h"
 
 void ROM_sys_hlpod_fe_set_snap_mat_para(
     double*       	comp_vec,

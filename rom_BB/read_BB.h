@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-FILE* ROM_BB_read_fopen_read_fopen(
+FILE* ROM_BB_read_fopen(
 		FILE*        fp,
 		const char*  filename,
 		const char*  directory);

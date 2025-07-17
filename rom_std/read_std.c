@@ -11,7 +11,7 @@ int ROM_std_hlpod_read_n_internal(
     char id[BUFFER_SIZE];
     int n_internal_vertex;
     int ndof;
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
     fscanf(fp, "%s %d", id, &(ndof));
     fscanf(fp, "%d", &(n_internal_vertex));
     fclose(fp);
@@ -30,7 +30,7 @@ void ROM_std_hlpod_read_node_id(
     int total_num_nodes;
     int ndof;
 
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
     fscanf(fp, "%s", id);
     fscanf(fp, "%d %d", &(total_num_nodes),&(ndof));
     for(int i = 0; i < n_internal_vertex; i++) {
@@ -50,7 +50,7 @@ int ROM_std_hlpod_read_num_modes(
 
     FILE* fp;
 
-    fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+    fp = ROM_BB_read_fopen(fp, fname, directory);
     fscanf(fp,"%d", &(num_modes));
     fclose(fp);
 
@@ -75,7 +75,7 @@ void ROM_std_hlpod_read_pod_modes_node(
     for(int j = 0; j < num_modes; j++){
         snprintf(fname, BUFFER_SIZE,"%s/subdomain%d/lb_pod_modes%d.dat", label, subdomain_id, j);
 
-        fp = ROM_BB_read_fopen_read_fopen(fp, fname, directory);
+        fp = ROM_BB_read_fopen(fp, fname, directory);
 
         fscanf(fp,"%s", id);
         fscanf(fp,"%d %d", &n_internal_vertex, &block_size);
