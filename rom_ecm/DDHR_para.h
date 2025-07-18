@@ -6,7 +6,6 @@
 #include "write_std.h"
 #include "write_BB.h"
 
-
 void ddhr_memory_allocation_para_online(
         HLPOD_VALUES*   hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,

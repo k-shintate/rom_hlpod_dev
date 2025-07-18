@@ -1,19 +1,5 @@
 
-#include "core_FOM.h"
-#include "core_ROM.h"
 #include "core_HROM.h"
-
-#include "ecm_write.h"
-#include "hlpod_dataset.h"
-#include "diff_dataset.h"
-
-#include "HR.h"
-#include "DDHR.h"
-#include "DDHR2.h"
-#include "DDHR_para.h"
-#include "DDHR_para_lb.h"
-#include "set_matvec.h"
-#include "monowrap.h"
 
 const int BUFFER_SIZE = 10000;
 
@@ -387,7 +373,7 @@ void HROM_pre_online(
 */
 
 
-	ddhr_lb_set_reduced_mat_para_save_memory(
+	ddhr_lb_set_reduced_mat_para_save_memory2(
 		&(sys->monolis_hr0),
 		&(sys->fe),
 		&(sys->basis),
@@ -418,6 +404,7 @@ void HROM_pre_online(
 		&(sys->monolis_hr0),
 		&(sys->mono_com_rom_solv),
 		//&(sys->lpod_com),
+        &(sys->rom.hlpod_vals),
 		&(sys->rom.hlpod_mat),
 //		&(sys->lpod_prm),
 		&(sys->hrom.hlpod_ddhr),
@@ -450,18 +437,19 @@ void HROM_hierarchical_parallel(
 
 	double set_bc1 = monolis_get_time();
 	hlpod_hr_sys_manusol_set_bc(
-			&(sys.fe),
-			&(sys.bc),
-			BLOCK_SIZE,
-			t,
-			manusol_get_sol,
-			&(sys.rom.hlpod_mat));
+        &(sys.fe),
+        &(sys.bc),
+        BLOCK_SIZE,
+        t,
+        manusol_get_sol,
+        &(sys.rom.hlpod_mat));
 	double set_bc2 = monolis_get_time();
 	
     ddhr_lb_set_reduced_vec_para(
         &(sys.monolis_hr),
         &(sys.fe),
         &(sys.basis),
+        &(sys.rom.hlpod_vals),
         &(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
         sys.rom.hlpod_vals.num_modes,

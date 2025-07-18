@@ -2,7 +2,7 @@
 //内部要素の総和が分割前の要素数の総和になることを利用
 
 /*
-#include "pod_dataset.h"
+#include "rom_dataset.h"
 #include "diff_dataset.h"
 #include "hlpod_write_fe.h"
 #include "hlpod_write.h"

@@ -1,8 +1,8 @@
 //todo: NNLS用の関数をまとめる
 
-#include "pod_dataset.h"
+#include "rom_dataset.h"
 
-#include "main_FOM.h"
+#include "core_FOM.h"
 
 
 //残差ベクトルのみをNNLSに使う

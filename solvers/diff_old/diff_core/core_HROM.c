@@ -15,7 +15,7 @@
 #include "set_matvec.h"
 #include "monowrap.h"
 
-#include "main_FOM.h"
+#include "core_FOM.h"
 
 const int BUFFER_SIZE = 10000;
 

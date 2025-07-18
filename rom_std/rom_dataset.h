@@ -61,6 +61,10 @@ typedef struct
     int num_metagraph_nodes;
     int* hr_D_bc_node_id;
     int num_hr_D_bc_nodes;
+    int* subdomain_id_in_nodes;
+    int* subdomain_id_in_nodes_2nddd;
+    double** pod_basis_hr;
+    int* max_num_neib_modes;
 
 } HLPOD_MAT;
 

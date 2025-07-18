@@ -45,13 +45,6 @@ void HROM_nonparallel(
 		const int       step_HR,
 		const int       step_POD,
 		const double    t);
-/*
-void HROM_parallel(
-		FE_SYSTEM       sys,
-		const int       step_HR,
-		const int       step_POD,
-		const double    t);
-*/
 
 void HROM_hierarchical_parallel(
 		FE_SYSTEM 		sys,

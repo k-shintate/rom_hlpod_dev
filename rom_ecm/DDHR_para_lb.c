@@ -3,7 +3,7 @@
 //load balancing, 2階層目のbscr形式に対応
 
 /*
-#include "pod_dataset.h"
+#include "rom_dataset.h"
 #include "core_all.h"
 #include "hlpod_write_fe.h"
 #include "std.h"
