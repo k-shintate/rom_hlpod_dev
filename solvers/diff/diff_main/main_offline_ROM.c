@@ -1,5 +1,7 @@
 
 #include "core_ROM.h"
+#include "core_HROM.h"
+#include "set_matvec_NNLS.h"
 
 static const char* OPTION_NUM_MODES = "-nm";
 static const char* OPTION_NUM_1STDD = "-nd";
@@ -215,13 +217,35 @@ int main (
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
     monolis_com_initialize_by_self(&(sys.mono_com0));
     /******************/
-    
+
     /**************************************************/
+
+    /*for Hyper-reduction*/
+    ddhr_lb_set_element_para2(
+            &(sys.fe),
+            &(sys.hrom.hlpod_ddhr),
+            sys.rom.hlpod_vals.num_2nd_subdomains,
+            sys.cond.directory);
+
+    //基底本数の分布が決定されてからメモリ割り当て
+    ddhr_memory_allocation_para(
+            &(sys.rom.hlpod_vals),
+            &(sys.hrom.hlpod_ddhr),
+            &(sys.rom.hlpod_mat),
+            sys.fe.total_num_nodes,
+            sys.fe.total_num_elems,
+            sys.rom.hlpod_vals.num_snapshot,
+            sys.rom.hlpod_vals.num_modes,
+            sys.rom.hlpod_vals.num_2nd_subdomains);
+
+    /*********************/
+
 
     monolis_copy_mat_R(&(sys.monolis0), &(sys.monolis));
 
     int file_num = 0;
     int step = 0;
+    int step_POD = 0;
     double t = 0;
 	while (t < sys.vals.finish_time) {
 		t += sys.vals.dt;
@@ -238,6 +262,7 @@ int main (
 	while (t < sys.vals.rom_finish_time) {
 		t += sys.vals.dt;
 		step += 1;
+        step_POD += 1;
 
 		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
         double calctime_fem_t1 = monolis_get_time();
@@ -251,6 +276,34 @@ int main (
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
 
+        ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
+                &(sys.fe),
+                &(sys.basis),
+                &(sys.rom.hlpod_mat),
+                &(sys.rom.hlpod_vals),
+                &(sys.hrom.hlpod_ddhr),
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                step_POD -1 ,   //index 0 start
+                sys.rom.hlpod_vals.num_snapshot,
+                sys.rom.hlpod_vals.num_modes,
+                sys.vals.dt,
+                t);
+
+        ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
+                &(sys.fe),
+                &(sys.basis),
+                &(sys.bc),
+                &(sys.rom.hlpod_mat),
+                &(sys.rom.hlpod_vals),
+                &(sys.hrom.hlpod_ddhr),
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                step_POD -1 ,   //index 0 start
+                sys.rom.hlpod_vals.num_snapshot,
+                1 + sys.monolis_com.recv_n_neib,
+                sys.vals.dt,
+                t);
+
+        /*
         if(step%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);
                         
@@ -264,9 +317,21 @@ int main (
 
 			file_num += 1;
 		}
-
+        */
 	}
 
+    if(monolis_mpi_get_global_comm_size() == 1){
+        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
+    else{
+        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
+
+    if(monolis_mpi_get_global_my_rank() == 0){
+        fp = BBFE_sys_write_fopen(fp, "calctime/time_offline.txt", sys.cond.directory);
+        //fprintf(fp, "%e\n", calctime_offline);
+        fclose(fp);
+    }
 
 	BBFE_convdiff_finalize(&(sys.fe), &(sys.basis), &(sys.bc));
 

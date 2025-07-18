@@ -29,7 +29,6 @@ void set_element_reduced_mat(
 	const double	integ_val,
 	const int		num_modes);
 
-
 void ddhr_set_reduced_mat_para_debug(
     MONOLIS*     	monolis,
     BBFE_DATA*     	fe,
