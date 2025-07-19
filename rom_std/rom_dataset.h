@@ -26,6 +26,9 @@ typedef struct
 
     bool bool_global_mode;
 
+    //追加
+    
+
 } HLPOD_VALUES;
 
 
@@ -47,7 +50,7 @@ typedef struct
     int* num_modes_internal;         //number of pod modes in internal subdomains
 
     int* num_modes_2nddd;            //number of pod modes in 2nd subdomains (own)
-    int* max_num_neib_modes;        //number of pod modes in 2nd subdomains (own, max)
+    int* num_modes_2nddd_max;        //number of pod modes in 2nd subdomains (own, max)
 
     int* num_modes_1stdd;            //number of pod modes in 1st subdomains (own, index format)
     int* num_modes_1stdd_neib;       //number of pod modes in 1st subdomains (own + neib)
@@ -64,7 +67,8 @@ typedef struct
     int* subdomain_id_in_nodes;
     int* subdomain_id_in_nodes_2nddd;
     double** pod_basis_hr;
-    //int* max_num_neib_modes;
+    int* max_num_neib_modes;
+    
 
     int** subdomain_id_in_nodes_internal;
 

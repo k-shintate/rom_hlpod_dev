@@ -16,6 +16,7 @@
 #include "DDHR_para.h"
 #include "DDHR_para_lb.h"
 #include "set_matvec.h"
+#include "set_modes.h"
 #include "monowrap.h"
 
 #include "core_FOM.h"

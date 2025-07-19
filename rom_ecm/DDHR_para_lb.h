@@ -212,3 +212,10 @@ void hlpod_hr_sys_manusol_set_bc(
     double     	t,
     double      (*func)(double, double, double, double), // scalar function(x, y, z, t)
     HLPOD_MAT*	hlpod_mat);
+
+//for arbit dof ddecm
+void get_neib_subdomain_id_2nddd(
+	MONOLIS_COM*  	monolis_com,
+	//LPOD_COM* 		lpod_com,
+	HLPOD_MAT* 	hlpod_mat,
+	const int 		num_modes);

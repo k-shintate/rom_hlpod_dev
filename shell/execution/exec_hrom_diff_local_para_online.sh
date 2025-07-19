@@ -24,9 +24,7 @@ do
     	for np in "${num_parallel[@]}"
     	do
 	
-        . shell/diff_hrom/meshgen.sh $e $ep $nm $nd $np $pa
-	    . shell/diff_hrom/merge_graph.sh $e $ep $nm $nd $np $pa
-	    . shell/diff_hrom/execution_offline.sh $e $ep $nm $nd $np $pa $st
+	    . shell/diff_hrom/execution_online.sh $e $ep $nm $nd $np $pa $st
 
         done
 	done

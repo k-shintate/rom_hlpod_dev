@@ -188,12 +188,17 @@ int main (
 
 	if(monolis_mpi_get_global_my_rank() == 0){
 		fp = ROM_BB_write_fopen(fp, "l2_error_rom.txt", sys.cond.directory);
+    	fclose(fp);
+    	fp = ROM_BB_write_fopen(fp, "l2_error_fem_hrom.txt", sys.cond.directory);
+		fclose(fp);
+		fp = ROM_BB_write_fopen(fp, "l2_error_rom_hrom.txt", sys.cond.directory);
 		fclose(fp);
 	}
 
 	if(monolis_mpi_get_global_my_rank() == 0){
         ROM_std_hlpod_write_solver_prm_fopen("fem_solver_prm", sys.cond.directory);
 		ROM_std_hlpod_write_solver_prm_fopen("pod_solver_prm", sys.cond.directory);
+        ROM_std_hlpod_write_solver_prm_fopen("hr_solver_prm", sys.cond.directory);
 	}
 
     ROM_std_hlpod_read_pod_modes(
@@ -231,6 +236,13 @@ int main (
             &(sys.rom.hlpod_mat),
             sys.fe.total_num_nodes);
 
+    if(monolis_mpi_get_global_comm_size() == 1){
+        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
+    else{
+        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
+
     if(monolis_mpi_get_global_comm_size() == 1){		
 		//HROM_pre_online_nonpara(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
@@ -250,6 +262,7 @@ int main (
     /**************************************************/
 
     monolis_copy_mat_R(&(sys.monolis0), &(sys.monolis));
+    monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
 
     int file_num = 0;
     int step = 0;
@@ -282,16 +295,22 @@ int main (
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
 
+        HROM_hierarchical_parallel(sys, step, 0, t);
+
         if(step%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);
                         
             ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
 			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
+            ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "hr_solver_prm/", sys.cond.directory);
 
             ROM_std_hlpod_output_calc_time(calctime_fem_t1-calctime_fem_t2, t,
 					"calctime/time_fem.txt", sys.cond.directory);
             ROM_std_hlpod_output_calc_time(calctime_rom_t1-calctime_rom_t2, t,
 					"calctime/time_rom.txt", sys.cond.directory);
+
+        	HR_output_files(&sys, file_num, t);	
+		    //calctime_online += calctime_hr_t2- calctime_hr_t1;
 
 			file_num += 1;
 		}

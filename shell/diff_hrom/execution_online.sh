@@ -12,26 +12,23 @@ pa=$6
 st=$7
 
 # 実行ディレクトリ
-directory="result_diff/${nm}-${np}-${nd}"
+directory_offline="result_diff/${nm}-${np}-${nd}"
+directory_online="result_diff/online_${nm}-${np}-${nd}"
 
-. shell/install.sh
+rm -r $directory_online
+#mkdir -p $directory_offline
+mkdir -p result_diff/tmp
+cp -r result_diff/${nm}-${np}-${nd} result_diff/tmp
+mv result_diff/tmp/${nm}-${np}-${nd} $directory_online
 
 cd solvers/diff
 
 make -f Makefile_HROM clean
 make -f Makefile_HROM
 
-cp -r hlpod_diff_offline_FOM ./../../$directory
-cp -r hlpod_diff_offline_ROM ./../../$directory
-cp -r hlpod_diff_online_HROM ./../../$directory
+cp -r hlpod_diff_online_HROM ./../../$directory_online
 
-cd ./../../$directory
-
-mkdir -p {pod_modes_vtk,pod_modes,fem_solver_prm,pod_solver_prm,calctime,DDECM,hr_param}
-for ((i=0; i<nd; i++))
-do
-    mkdir -p "pod_modes/subdomain${i}"
-done
+cd ../../$directory_online
 
 fname="gdb_cmd"
 rm $fname

@@ -210,3 +210,9 @@ void ROM_std_hlpod_set_podmodes_global_para_diag(
     const int 		dof_1,
     const int 		dof_2,
     const char*     directory);
+
+void lpod_hdd_lb_set_hr_podbasis(
+    MONOLIS_COM*  	monolis_com,
+	HLPOD_VALUES*		hlpod_vals,
+    HLPOD_MAT*    hlpod_mat,
+	const int		total_num_nodes);

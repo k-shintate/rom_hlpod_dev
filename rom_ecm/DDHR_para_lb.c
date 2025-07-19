@@ -2813,3 +2813,65 @@ void hlpod_hr_sys_set_bc_id(
 	hlpod_mat->num_hr_D_bc_nodes = j;
 
 }
+
+
+
+//for arbit dof ddecm
+void get_neib_subdomain_id_2nddd(
+	MONOLIS_COM*  	monolis_com,
+	//LPOD_COM* 		lpod_com,
+	HLPOD_MAT* 	hlpod_mat,
+	const int 		num_modes)		//num_2nd_subdomains
+{
+    int n_neib_vec;
+    int n_vec = 1;    //自領域のベクトル数
+    
+    monolis_mpi_get_n_neib_vector(
+        monolis_com,
+        n_vec,
+        &n_neib_vec);       //出力：自領域と隣接領域の合計ベクトル数
+
+    const int np = monolis_com->n_internal_vertex + monolis_com->recv_index[monolis_com->recv_n_neib]; //配列サイズ
+    const int n_internal_vertex = monolis_com->n_internal_vertex;
+
+    double** my_vec;
+    my_vec = BB_std_calloc_2d_double(my_vec, np, n_vec);
+
+    for(int i = 0; i < n_vec; i++){	
+        for(int j = 0; j < n_internal_vertex; j++){
+			//my_vec[j][i] = hlpod_mat->subdomain_id_in_nodes_internal[j][i];
+			my_vec[j][i] = 1;	//非零
+        }
+    }
+
+	double t2 = monolis_get_time_global_sync();
+	printf("\npass_sparse_dense_matvec0-00\n");
+
+	//BB_std_free_2d_int(hlpod_mat->subdomain_id_in_nodes_internal, monolis_com->n_internal_vertex + monolis_com->recv_index[monolis_com->recv_n_neib], num_modes);
+
+    double** neib_vec = BB_std_calloc_2d_double(neib_vec, np, n_neib_vec);
+
+	hlpod_mat->subdomain_id_in_nodes_2nddd = BB_std_calloc_1d_int(hlpod_mat->subdomain_id_in_nodes_2nddd, np);
+
+    const int n_dof = 1;    //計算点が持つ自由度
+
+    monolis_mpi_get_neib_vector_R(
+        monolis_com,
+        np,						//配列サイズ
+        n_dof,					//計算点が持つ自由度
+        n_vec,					//自領域のベクトル数
+        n_neib_vec,				//自領域と隣接領域の合計ベクトル数
+        my_vec,					//自領域のベクトル
+        neib_vec);	//自領域と隣接領域が並んだベクトル
+
+	for(int i = 0; i < n_neib_vec; i++){
+		for(int j = 0; j < np; j++){
+			if(neib_vec[j][i] != 0){
+				hlpod_mat->subdomain_id_in_nodes_2nddd[j] = i;
+			}
+		}
+	}
+
+	BB_std_free_2d_double(my_vec, np, n_vec);
+	BB_std_free_2d_double(neib_vec, np, n_neib_vec);
+}
