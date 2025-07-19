@@ -240,14 +240,14 @@ int main (
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
-        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
 
     if(monolis_mpi_get_global_comm_size() == 1){		
 		//HROM_pre_online_nonpara(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
 	else{
-		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
 
     hlpod_hr_sys_set_bc_id(

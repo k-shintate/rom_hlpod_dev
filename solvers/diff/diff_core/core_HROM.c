@@ -293,7 +293,7 @@ void HROM_pre_offline(
 
 	set_max_num_modes(
 		&(sys->rom.hlpod_vals),
-		sys->rom.hlpod_vals.num_modes,
+		sys->rom.hlpod_vals.num_modes_pre,
 //		sys->rom.hlpod_vals.num_1st_subdomains,
         monolis_mpi_get_global_comm_size(),
 //        sys->rom.hlpod_vals.num_2nd_subdomains,
@@ -348,7 +348,7 @@ void HROM_pre_offline2(
 		&(sys->rom.hlpod_meta),
 		sys->fe.total_num_elems,
 		sys->rom.hlpod_vals.num_snapshot,
-		sys->rom.hlpod_vals.num_modes,
+		sys->rom.hlpod_vals.num_modes_pre,
 		num_2nd_subdomains,
 		10000,
 		1.0e-8,
@@ -440,7 +440,7 @@ void HROM_pre_online(
 		&(sys->rom.hlpod_vals),
 		&(sys->rom.hlpod_mat),
 		&(sys->hrom.hlpod_ddhr),
-		sys->rom.hlpod_vals.num_modes,
+		sys->rom.hlpod_vals.num_modes_pre,
 		num_2nd_subdomains,
 		sys->vals.dt);
 
@@ -475,7 +475,7 @@ void HROM_pre_online(
 //		&(sys->lpod_prm),
 		&(sys->hrom.hlpod_ddhr),
 		&(sys->rom.hlpod_meta),
-		sys->rom.hlpod_vals.num_modes,
+		sys->rom.hlpod_vals.num_modes_pre,
 		sys->rom.hlpod_vals.num_2nd_subdomains,
 		sys->cond.directory);
 	
@@ -520,7 +520,7 @@ void HROM_hierarchical_parallel(
         &(sys.rom.hlpod_vals),
         &(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
-        sys.rom.hlpod_vals.num_modes,
+        sys.rom.hlpod_vals.num_modes_pre,
         sys.rom.hlpod_vals.num_2nd_subdomains,
         sys.vals.dt,
         t);
@@ -532,7 +532,7 @@ void HROM_hierarchical_parallel(
         &(sys.bc),
         &(sys.rom.hlpod_mat),
         &(sys.hrom.hlpod_ddhr),
-        sys.rom.hlpod_vals.num_modes,
+        sys.rom.hlpod_vals.num_modes_pre,
         sys.rom.hlpod_vals.num_2nd_subdomains,
         sys.vals.dt);
 
@@ -541,7 +541,7 @@ void HROM_hierarchical_parallel(
         &(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
 		sys.rom.hlpod_vals.num_2nd_subdomains,
-        sys.rom.hlpod_vals.num_modes);
+        sys.rom.hlpod_vals.num_modes_pre);
 
     double t2 = monolis_get_time();
 
@@ -582,7 +582,7 @@ void HROM_hierarchical_parallel(
         &(sys.rom.hlpod_mat),
         &(sys.bc),
         sys.rom.hlpod_vals.num_2nd_subdomains,
-		sys.rom.hlpod_vals.num_modes);
+		sys.rom.hlpod_vals.num_modes_pre);
 //        &(sys.rom.hlpod_mat));
 
     t2 = monolis_get_time();

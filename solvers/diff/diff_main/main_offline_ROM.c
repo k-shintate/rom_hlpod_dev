@@ -251,14 +251,14 @@ int main (
             sys.fe.total_num_nodes,
             sys.fe.total_num_elems,
             sys.rom.hlpod_vals.num_snapshot,
-            sys.rom.hlpod_vals.num_modes,
+            sys.rom.hlpod_vals.num_modes_pre,
             sys.rom.hlpod_vals.num_2nd_subdomains);
 
     if(monolis_mpi_get_global_comm_size() == 1){
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
-        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
 
     /*********************/
@@ -293,9 +293,9 @@ int main (
                 &(sys.rom.hlpod_vals),
                 &(sys.rom.hlpod_mat),
                 1 + sys.mono_com_rom_solv.recv_n_neib,
-                sys.rom.hlpod_vals.num_modes,
+                sys.rom.hlpod_vals.num_modes_pre,
                 sys.rom.hlpod_vals.num_2nd_subdomains,
-                sys.rom.hlpod_vals.num_modes);
+                sys.rom.hlpod_vals.num_modes_pre);
 
         ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
                 &(sys.fe),
@@ -306,7 +306,7 @@ int main (
                 sys.rom.hlpod_vals.num_2nd_subdomains,
                 step -1 ,   //index 0 start
                 sys.rom.hlpod_vals.num_snapshot,
-                sys.rom.hlpod_vals.num_modes,
+                sys.rom.hlpod_vals.num_modes_pre,
                 sys.vals.dt,
                 t);
 
@@ -330,7 +330,7 @@ int main (
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
-        HROM_pre_offline2(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline2(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
 
     if(monolis_mpi_get_global_my_rank() == 0){

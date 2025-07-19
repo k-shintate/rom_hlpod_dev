@@ -2593,8 +2593,8 @@ void ddhr_lb_set_reduced_vec_para(
 		double h_e = cbrt(vol);
 
 		BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-		//BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_ddhr->HR_T, e);
-
+		BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_ddhr->HR_T, e);
+/*
         for(int i=0; i<nl; i++) {
             int index = fe->conn[e][i];
 			int subdomain_id = hlpod_mat->subdomain_id_in_nodes[index];
@@ -2610,6 +2610,7 @@ void ddhr_lb_set_reduced_vec_para(
                     * hlpod_mat->mode_coef[k - IS + num_modes*subdomain_id];
             }
         }
+        */
 
 		for(int p=0; p<np; p++) {
 			BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);

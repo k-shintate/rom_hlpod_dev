@@ -2765,7 +2765,7 @@ void get_neib_coordinates_pad(
 	MONOLIS_COM*  	monolis_com,
     HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_MAT*	    hlpod_mat,
-    const int      np,				//並列計算領域数
+    const int       np,				//並列計算領域数
 	const int       max_num_basis,	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 	const int 		num_subdomains,
 	const int		max_num_bases)
