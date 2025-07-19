@@ -18,7 +18,7 @@ pa=$6
 # 実行ディレクトリ
 directory="result_diff/${nm}-${np}-${nd}"
 
-rm -r $directory
+#rm -r $directory
 mkdir -p $directory
 cd $directory
 

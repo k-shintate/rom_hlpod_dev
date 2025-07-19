@@ -264,6 +264,7 @@ int main (
 
 
     monolis_copy_mat_R(&(sys.monolis0), &(sys.monolis));
+    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);    
 
     int file_num = 0;
     int step = 0;
@@ -272,19 +273,6 @@ int main (
 	while (t < sys.vals.finish_time) {
 		t += sys.vals.dt;
 		step += 1;
-
-		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
-        solver_fom(sys, t, step);	
-    }
-
-    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);    
-    
-    printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
-
-	while (t < sys.vals.rom_finish_time) {
-		t += sys.vals.dt;
-		step += 1;
-        step_POD += 1;
 
 		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
         double calctime_fem_t1 = monolis_get_time();
@@ -315,7 +303,7 @@ int main (
                 &(sys.rom.hlpod_vals),
                 &(sys.hrom.hlpod_ddhr),
                 sys.rom.hlpod_vals.num_2nd_subdomains,
-                step_POD -1 ,   //index 0 start
+                step -1 ,   //index 0 start
                 sys.rom.hlpod_vals.num_snapshot,
                 sys.rom.hlpod_vals.num_modes,
                 sys.vals.dt,
@@ -329,28 +317,13 @@ int main (
                 &(sys.rom.hlpod_vals),
                 &(sys.hrom.hlpod_ddhr),
                 sys.rom.hlpod_vals.num_2nd_subdomains,
-                step_POD -1 ,   //index 0 start
+                step -1 ,   //index 0 start
                 sys.rom.hlpod_vals.num_snapshot,
                 1 + sys.monolis_com.recv_n_neib,
                 sys.vals.dt,
                 t);
+    }
 
-        /*
-        if(step%sys.vals.output_interval == 0) {
-			ROM_output_files(&sys, file_num, t);
-                        
-            ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
-			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
-
-            ROM_std_hlpod_output_calc_time(calctime_fem_t1-calctime_fem_t2, t,
-					"calctime/time_fem.txt", sys.cond.directory);
-            ROM_std_hlpod_output_calc_time(calctime_rom_t1-calctime_rom_t2, t,
-					"calctime/time_rom.txt", sys.cond.directory);
-
-			file_num += 1;
-		}
-        */
-	}
 
     if(monolis_mpi_get_global_comm_size() == 1){
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);

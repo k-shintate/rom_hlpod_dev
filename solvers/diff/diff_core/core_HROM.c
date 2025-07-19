@@ -321,12 +321,12 @@ void HROM_pre_offline(
 		sys->rom.hlpod_vals.num_modes_max);
 
 	get_meta_neib(
-		&(sys->mono_com_rom),
+		&(sys->mono_com_rom_solv),
 		&(sys->rom.hlpod_meta),
 		sys->cond.directory);
 
 	ddhr_lb_set_neib(
-		&(sys->mono_com_rom),
+		&(sys->mono_com_rom_solv),
 		//&(sys->fe),
 		&(sys->rom.hlpod_mat),
 		&(sys->hrom.hlpod_ddhr),
@@ -565,7 +565,7 @@ void HROM_hierarchical_parallel(
         &(sys.bc),
         sys.rom.hlpod_vals.num_2nd_subdomains,
 		sys.rom.hlpod_vals.num_modes);
-//        &(sys.lpod_prm));
+//        &(sys.rom.hlpod_mat));
 
     t2 = monolis_get_time();
 

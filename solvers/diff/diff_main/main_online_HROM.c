@@ -217,6 +217,35 @@ int main (
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
     monolis_com_initialize_by_self(&(sys.mono_com0));
     /******************/
+
+    /*for Hyper-reduction*/
+    ddhr_lb_set_element_para2(
+        &(sys.fe),
+        &(sys.hrom.hlpod_ddhr),
+        sys.rom.hlpod_vals.num_2nd_subdomains,
+        sys.cond.directory);
+
+    ddhr_memory_allocation_para_online(
+            &(sys.rom.hlpod_vals),
+            &(sys.hrom.hlpod_ddhr),
+            &(sys.rom.hlpod_mat),
+            sys.fe.total_num_nodes);
+
+    if(monolis_mpi_get_global_comm_size() == 1){		
+		//HROM_pre_online_nonpara(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+	}
+	else{
+		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+	}
+
+    hlpod_hr_sys_set_bc_id(
+        &(sys.fe),
+        (&sys.bc),
+        &(sys.hrom.hlpod_ddhr),
+        BLOCK_SIZE,
+        &(sys.rom.hlpod_mat));
+    /************************/
+
     
     /**************************************************/
 

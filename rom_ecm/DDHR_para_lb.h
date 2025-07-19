@@ -196,3 +196,19 @@ void get_neib_coordinates_pad(
 	const int       max_num_basis,	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 	const int 		num_subdomains,
 	const int		max_num_bases);
+
+
+void hlpod_hr_sys_set_bc_id(
+    BBFE_DATA* 	fe,
+    BBFE_BC*   	bc,
+    HLPOD_DDHR* hlpod_ddhr,
+    const int   num_dofs_on_node,
+    HLPOD_MAT*	hlpod_mat);
+
+void hlpod_hr_sys_manusol_set_bc(
+    BBFE_DATA* 	fe,
+    BBFE_BC*   	bc,
+    const int   num_dofs_on_node,
+    double     	t,
+    double      (*func)(double, double, double, double), // scalar function(x, y, z, t)
+    HLPOD_MAT*	hlpod_mat);

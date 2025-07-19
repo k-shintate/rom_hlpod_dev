@@ -624,7 +624,7 @@ void HROM_nonparallel(
 			BLOCK_SIZE,
 			t,
 			manusol_get_sol,
-			&(sys.lpod_prm));
+			&(sys.rom.hlpod_mat));
 	*/
 	hlpod_hr_sys_manusol_set_bc(
 			&(sys.fe),
@@ -632,7 +632,7 @@ void HROM_nonparallel(
 			BLOCK_SIZE,
 			t,
 			manusol_get_sol,
-			&(sys.lpod_prm));
+			&(sys.rom.hlpod_mat));
 	double set_bc2 = monolis_get_time();
 
     if(sys->rom.hlpod_vals.num_2nd_subdomains == 1){
@@ -694,7 +694,7 @@ void HROM_nonparallel(
             &(sys.hrom.hlpod_hr), 
             &(sys.bc), 
             sys->rom.hlpod_vals.num_modes);
-//            &(sys.lpod_prm));
+//            &(sys.rom.hlpod_mat));
 
         t2 = monolis_get_time();
 
@@ -781,7 +781,7 @@ void HROM_nonparallel(
             sys->rom.hlpod_vals.num_modes,
             sys->rom.hlpod_vals.num_2nd_subdomains,
 			1);
-//            &(sys.lpod_prm));
+//            &(sys.rom.hlpod_mat));
 
         t2 = monolis_get_time();
 
@@ -821,7 +821,7 @@ void HROM_hierarchical_parallel(
 			BLOCK_SIZE,
 			t,
 			manusol_get_sol);
-//			&(sys.lpod_prm));
+//			&(sys.rom.hlpod_mat));
 	double set_bc2 = monolis_get_time();
 	
     ddhr_lb_set_reduced_vec_para(
@@ -893,7 +893,7 @@ void HROM_hierarchical_parallel(
         &(sys.bc),
         sys->rom.hlpod_vals.num_2nd_subdomains,
 		sys->rom.hlpod_vals.num_modes);
-//        &(sys.lpod_prm));
+//        &(sys.rom.hlpod_mat));
 
     t2 = monolis_get_time();
 

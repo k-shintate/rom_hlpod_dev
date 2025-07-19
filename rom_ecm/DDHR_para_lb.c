@@ -2784,3 +2784,32 @@ void get_neib_coordinates_pad(
 
 	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, hlpod_mat->pod_coordinates_all);
 }
+
+
+//for hyper-reduction
+void hlpod_hr_sys_set_bc_id(
+		BBFE_DATA* 	fe,
+		BBFE_BC*   	bc,
+		HLPOD_DDHR* hlpod_ddhr,
+		const int   num_dofs_on_node,
+        HLPOD_MAT*	hlpod_mat)
+{
+	int nl = fe->local_num_nodes;
+    int j = 0;
+    hlpod_mat->hr_D_bc_node_id = BB_std_calloc_1d_int(hlpod_mat->hr_D_bc_node_id, bc->num_D_bcs);
+
+    for(int m=0; m < hlpod_ddhr->ovl_num_selected_elems_D_bc; m++) {
+        int e = hlpod_ddhr->ovl_id_selected_elems_D_bc[m];
+	
+		for(int i=0; i<nl; i++) {
+			int index_j = fe->conn[e][i];
+			if( bc->D_bc_exists[index_j] && hlpod_mat->hr_D_bc_node_id[j] == 0) {
+				hlpod_mat->hr_D_bc_node_id[j] = index_j;
+				j++;
+			}
+		}
+	}
+
+	hlpod_mat->num_hr_D_bc_nodes = j;
+
+}
