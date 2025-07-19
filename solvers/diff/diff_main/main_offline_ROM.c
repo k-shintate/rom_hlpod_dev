@@ -162,6 +162,20 @@ int main (
 			sys.cond.directory);
     
     /******************/
+
+    /*for offline phase*/
+    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
+
+	ROM_std_hlpod_offline_memory_allocation_snapmat(
+			&(sys.rom),
+			sys.fe.total_num_nodes,
+            sys.monolis_com.n_internal_vertex,
+            sys.vals.finish_time,
+            sys.vals.dt,
+            sys.vals.snapshot_interval,
+            1,
+			1);
+    /******************/
     
 	/*for online phase*/
     read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                  //set vals
@@ -221,6 +235,7 @@ int main (
     /**************************************************/
 
     /*for Hyper-reduction*/
+
     ddhr_lb_set_element_para2(
             &(sys.fe),
             &(sys.hrom.hlpod_ddhr),
@@ -237,6 +252,13 @@ int main (
             sys.rom.hlpod_vals.num_snapshot,
             sys.rom.hlpod_vals.num_modes,
             sys.rom.hlpod_vals.num_2nd_subdomains);
+
+    if(monolis_mpi_get_global_comm_size() == 1){
+        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
+    else{
+        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
 
     /*********************/
 
@@ -275,6 +297,16 @@ int main (
         solver_rom(&(sys), step, t);        
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
+
+        //for NNLS
+        get_neib_coordinates_pad(
+                &(sys.mono_com_rom_solv),
+                &(sys.rom.hlpod_vals),
+                &(sys.rom.hlpod_mat),
+                1 + sys.mono_com_rom_solv.recv_n_neib,
+                sys.rom.hlpod_vals.num_modes,
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                sys.rom.hlpod_vals.num_modes);
 
         ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
                 &(sys.fe),
@@ -324,7 +356,7 @@ int main (
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
-        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline2(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
 
     if(monolis_mpi_get_global_my_rank() == 0){

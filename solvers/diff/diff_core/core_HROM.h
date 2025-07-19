@@ -45,12 +45,19 @@ void HROM_pre(
 		const int 		num_snapshot,
 		const int 		num_2nd_subdomains);
 
+
 void HROM_pre_offline(
 		FE_SYSTEM* sys,
 		const int num_modes,
 		const int num_snapshot,
 		const int num_2nd_subdomains);
-	
+
+void HROM_pre_offline2(
+		FE_SYSTEM* 		sys,
+		const int 		num_modes,
+		const int 		num_snapshot,
+		const int 		num_2nd_subdomains);
+
 void HROM_pre_online_nonpara(
 		FE_SYSTEM* sys,
 		const int num_modes,

@@ -438,8 +438,8 @@ void ddhr_monolis_set_matrix2(
 		}
 
 		// 非対角ブロック (k, k1 = hlpod_mat->item[i]) に対応する要素を直接足し込み
-		//int iS = hlpod_mat->index[k];
-		//int iE = hlpod_mat->index[k + 1];
+		//int iS = hlpod_meta->index[k];
+		//int iE = hlpod_meta->index[k + 1];
     	int iS = 0;
 		int iE = 0;
 

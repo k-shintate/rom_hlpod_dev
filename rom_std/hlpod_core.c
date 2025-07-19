@@ -781,9 +781,17 @@ void ROM_std_hlpod_pre_lpod_para(
         ROM*		 rom,
         const char*	 directory)
 {
+    /*
     ROM_std_hlpod_get_neib_vec_save_memory(
             monolis_com,
             &(rom->hlpod_vals),
+            rom->hlpod_vals.num_modes);
+    */
+
+    ROM_std_hlpod_get_neib_vec(
+            monolis_com,
+            &(rom->hlpod_vals),
+            &(rom->hlpod_mat),
             rom->hlpod_vals.num_modes);
 
     ROM_std_hlpod_get_neib_num_modes_para_subd(

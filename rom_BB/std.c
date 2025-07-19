@@ -102,13 +102,13 @@ int ROM_BB_binarySearch(
 
 int ROM_BB_estimate_num_pod_modes(
     double* V,
-    const int max_num_modes,
+    const int num_modes_max,
     const double rom_epsilon)
 {
     double si;
     int val;
-    double sum = ROM_BB_sum(0,max_num_modes,V);
-    for(int i = 0; i < max_num_modes; i++){
+    double sum = ROM_BB_sum(0,num_modes_max,V);
+    for(int i = 0; i < num_modes_max; i++){
         si = ROM_BB_sum(0,i,V) / sum;
         if(si > rom_epsilon){
             val = i;

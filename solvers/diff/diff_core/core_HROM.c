@@ -272,24 +272,79 @@ void HROM_pre_offline(
 
 	double t = monolis_get_time_global_sync();
 //ROM部分へ移行
+
+	//for arbit dof ddecm
+	get_neib_subdomain_id(
+		&(sys->monolis_com),
+		&(sys->rom.hlpod_mat),
+		sys->rom.hlpod_vals.num_2nd_subdomains);		//num_2nd_subdomains
+
+    printf("get_neib_subdomain_id done\n");
+    //exit(1);
+
+	set_max_num_modes(
+		&(sys->rom.hlpod_vals),
+		sys->rom.hlpod_vals.num_modes,
+//		sys->rom.hlpod_vals.num_1st_subdomains,
+        sys->rom.hlpod_vals.num_2nd_subdomains,
+		sys->cond.directory);
 /*
-	get_meta_neib(
+	//level2領域の最大基底本数の共有
+    get_neib_max_num_modes_pad(
 		&(sys->mono_com_rom_solv),
+        &(sys->rom.hlpod_vals),
+		&(sys->rom.hlpod_mat),
+        1 + sys->mono_com_rom_solv.recv_n_neib,
+		sys->rom.hlpod_vals.num_modes_max);
+*/
+    double t1 = monolis_get_time_global_sync();
+
+    get_neib_num_modes_pad(
+        &(sys->mono_com_rom),
+        &(sys->rom.hlpod_vals),
+        &(sys->rom.hlpod_mat),
+        1 + sys->mono_com_rom_solv.recv_n_neib,
+        sys->rom.hlpod_vals.num_modes);
+
+    get_neib_coordinates_pre(
+        &(sys->rom.hlpod_vals),
+        &(sys->rom.hlpod_mat),
+        1 + sys->mono_com_rom_solv.recv_n_neib,
+        sys->rom.hlpod_vals.num_modes_max);
+
+	//level2領域の最大基底本数の共有
+    get_neib_max_num_modes_pad(
+		&(sys->mono_com_rom),
+        &(sys->rom.hlpod_vals),
+		&(sys->rom.hlpod_mat),
+        1 + sys->mono_com_rom_solv.recv_n_neib,
+		sys->rom.hlpod_vals.num_modes_max);
+
+	get_meta_neib(
+		&(sys->mono_com_rom),
 		&(sys->rom.hlpod_meta),
 		sys->cond.directory);
 
 	ddhr_lb_set_neib(
-		&(sys->mono_com_rom_solv),
-		&(sys->fe),
+		&(sys->mono_com_rom),
+		//&(sys->fe),
 		&(sys->rom.hlpod_mat),
 		&(sys->hrom.hlpod_ddhr),
 		&(sys->rom.hlpod_meta),
 		num_2nd_subdomains,
 		sys->rom.hlpod_vals.num_snapshot,
 		sys->cond.directory);
-*/
 
-	//ddhr_lb_write_selected_elements_para(
+}
+
+
+void HROM_pre_offline2(
+		FE_SYSTEM* sys,
+		const int num_modes,
+		const int num_snapshot,
+		const int num_2nd_subdomains)
+{
+
 	ddhr_lb_write_selected_elements_para_1line(
 		&(sys->mono_com_rom_solv),
 		&(sys->fe),
@@ -305,12 +360,7 @@ void HROM_pre_offline(
 		10000,
 		1.0e-6,
 		sys->cond.directory);
-/*
-	ddhr_lb_get_selected_elements_internal_overlap(
-		&(sys->hrom.hlpod_ddhr),
-//		sys->rom.hlpod_vals.num_2nd_subdomains,
-		sys->cond.directory);
-*/	
+
 }
 
 

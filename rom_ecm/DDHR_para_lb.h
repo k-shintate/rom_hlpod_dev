@@ -48,26 +48,6 @@ void ddhr_lb_write_selected_elements_para_1line(
         const double    tol,      //NNLS
 		const char*		directory);
 
-void get_neib_coordinates_pre(
-        HLPOD_VALUES* 	hlpod_vals,
-		HLPOD_MAT*	hlpod_mat,
-		const int       max_num_basis);
-
-void get_neib_coordinates(
-		MONOLIS_COM*  	monolis_com,
-        HLPOD_VALUES* 	hlpod_vals,
-		HLPOD_MAT*	hlpod_mat,
-		const int       max_num_basis);
-
-//p-adaptive
-void get_neib_coordinates_pad(
-		MONOLIS_COM*  	monolis_com,
-        HLPOD_VALUES* 	hlpod_vals,
-		HLPOD_MAT*	hlpod_mat,
-		const int       max_num_basis,
-		const int 		num_subdomains,
-		const int		max_num_bases);
-
 void get_meta_neib(
 		MONOLIS_COM*  	monolis_com,
 		HLPOD_META*		hlpod_meta,
@@ -189,3 +169,30 @@ void get_neib_num_modes_pad(
 		HLPOD_MAT* 	    hlpod_mat,
 		const int       np,
 		const int       num_my_modes);
+
+//for arbit dof ddecm
+void get_neib_subdomain_id(
+        MONOLIS_COM*  	monolis_com,
+        HLPOD_MAT* 	    hlpod_mat,
+        const int 		num_modes);
+
+void set_max_num_modes(
+	HLPOD_VALUES*		hlpod_vals,
+    const int       num_modes,
+	const int       num_1st_dd,	//並列計算領域数
+	const char*     directory);
+
+void get_neib_coordinates_pre(
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_MAT*	    hlpod_mat,
+    const int       np,				//並列計算領域数
+	const int       max_num_basis);
+
+void get_neib_coordinates_pad(
+	MONOLIS_COM*  	monolis_com,
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_MAT*	    hlpod_mat,
+    const int      np,				//並列計算領域数
+	const int       max_num_basis,	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
+	const int 		num_subdomains,
+	const int		max_num_bases);

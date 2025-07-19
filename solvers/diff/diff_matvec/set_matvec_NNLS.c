@@ -115,7 +115,8 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 				*/
 
 				int subdomain_id = hlpod_mat->subdomain_id_in_nodes[index];
-
+                printf("\n\nsubdomain_id = %d, index = %d, ns = %d, m = %d, n = %d\n\n", subdomain_id, index, ns, m, n);
+                //hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + index][m][n] += integ_val * hlpod_mat->neib_vec[index][k];
 				int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id];
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
 

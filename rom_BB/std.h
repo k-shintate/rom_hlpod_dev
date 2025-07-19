@@ -35,7 +35,7 @@ int ROM_BB_binarySearch(
 
 int ROM_BB_estimate_num_pod_modes(
     double* V,
-    const int max_num_modes,
+    const int num_modes_max,
     const double rom_epsilon);
 
 int*** ROM_BB_calloc_3d_int(

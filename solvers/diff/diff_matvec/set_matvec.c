@@ -1976,7 +1976,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory2(
 					/*
 	                for(int k1 = 0; k1 < hlpod_vals->num_modes; k1++){
                         //for(int k2 = 0; k2 < hlpod_vals->n_neib_vec; k2++){
-						for(int k2 = 0; k2 < hlpod_vals->max_num_modes; k2++){
+						for(int k2 = 0; k2 < hlpod_vals->num_modes_max; k2++){
 							//ver2 変更点
 		                    //double val = hlpod_mat->neib_vec[index_i][k1] * integ_val * hlpod_mat->neib_vec[index_j][k2];
 							double val = hlpod_mat->pod_basis_hr[index_i][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j][k2];
@@ -2003,7 +2003,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory2(
 
 	                for(int k1 = 0; k1 < hlpod_vals->num_modes; k1++){
                         //for(int k2 = 0; k2 < hlpod_vals->n_neib_vec; k2++){
-						for(int k2 = 0; k2 < hlpod_vals->max_num_modes; k2++){
+						for(int k2 = 0; k2 < hlpod_vals->num_modes_max; k2++){
 							//ver2 変更点
 		                    //double val = hlpod_mat->neib_vec[index_i][k1] * integ_val * hlpod_mat->neib_vec[index_j][k2];
 							double val = hlpod_mat->pod_basis_hr[index_i][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j][k2];
@@ -2118,7 +2118,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory2(
 					int subdomain_id = hlpod_mat->subdomain_id_in_nodes_2nddd[index_j]; 
 
 	                //for(int k1 = 0; k1 < hlpod_vals->num_modes; k1++){
-					//	for(int k2 = 0; k2 < hlpod_vals->max_num_modes; k2++){
+					//	for(int k2 = 0; k2 < hlpod_vals->num_modes_max; k2++){
 					if(subdomain_id_j < num_subdomains){
 						for(int k1 = IS; k1 < IE; k1++){
 							for(int k2 = JS; k2 < JE; k2++){

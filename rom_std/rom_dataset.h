@@ -47,7 +47,7 @@ typedef struct
     int* num_modes_internal;         //number of pod modes in internal subdomains
 
     int* num_modes_2nddd;            //number of pod modes in 2nd subdomains (own)
-    int* num_modes_2nddd_max;        //number of pod modes in 2nd subdomains (own, max)
+    int* max_num_neib_modes;        //number of pod modes in 2nd subdomains (own, max)
 
     int* num_modes_1stdd;            //number of pod modes in 1st subdomains (own, index format)
     int* num_modes_1stdd_neib;       //number of pod modes in 1st subdomains (own + neib)
@@ -55,8 +55,8 @@ typedef struct
 
     //追加
     int* num_neib_modes_sum;
-    int* index;
-    int* item;
+    //int* index;
+    //int* item;
     double* pod_coordinates_all;
     int num_metagraph_nodes;
     int* hr_D_bc_node_id;
@@ -64,7 +64,9 @@ typedef struct
     int* subdomain_id_in_nodes;
     int* subdomain_id_in_nodes_2nddd;
     double** pod_basis_hr;
-    int* max_num_neib_modes;
+    //int* max_num_neib_modes;
+
+    int** subdomain_id_in_nodes_internal;
 
 } HLPOD_MAT;
 
@@ -83,15 +85,12 @@ typedef struct
 
     int* n_dof_list;                //for arbit_dof_monolis_solver
 
-
 //追加
     int* n_internal;
     int* global_id;
     int* my_global_id;
     int num_neib;
     int* neib_id;                  //id of 2nd subdomains (neib)
-
-
 
 } HLPOD_META;
 
