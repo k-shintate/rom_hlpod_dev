@@ -323,6 +323,12 @@ int main (
                 1 + sys.monolis_com.recv_n_neib,
                 sys.vals.dt,
                 t);
+        
+        if(step%sys.vals.output_interval == 0) {
+			ROM_output_files(&sys, file_num, t);
+                        
+			file_num += 1;
+		}
     }
 
 

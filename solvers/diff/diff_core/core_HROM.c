@@ -291,6 +291,9 @@ void HROM_pre_offline(
         1 + sys->mono_com_rom_solv.recv_n_neib,
         sys->rom.hlpod_vals.num_modes);
 
+    //printf("monolis_mpi_get_global_comm_size() = %d\n", monolis_mpi_get_global_comm_size());
+    //exit(1);
+
 	set_max_num_modes(
 		&(sys->rom.hlpod_vals),
 		sys->rom.hlpod_vals.num_modes_pre,
@@ -304,6 +307,9 @@ void HROM_pre_offline(
         &(sys->rom.hlpod_mat),
         1 + sys->mono_com_rom_solv.recv_n_neib,
         sys->rom.hlpod_vals.num_modes_max);
+    
+    printf("%d %d\n", sys->rom.hlpod_vals.num_modes_max, sys->rom.hlpod_vals.num_modes_pre);
+    //exit(1);
 
 	//level2領域の最大基底本数の共有
     get_neib_max_num_modes_pad(
