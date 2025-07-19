@@ -231,10 +231,10 @@ int main (
         sys.cond.directory);
 
     ddhr_memory_allocation_para_online(
-            &(sys.rom.hlpod_vals),
-            &(sys.hrom.hlpod_ddhr),
-            &(sys.rom.hlpod_mat),
-            sys.fe.total_num_nodes);
+        &(sys.rom.hlpod_vals),
+        &(sys.hrom.hlpod_ddhr),
+        &(sys.rom.hlpod_mat),
+        sys.fe.total_num_nodes);
 
     if(monolis_mpi_get_global_comm_size() == 1){
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
@@ -262,7 +262,10 @@ int main (
     /**************************************************/
 
     monolis_copy_mat_R(&(sys.monolis0), &(sys.monolis));
-    monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
+   	monolis_initialize(&(sys.monolis_hr));
+//    monolis_initialize(&(sys.monolis_hr));
+    monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
+//    monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
 
     int file_num = 0;
     int step = 0;
@@ -275,7 +278,8 @@ int main (
         solver_fom(sys, t, step);	
     }
 
-    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);    
+    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
+    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hlpod_ddhr.HR_T, sys.fe.total_num_nodes);    
     
     printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
 
@@ -294,7 +298,12 @@ int main (
         solver_rom(&(sys), step, t);        
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
-
+/*
+        monolis_initialize(&(sys.monolis_hr0));
+        monolis_initialize(&(sys.monolis_hr));
+        monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr0));
+        monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
+*/
         HROM_hierarchical_parallel(sys, step, 0, t);
 
         if(step%sys.vals.output_interval == 0) {

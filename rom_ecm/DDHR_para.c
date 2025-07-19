@@ -822,6 +822,11 @@ void ddhr_to_monollis_rhs_para_pad(
 	for(int k = 0; k < num_2nddd; k++){
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
 			monolis->mat.R.B[index + i] = hlpod_ddrh->reduced_RH[index_column + i];
+
+            if(monolis_mpi_get_global_my_rank() == 1){
+                printf("k = %d, index = %d, index_column = %d, num_modes_internal[k] = %d, reduced_RH[index_column + i] = %lf\n",
+                       k, index, index_column, hlpod_mat->num_modes_internal[k], hlpod_ddrh->reduced_RH[index_column + i]);
+            }
 		}
 		index_column += hlpod_mat->num_modes_internal[k];
 		index += hlpod_mat->num_modes_internal[k];		
@@ -835,7 +840,7 @@ void lpod_pad_calc_block_solution_local_para_pad(
 	MONOLIS_COM*	monolis_com,
 	BBFE_DATA* 		fe,
 	HLPOD_DDHR*     hlpod_ddhr,
-	HLPOD_MAT*    hlpod_mat,
+	HLPOD_MAT*      hlpod_mat,
 	BBFE_BC*      	bc,
 	const int		num_2nddd,
 	const int		max_num_bases)

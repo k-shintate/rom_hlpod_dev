@@ -1958,7 +1958,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 /*				else{
 				*/
 
-				printf("subdomain_id_j = %d num_neib_modes_sum = %d JS = %d JE = %d\n", subdomain_id, hlpod_mat->num_neib_modes_sum[subdomain_id-1], JS, JE);
+				//printf("subdomain_id_j = %d num_neib_modes_sum = %d JS = %d JE = %d\n", subdomain_id, hlpod_mat->num_neib_modes_sum[subdomain_id-1], JS, JE);
 				if(subdomain_id_j >= num_subdomains){
 						for(int k1 = IS; k1 < IE; k1++){
 							for(int k2 = JS - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2 < JE - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2++){
@@ -2651,6 +2651,8 @@ void ddhr_lb_set_reduced_vec_para(
 
 				int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id];
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
+
+                //printf("subdomain_id = %d, IS = %d, IE = %d\n", subdomain_id, IS, IE);
 
 				for(int k = IS; k < IE; k++){
 					double val = integ_val * hlpod_mat->pod_modes[index][k];

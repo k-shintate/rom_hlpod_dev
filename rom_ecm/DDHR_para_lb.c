@@ -700,7 +700,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 double t1 = monolis_get_time_global_sync();
 
 	const int max_ITER = 400;
-	const double TOL = 1.0e-5;
+	const double TOL = 1.0e-7;
 
 	double residual;
 
@@ -1478,6 +1478,9 @@ void ddhr_lb_set_neib(
 	for(int i = 0; i < monolis_com->n_internal_vertex; i++){
 		hlpod_ddhr->num_internal_modes_1stdd_sum[i + 1] = hlpod_ddhr->num_internal_modes_1stdd_sum[i] + hlpod_ddhr->num_neib_modes_1stdd[i];
 	}
+
+    double t2 = monolis_get_time_global_sync();
+    printf("Time for calculating num_modes_1stdd = %lf\n", t2 - t1);
 
 /*
 	BB_std_free_1d_int(neib_id, num_neib);
@@ -2739,6 +2742,8 @@ void set_max_num_modes(
 		}
 	}
 	hlpod_vals->num_modes_max = num_modes * max_metagraph_n_internal;
+
+    printf("\n\nset_max_num_modes,  num_modes = %d\n\n", hlpod_vals->num_modes);
 }
 
 

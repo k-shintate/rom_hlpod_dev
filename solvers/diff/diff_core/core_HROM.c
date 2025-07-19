@@ -135,7 +135,7 @@ void HR_output_files(
 	snprintf(fname_vtk, BUFFER_SIZE, OUTPUT_FILENAME_VTK, file_num);
 	snprintf(fname_tem, BUFFER_SIZE, OUTPUT_FILENAME_ASCII_TEMP, file_num);
 	snprintf(fname_sou, BUFFER_SIZE, OUTPUT_FILENAME_ASCII_SOURCE, file_num);
-/*
+
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname_vtk);
 
 	if(monolis_mpi_get_global_comm_size() == 1 &&sys->rom.hlpod_vals.num_2nd_subdomains == 1){
@@ -165,7 +165,7 @@ void HR_output_files(
 			sys->rom.hlpod_vals.sol_vec,
 			filename,
 			sys->cond.directory);
-*/
+
 
 	/**** for manufactured solution ****/
 /*
@@ -282,21 +282,6 @@ void HROM_pre_offline(
     printf("get_neib_subdomain_id done\n");
     //exit(1);
 
-	set_max_num_modes(
-		&(sys->rom.hlpod_vals),
-		sys->rom.hlpod_vals.num_modes,
-//		sys->rom.hlpod_vals.num_1st_subdomains,
-        sys->rom.hlpod_vals.num_2nd_subdomains,
-		sys->cond.directory);
-/*
-	//level2領域の最大基底本数の共有
-    get_neib_max_num_modes_pad(
-		&(sys->mono_com_rom_solv),
-        &(sys->rom.hlpod_vals),
-		&(sys->rom.hlpod_mat),
-        1 + sys->mono_com_rom_solv.recv_n_neib,
-		sys->rom.hlpod_vals.num_modes_max);
-*/
     double t1 = monolis_get_time_global_sync();
 
     get_neib_num_modes_pad(
@@ -305,6 +290,14 @@ void HROM_pre_offline(
         &(sys->rom.hlpod_mat),
         1 + sys->mono_com_rom_solv.recv_n_neib,
         sys->rom.hlpod_vals.num_modes);
+
+	set_max_num_modes(
+		&(sys->rom.hlpod_vals),
+		sys->rom.hlpod_vals.num_modes,
+//		sys->rom.hlpod_vals.num_1st_subdomains,
+        monolis_mpi_get_global_comm_size(),
+//        sys->rom.hlpod_vals.num_2nd_subdomains,
+		sys->cond.directory);
 
     get_neib_coordinates_pre(
         &(sys->rom.hlpod_vals),
@@ -358,7 +351,7 @@ void HROM_pre_offline2(
 		sys->rom.hlpod_vals.num_modes,
 		num_2nd_subdomains,
 		10000,
-		1.0e-6,
+		1.0e-8,
 		sys->cond.directory);
 
     ddhr_lb_get_selected_elements_internal_overlap(
@@ -495,12 +488,14 @@ void HROM_hierarchical_parallel(
     const int step_POD,
     const double t)
 {
+    /*
     if((step_HR-step_POD) == 1){
         HROM_set_ansvec_para(
             &(sys.vals),
             &(sys.hrom.hlpod_ddhr),
             sys.fe.total_num_nodes);
     }
+    */
 
     double t1 = monolis_get_time();
 

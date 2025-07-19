@@ -11,6 +11,30 @@ void ROM_std_hlpod_online_memory_allocation_ansvec(
     hlpod_vals->sol_vec = BB_std_calloc_1d_double(hlpod_vals->sol_vec, total_num_nodes * dof);
 }
 
+
+void ROM_std_hlpod_offline_set_num_snapmat(
+        ROM*            rom,
+        const int		total_num_nodes,
+        const int		n_internal_vertex,
+        const double    finish_time,
+        const double    dt,
+        const int       snapshot_interval,
+        const int       num_case,
+        const int	    dof)
+{
+    double quotient = finish_time / dt / snapshot_interval;
+    
+    if (fmod(quotient, 1.0) == 0.0) {
+    	rom->hlpod_vals.num_snapshot = finish_time / dt / snapshot_interval * num_case;
+    	printf("%s: num_snapshot = %d\n", CODENAME, rom->hlpod_vals.num_snapshot);
+    }
+    else{
+        printf("Error: num_snapshot = %d is not integer\n");
+        exit(1);
+    }
+}
+
+
 void ROM_std_hlpod_offline_memory_allocation_snapmat(
         ROM*            rom,
         const int		total_num_nodes,
@@ -952,6 +976,9 @@ void ROM_std_hlpod_calc_reduced_mat(
                 rom->hlpod_vals.num_modes_pre,
                 rom->hlpod_vals.num_modes,
                 rom->hlpod_vals.num_2nd_subdomains);
+//        double t2 = monolis_get_time_global_sync();
+//    exit(1);
+
     }
 }
 
@@ -1002,6 +1029,8 @@ void ROM_std_hlpod_solve_ROM(
 
     }
     else{
+//        double t1 = monolis_get_time_global_sync();
+//        exit(1);
         ROM_std_hlpod_calc_reduced_rhs(
                 monolis,
                 &(rom->hlpod_mat),
@@ -1014,6 +1043,9 @@ void ROM_std_hlpod_solve_ROM(
                 &(rom->hlpod_mat),
                 rom->hlpod_vals.num_2nd_subdomains,
                 rom->hlpod_vals.num_modes_pre);
+
+//double t = monolis_get_time_global_sync();
+//exit(1);
 
         ROM_monowrap_solve(
                 monolis_rom,

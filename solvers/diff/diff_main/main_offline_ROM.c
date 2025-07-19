@@ -163,10 +163,11 @@ int main (
     
     /******************/
 
+    
     /*for offline phase*/
     ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
 
-	ROM_std_hlpod_offline_memory_allocation_snapmat(
+	ROM_std_hlpod_offline_set_num_snapmat(
 			&(sys.rom),
 			sys.fe.total_num_nodes,
             sys.monolis_com.n_internal_vertex,
@@ -176,7 +177,7 @@ int main (
             1,
 			1);
     /******************/
-    
+
 	/*for online phase*/
     read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                  //set vals
 

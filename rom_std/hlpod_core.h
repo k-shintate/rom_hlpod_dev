@@ -18,6 +18,16 @@ void ROM_std_hlpod_online_memory_allocation_ansvec(
     const int		total_num_nodes,
     const int	    dof);
 
+void ROM_std_hlpod_offline_set_num_snapmat(
+    ROM*            rom,
+    const int		total_num_nodes,
+    const int		n_internal_vertex,
+    const double    finish_time,
+    const double    dt,
+    const int       snapshot_interval,
+    const int       num_case,
+    const int	    dof);
+
 void ROM_std_hlpod_offline_memory_allocation_snapmat(
     ROM*            rom,
     const int		total_num_nodes,

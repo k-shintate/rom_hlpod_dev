@@ -323,7 +323,7 @@ void solver_rom(
             BLOCK_SIZE,
             &(sys->bc),
             sys->monolis.mat.R.B);
-    
+
     /*for ROM*/
     ROM_std_hlpod_calc_reduced_mat(
             &(sys->monolis),
@@ -334,6 +334,7 @@ void solver_rom(
             &(sys->rom),
             sys->fe.total_num_nodes,
             1);
+
 
     ROM_std_hlpod_solve_ROM(
             &(sys->monolis),
