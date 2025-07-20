@@ -594,6 +594,12 @@ void HROM_hierarchical_parallel(
 		sys.rom.hlpod_vals.num_modes_pre);
 //        &(sys.rom.hlpod_mat));
 
+	ROM_sys_hlpod_fe_add_Dbc(
+        sys.hrom.hlpod_ddhr.HR_T,
+		&(sys.bc),
+		sys.fe.total_num_nodes,
+		1);
+
     t2 = monolis_get_time();
 
     if(monolis_mpi_get_global_my_rank() == 0){
