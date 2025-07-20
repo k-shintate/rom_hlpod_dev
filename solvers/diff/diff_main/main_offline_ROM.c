@@ -236,6 +236,13 @@ int main (
     /**************************************************/
 
     /*for Hyper-reduction*/
+    if(monolis_mpi_get_global_comm_size() == 1){
+        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
+    else{
+        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
+
 
     ddhr_lb_set_element_para2(
             &(sys.fe),
@@ -254,12 +261,6 @@ int main (
             sys.rom.hlpod_vals.num_modes_pre,
             sys.rom.hlpod_vals.num_2nd_subdomains);
 
-    if(monolis_mpi_get_global_comm_size() == 1){
-        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-    }
-    else{
-        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-    }
 
     /*********************/
 
@@ -289,7 +290,7 @@ int main (
 
         //for NNLS
         get_neib_coordinates_pad(
-                &(sys.mono_com_rom_solv),
+                &(sys.mono_com_rom),
                 &(sys.rom.hlpod_vals),
                 &(sys.rom.hlpod_mat),
                 1 + sys.mono_com_rom_solv.recv_n_neib,

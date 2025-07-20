@@ -699,8 +699,8 @@ void ddhr_lb_write_selected_elements_para_1line(
 	printf("\n\nnum_elems1 = %d\n\n", hlpod_ddhr->num_elems[0]);
 double t1 = monolis_get_time_global_sync();
 
-	const int max_ITER = 400;
-	const double TOL = 1.0e-7;
+	const int max_ITER = 1000;
+	const double TOL = 1.0e-9;
 
 	double residual;
 
@@ -790,6 +790,11 @@ double t1 = monolis_get_time_global_sync();
 			local_norm += RH[j]*RH[j];
 		}
 
+if(monolis_mpi_get_global_my_rank() == 0) {
+		for(int j = 0; j < NNLS_row; j++){
+			printf(" RH[j] = %lf\n", RH[j]);
+		}
+}
         //double input_TOL = TOL * sqrt(global_norm) / (num_subdomains  * sqrt(local_norm));
 
 		index_NNLS1 = 0;
@@ -993,7 +998,7 @@ void ddhr_lb_write_selected_elements_para(
 
 	printf("\n\nmyrank = %d, num_subdomains = %d\n\n", myrank, num_subdomains);
 
-	const int max_ITER = 400;
+	const int max_ITER = 1000;
 	const double TOL = 1.0e-6;
 
 	double residual;
@@ -2715,7 +2720,7 @@ void get_neib_subdomain_id(
 }
 
 
-
+/*
 void set_max_num_modes(
 	HLPOD_VALUES*		hlpod_vals,
     const int       num_modes,
@@ -2745,7 +2750,7 @@ void set_max_num_modes(
 
     printf("\n\nset_max_num_modes,  num_modes = %d\n\n", hlpod_vals->num_modes);
 }
-
+*/
 
 void get_neib_coordinates_pre(
     HLPOD_VALUES* 	hlpod_vals,

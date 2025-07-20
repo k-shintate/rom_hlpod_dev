@@ -288,8 +288,11 @@ void HROM_pre_offline(
         &(sys->mono_com_rom),
         &(sys->rom.hlpod_vals),
         &(sys->rom.hlpod_mat),
-        1 + sys->mono_com_rom_solv.recv_n_neib,
+        1 + sys->monolis_com.recv_n_neib,
         sys->rom.hlpod_vals.num_modes);
+
+    //printf("sys->rom.hlpod_vals.num_modes = %d\n", sys->rom.hlpod_vals.num_modes);
+    //exit(1);
 
     //printf("monolis_mpi_get_global_comm_size() = %d\n", monolis_mpi_get_global_comm_size());
     //exit(1);
@@ -305,7 +308,7 @@ void HROM_pre_offline(
     get_neib_coordinates_pre(
         &(sys->rom.hlpod_vals),
         &(sys->rom.hlpod_mat),
-        1 + sys->mono_com_rom_solv.recv_n_neib,
+        1 + sys->monolis_com.recv_n_neib,
         sys->rom.hlpod_vals.num_modes_max);
     
     printf("%d %d\n", sys->rom.hlpod_vals.num_modes_max, sys->rom.hlpod_vals.num_modes_pre);
@@ -316,7 +319,7 @@ void HROM_pre_offline(
 		&(sys->mono_com_rom),
         &(sys->rom.hlpod_vals),
 		&(sys->rom.hlpod_mat),
-        1 + sys->mono_com_rom_solv.recv_n_neib,
+        1 + sys->monolis_com.recv_n_neib,
 		sys->rom.hlpod_vals.num_modes_max);
 
 	get_meta_neib(
