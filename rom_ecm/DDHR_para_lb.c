@@ -699,8 +699,8 @@ void ddhr_lb_write_selected_elements_para_1line(
 	printf("\n\nnum_elems1 = %d\n\n", hlpod_ddhr->num_elems[0]);
 double t1 = monolis_get_time_global_sync();
 
-	const int max_ITER = 1000;
-	const double TOL = 1.0e-9;
+	const int max_ITER = 400;
+	const double TOL = 1.0e-7;
 
 	double residual;
 
@@ -790,11 +790,11 @@ double t1 = monolis_get_time_global_sync();
 			local_norm += RH[j]*RH[j];
 		}
 
-if(monolis_mpi_get_global_my_rank() == 0) {
-		for(int j = 0; j < NNLS_row; j++){
-			printf(" RH[j] = %lf\n", RH[j]);
-		}
-}
+        if(monolis_mpi_get_global_my_rank() == 0) {
+            for(int j = 0; j < NNLS_row; j++){
+                printf(" RH[j] = %lf\n", RH[j]);
+            }
+        }
         //double input_TOL = TOL * sqrt(global_norm) / (num_subdomains  * sqrt(local_norm));
 
 		index_NNLS1 = 0;
@@ -1411,6 +1411,7 @@ void ddhr_lb_set_neib(
 
 	double t = monolis_get_time_global_sync();
 
+    //BB_std_free_1d_int(hlpod_ddhr->num_neib_modes_1stdd, hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex);
 	hlpod_ddhr->num_neib_modes_1stdd = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd, hlpod_meta->n_internal_sum + monolis_com->n_internal_vertex);
 
 	snprintf(filename, BUFFER_SIZE, "DDECM/n_modes_internal.%d.txt", monolis_mpi_get_global_my_rank());

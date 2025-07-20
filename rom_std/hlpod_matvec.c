@@ -143,6 +143,60 @@ void ROM_std_hlpod_calc_reduced_mat_seq_block(
 }
 
 
+
+//省メモリver
+void ROM_std_hlpod_calc_reduced_mat_save_memory2(
+    MONOLIS*        monolis,
+    MONOLIS_COM*    monolis_com,
+    MONOLIS_COM*    mono_com0,
+    HLPOD_VALUES*   hlpod_vals,
+    HLPOD_MAT*      hlpod_mat,
+    const int		total_num_nodes,
+    const int       n_neib_vec,
+    const int       num_2nddd,
+    const int       num_modes,
+    const int 		dof)
+{
+    const int NDOF  = total_num_nodes * dof;
+
+    double* monolis_in;  double* monolis_out;  double* monolis_in2;
+    monolis_in = BB_std_calloc_1d_double(monolis_in, NDOF);
+    monolis_in2 = BB_std_calloc_1d_double(monolis_in2, NDOF);
+    monolis_out = BB_std_calloc_1d_double(monolis_out, NDOF);
+
+    hlpod_mat->VTKV = BB_std_calloc_2d_double(hlpod_mat->VTKV, num_modes, n_neib_vec);
+    double** KV = BB_std_calloc_2d_double(KV, NDOF, n_neib_vec);
+
+    for(int m = 0; m < n_neib_vec; m++){
+        for(int i = 0; i < NDOF; i++){
+            monolis_in[i] = hlpod_mat->neib_vec[i][m];
+        }
+
+        monolis_matvec_product_R(monolis, mono_com0,
+                                 monolis_in,
+                                 monolis_out);
+
+        double acc = 0.0;
+        for(int i = 0; i < NDOF; i++){
+            KV[i][m] = monolis_out[i];
+        }
+    }
+
+for(int m = 0; m < n_neib_vec; m++){
+    for(int l = 0; l < hlpod_vals->num_modes; l++){
+        for(int i = 0; i < NDOF; i++){
+            hlpod_mat->VTKV[l][m] += KV[i][m]
+                                * hlpod_mat->pod_modes[i][l];
+        }
+    }
+}
+
+    BB_std_free_1d_double(monolis_in, NDOF);
+    BB_std_free_1d_double(monolis_out, NDOF);
+    BB_std_free_1d_double(monolis_in2, NDOF);
+}
+
+
 //省メモリver
 void ROM_std_hlpod_calc_reduced_mat_save_memory(
     MONOLIS*        monolis,

@@ -30,6 +30,14 @@ void ROM_std_hlpod_get_neib_vec(
     }
 
     hlpod_mat->neib_vec = BB_std_calloc_2d_double(hlpod_mat->neib_vec, np, n_neib_vec);
+/*
+    for(int i = 0; i < n_vec; i++){	
+        for(int j = 0; j < n_internal_vertex; j++){
+            hlpod_mat->neib_vec[j][i] = hlpod_mat->pod_modes[j][i];
+        }
+    }
+    */
+
 
     const int n_dof = 1;    //計算点が持つ自由度
 
@@ -161,7 +169,8 @@ void ROM_std_hlpod_get_neib_num_modes_mode_subd(
     }
 
     /* hlpod_mat->num_modes_1stdd_neib を確保して計算 */
-    hlpod_mat->num_modes_1stdd_neib = BB_std_calloc_1d_int(hlpod_mat->num_modes_1stdd_neib, n_internal_vertex);
+    //hlpod_mat->num_modes_1stdd_neib = BB_std_calloc_1d_int(hlpod_mat->num_modes_1stdd_neib, n_internal_vertex);
+    int* num_modes_1stdd_neib = BB_std_calloc_1d_int(num_modes_1stdd_neib, n_internal_vertex);
 
     /* 1stDDの隣接領域を含めた総基底本数を計算 */
     for (int k = 0; k < n_internal_vertex; k++) {
@@ -175,7 +184,8 @@ void ROM_std_hlpod_get_neib_num_modes_mode_subd(
             /* グローバルIDに対応する場所を探して基底数を加算 */
             for (int j = 0; j < n_internal_sum + n_internal_vertex; j++){
                 if (global_id_value == hlpod_meta->subdomain_id_neib[j]) {
-                    hlpod_mat->num_modes_1stdd_neib[k] += num_neib_modes_1stdd[j];
+                    //hlpod_mat->num_modes_1stdd_neib[k] += num_neib_modes_1stdd[j];
+                    num_modes_1stdd_neib[k] += num_neib_modes_1stdd[j];
                 }
             }
         }
@@ -183,7 +193,8 @@ void ROM_std_hlpod_get_neib_num_modes_mode_subd(
 
     /* 自領域の基底数を加算 (num_neib_modes_1stdd[k] を自分に足す) */
     for(int k = 0; k < n_internal_vertex; k++){
-        hlpod_mat->num_modes_1stdd_neib[k] += num_neib_modes_1stdd[k];
+        //hlpod_mat->num_modes_1stdd_neib[k] += num_neib_modes_1stdd[k];
+        num_modes_1stdd_neib[k] += num_neib_modes_1stdd[k];
     }
 
     /* 隣接含めた配列長+1 の配列を確保し、累積和を作成 */

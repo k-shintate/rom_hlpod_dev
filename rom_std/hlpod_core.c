@@ -955,7 +955,7 @@ void ROM_std_hlpod_calc_reduced_mat(
     }
     else{
 
-        ROM_std_hlpod_calc_reduced_mat_save_memory(
+        ROM_std_hlpod_calc_reduced_mat_save_memory2(
                 monolis,
                 monolis_com,
                 mono_com0,

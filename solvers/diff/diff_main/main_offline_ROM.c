@@ -294,7 +294,7 @@ int main (
                 &(sys.rom.hlpod_vals),
                 &(sys.rom.hlpod_mat),
                 1 + sys.mono_com_rom_solv.recv_n_neib,
-                sys.rom.hlpod_vals.num_modes_pre,
+                sys.rom.hlpod_vals.num_modes_max,
                 sys.rom.hlpod_vals.num_2nd_subdomains,
                 sys.rom.hlpod_vals.num_modes_pre);
 
@@ -324,7 +324,7 @@ int main (
                 1 + sys.monolis_com.recv_n_neib,
                 sys.vals.dt,
                 t);
-        
+
         if(step%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);
                         

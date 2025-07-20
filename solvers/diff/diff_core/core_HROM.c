@@ -296,7 +296,7 @@ void HROM_pre_offline(
 
     //printf("monolis_mpi_get_global_comm_size() = %d\n", monolis_mpi_get_global_comm_size());
     //exit(1);
-
+/*
 	set_max_num_modes(
 		&(sys->rom.hlpod_vals),
 		sys->rom.hlpod_vals.num_modes_pre,
@@ -304,7 +304,7 @@ void HROM_pre_offline(
         monolis_mpi_get_global_comm_size(),
 //        sys->rom.hlpod_vals.num_2nd_subdomains,
 		sys->cond.directory);
-
+*/
     get_neib_coordinates_pre(
         &(sys->rom.hlpod_vals),
         &(sys->rom.hlpod_mat),
