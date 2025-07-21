@@ -346,7 +346,7 @@ void ddhr_calc_solution(
 				for(int l = 0; l < dof; l++){
 					//index_row = hlpod_mat->node_id[j]*dof + l + sum;
 					index_row = hlpod_mat->node_id[j+sum]*dof + l;
-					hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column1 + i] * hlpod_mat->mode_coef[index_column2 + i];
+					hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column2 + i] * hlpod_mat->mode_coef[index_column1 + i];
 				}
 			}
 		}
@@ -436,7 +436,7 @@ void ddhr_monolis_set_matrix2(
 			}
 		}
 
-		// 非対角ブロック (k, k1 = hlpod_mat->item[i]) に対応する要素を直接足し込み
+		// 非対角ブロック (k, k1 = hlpod_meta->item[i]) に対応する要素を直接足し込み
 		//int iS = hlpod_meta->index[k];
 		//int iE = hlpod_meta->index[k + 1];
     	int iS = 0;
@@ -444,7 +444,7 @@ void ddhr_monolis_set_matrix2(
 
 		for(int idx = iS; idx < iE; idx++){
             int k1 = 0;
-//			int k1 = hlpod_mat->item[idx]; // 列ブロック = k1
+//			int k1 = hlpod_meta->item[idx]; // 列ブロック = k1
 
 			// k1ブロックの先頭(オフセット)を計算
 			int col_offset_k1 = 0;
@@ -475,6 +475,86 @@ void ddhr_monolis_set_matrix2(
 	}
 }
 
+void ddhr_monolis_set_matrix3(
+	MONOLIS*     	monolis,
+	HLPOD_MAT*     hlpod_mat,
+	HLPOD_DDHR*     hlpod_ddhr,
+    HLPOD_META*     hlpod_meta,
+    const int 		num_base,
+	const int		num_2nddd)
+{
+	double** matrix;
+	matrix = BB_std_calloc_2d_double(matrix, num_base*num_2nddd, num_base*num_2nddd);
+
+	int Index_column1 = 0;
+	int Index_column2 = 0;
+
+	for(int k1 = 0; k1 < num_2nddd; k1++){
+		for(int i1 = 0; i1 < hlpod_mat->num_modes_internal[k1]; i1++){
+		int index_row = 0;
+		//int sum = 0;
+		int index_column1 = 0;
+		int index_column2 = 0;
+			for(int k = 0; k < num_2nddd; k++){
+				for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
+					matrix[index_column2 + i][Index_column2 + i1] = hlpod_ddhr->reduced_mat[index_column1 + i][Index_column1 + i1];
+				}
+				index_column1 += hlpod_mat->num_modes_internal[k];
+                index_column2 += hlpod_mat->num_modes_internal[k];
+				//index_column2 += num_base;
+			}
+		}
+		Index_column1 += hlpod_mat->num_modes_internal[k1];
+        Index_column2 += hlpod_mat->num_modes_internal[k1];
+		//Index_column2 += num_base;
+	}
+
+    int index_modes = 0;
+	for(int k = 0; k < num_2nddd; k++){
+		for(int m = 0; m < hlpod_mat->num_modes_internal[k]; m++){
+			for(int n = 0; n < hlpod_mat->num_modes_internal[k]; n++){
+        	    double val = hlpod_ddhr->reduced_mat[index_modes + m][index_modes + n];
+				monolis_add_scalar_to_sparse_matrix_R(
+           	    monolis,
+               	    k,
+                   	k,
+                    m,
+           	        n,
+               	    val);
+			}
+		}
+        index_modes += hlpod_mat->num_modes_internal[k];
+	}
+
+    int index_modes2 = 0;
+    index_modes = 0;	
+	for(int k = 0; k < num_2nddd; k++){
+        int iS = hlpod_meta->index[k];
+        int iE = hlpod_meta->index[k + 1];
+
+	    for(int i = iS; i < iE; i++){
+			for(int m = 0; m < hlpod_mat->num_modes_internal[k]; m++){
+				for(int n = 0; n < hlpod_mat->num_modes_internal[hlpod_meta->item[i]]; n++){
+					double val = hlpod_ddhr->reduced_mat[index_modes  + m][index_modes2 + n];
+
+					monolis_add_scalar_to_sparse_matrix_R(
+						monolis,
+						k,
+						hlpod_meta->item[i],
+						m,
+						n,
+						val);
+				}
+                index_modes2 += hlpod_mat->num_modes_internal[hlpod_meta->item[i]];
+			}
+            index_modes2 = 0;
+		}
+        index_modes += hlpod_mat->num_modes_internal[k];
+	}
+
+	BB_std_free_2d_double(matrix, num_base*num_2nddd, num_base*num_2nddd);
+}
+
 void ddhr_to_monollis_rhs(
 	MONOLIS*		monolis,
 	HLPOD_MAT*     hlpod_mat,
@@ -483,7 +563,7 @@ void ddhr_to_monollis_rhs(
 	const int		num_subdomains)
 {
 	for(int i = 0; i < num_base * num_subdomains; i++){
-        monolis->mat.R.B[i] = 0.0;
+        //monolis->mat.R.B[i] = 0.0;
 		//monolis->mat.R.B[i] = hlpod_ddrh->reduced_RH[i];
 	}
 
@@ -495,7 +575,8 @@ void ddhr_to_monollis_rhs(
 			monolis->mat.R.B[i + index_column2] = hlpod_ddhr->reduced_RH[i + index_column1];
 		}
 		index_column1 += hlpod_mat->num_modes_internal[k];
-		index_column2 += num_base;
+        index_column2 += hlpod_mat->num_modes_internal[k];
+		index_column1 += num_base;
 	}
 
 }

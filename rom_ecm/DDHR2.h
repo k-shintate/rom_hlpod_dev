@@ -13,11 +13,6 @@ void ddhr_memory_allocation2(
         const int       total_num_modes,
 		const int		num_subdomains,
         HLPOD_DDHR*     hlpod_ddhr);
-    
-void ddhr_lb_read_selected_elements(
-        HLPOD_DDHR*     hlpod_ddhr,
-        const int num_subdomains,
-        const char* directory);
 
 void ddhr_set_element2(
         HLPOD_DDHR*     hlpod_ddhr,
@@ -60,3 +55,7 @@ void ddhr_set_selected_elems(
 		const int		num_subdomains,
 		const char*     directory);
 
+void ddhr_lb_read_selected_elements(
+    HLPOD_DDHR*     hlpod_ddhr,
+	const int num_subdomains,
+	const char* directory);

@@ -160,7 +160,7 @@ void get_neib_max_num_modes_pad(
         HLPOD_VALUES* 	hlpod_vals,
 		HLPOD_MAT* 	    hlpod_mat,
 		const int       np,
-		const int       pre_num_modes);
+		const int       num_modes_pre);
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void get_neib_num_modes_pad(

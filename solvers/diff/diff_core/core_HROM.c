@@ -328,28 +328,73 @@ void HROM_pre_offline2(
 		const int num_snapshot,
 		const int num_2nd_subdomains)
 {
+	if(monolis_mpi_get_global_comm_size() == 1){
+		if(num_2nd_subdomains == 1){
+			monolis_initialize(&(sys->monolis_hr0));
+			monolis_initialize(&(sys->monolis_hr));
 
-	ddhr_lb_write_selected_elements_para_1line(
-		&(sys->mono_com_rom_solv),
-		&(sys->fe),
-		&(sys->bc),
-        &(sys->rom.hlpod_vals),
-		&(sys->hrom.hlpod_ddhr),
-		&(sys->rom.hlpod_mat),
-		&(sys->rom.hlpod_meta),
-		sys->fe.total_num_elems,
-		sys->rom.hlpod_vals.num_snapshot,
-		sys->rom.hlpod_vals.num_modes_pre,
-		num_2nd_subdomains,
-		10000,
-		1.0e-8,
-		sys->cond.directory);
-
-    ddhr_lb_get_selected_elements_internal_overlap(
+			hr_get_selected_elements(
+				&(sys->fe),
+				&(sys->bc),
+				sys->fe.total_num_elems,
+				sys->rom.hlpod_vals.num_snapshot,
+				sys->rom.hlpod_vals.num_modes,
+				10000,
+				1.0e-6,
+				&(sys->hrom.hlpod_hr),
+				sys->cond.directory);
+            
+            hr_set_selected_elems(
+				&(sys->fe),
+				&(sys->hrom.hlpod_hr),
+				sys->fe.total_num_nodes,
+				sys->cond.directory);
+        }
+        else{
+    		ddhr_get_selected_elements2(
+				&(sys->fe),
+				&(sys->bc),
+				sys->fe.total_num_elems,
+				sys->rom.hlpod_vals.num_snapshot,
+				sys->rom.hlpod_vals.num_modes_pre,
+				num_2nd_subdomains,
+				10000,
+				1.0e-6,
+				&(sys->hrom.hlpod_ddhr),
+				sys->cond.directory);
+/*
+			ddhr_set_selected_elems(
+				&(sys->fe),
+				&(sys->hrom.hlpod_ddhr),
+				sys->fe.total_num_nodes,
+				num_2nd_subdomains,
+				sys->cond.directory);
+*/
+        }
+    }
+    else{
+        ddhr_lb_write_selected_elements_para_1line(
+            &(sys->mono_com_rom_solv),
+            &(sys->fe),
+            &(sys->bc),
+            &(sys->rom.hlpod_vals),
             &(sys->hrom.hlpod_ddhr),
+            &(sys->rom.hlpod_mat),
+            &(sys->rom.hlpod_meta),
+            sys->fe.total_num_elems,
+            sys->rom.hlpod_vals.num_snapshot,
+            sys->rom.hlpod_vals.num_modes_pre,
+            num_2nd_subdomains,
+            10000,
+            1.0e-8,
             sys->cond.directory);
 
-    double t_tmp = monolis_get_time_global_sync();
+        ddhr_lb_get_selected_elements_internal_overlap(
+                &(sys->hrom.hlpod_ddhr),
+                sys->cond.directory);
+
+        double t_tmp = monolis_get_time_global_sync();
+    }
 
 }
 
@@ -360,7 +405,7 @@ void HROM_pre_online(
 		const int num_snapshot,
 		const int num_2nd_subdomains)
 {
-	monolis_initialize(&(sys->monolis_hr0));
+	//monolis_initialize(&(sys->monolis_hr0));
 	monolis_initialize(&(sys->monolis_hr));
 
 	double t = monolis_get_time_global_sync();
@@ -390,30 +435,7 @@ void HROM_pre_online(
 				&(sys->hrom.hlpod_hr),
 				sys->fe.total_num_nodes,
 				sys->cond.directory);
-/*
-			lpod_pad_get_nonzero_pattern(
-				&(sys->monolis_hr0),
-				&(sys->rom.hlpod_mat),
-				&(sys->lpod_prm),
-				sys->rom.hlpod_vals.num_modes);
-*/
-/*
-            ROM_std_hlpod_set_nonzero_pattern_bcsr(
-                    monolis_hr0,
-                    &(rom->hlpod_mat),
-                    &(rom->hlpod_meta),
-                    rom->hlpod_vals.num_modes_pre,
-                    metagraph,
-                    directory);
-*/
-/*
-            monolis_get_nonzero_pattern_by_nodal_graph_V_R(
-                &(sys->monolis_hr0),
-                sys->rom.hlpod_meta.num_meta_nodes,
-                sys->rom.hlpod_meta.n_dof_list,
-                sys->rom.hlpod_meta.index,
-                sys->rom.hlpod_meta.item);
-*/
+
 			hr_set_reduced_mat(
 				&(sys->monolis_hr0),
 				&(sys->fe),
@@ -431,29 +453,37 @@ void HROM_pre_online(
 
 		}
 		else{
-			monolis_initialize(&(sys->monolis_hr0));
+			//monolis_initialize(&(sys->monolis_hr0));
 			monolis_initialize(&(sys->monolis_hr));
 
-			ddhr_get_selected_elements2(
-				&(sys->fe),
-				&(sys->bc),
-				sys->fe.total_num_elems,
-				sys->rom.hlpod_vals.num_snapshot,
-				sys->rom.hlpod_vals.num_modes_pre,
-				num_2nd_subdomains,
-				10000,
-				1.0e-6,
+            printf("num_2nd_subdomains: %d\n", num_2nd_subdomains);
+            printf("num_modes_pre: %d\n", sys->rom.hlpod_vals.num_modes_pre);
+            printf("num_snapshot: %d\n", sys->rom.hlpod_vals.num_snapshot);
+        
+
+        
+            //monolis_copy_mat_nonzero_pattern_R(
+            //    &(sys->monolis_rom0),
+            //    &(sys->monolis_hr0));
+/*
+        monolis_get_nonzero_pattern_by_nodal_graph_V_R(
+            &(sys->monolis_hr0),
+            sys->rom.hlpod_meta.num_meta_nodes,
+            sys->rom.hlpod_mat.num_modes_internal,
+            sys->rom.hlpod_meta.index,
+            sys->rom.hlpod_meta.item);
+*/
+			get_neib_subdomain_id_nonpara(
+				&(sys->rom.hlpod_mat),
 				&(sys->hrom.hlpod_ddhr),
+				num_2nd_subdomains);
+        
+			ddhr_lb_read_selected_elements(
+				&(sys->hrom.hlpod_ddhr),
+				num_2nd_subdomains,
 				sys->cond.directory);
 
-			ddhr_set_selected_elems(
-				&(sys->fe),
-				&(sys->hrom.hlpod_ddhr),
-				sys->fe.total_num_nodes,
-				num_2nd_subdomains,
-				sys->cond.directory);
-
-			ddhr_set_reduced_mat2(
+			ddhr_set_reduced_mat3(
 				&(sys->monolis_hr0),
 				&(sys->fe),
 				&(sys->basis),
@@ -464,9 +494,11 @@ void HROM_pre_online(
 				num_2nd_subdomains,
 				sys->vals.dt);
 
-			ddhr_monolis_set_matrix(
+			ddhr_monolis_set_matrix2(
 				&(sys->monolis_hr0),
+                &(sys->rom.hlpod_mat),
 				&(sys->hrom.hlpod_ddhr),
+                &(sys->rom.hlpod_meta),
 				sys->rom.hlpod_vals.num_modes_pre,
 				num_2nd_subdomains);
 		}
@@ -536,7 +568,6 @@ void HROM_nonparallel(
     double t1 = monolis_get_time();    
 
     monolis_copy_mat_value_R(&(sys.monolis_hr0), &(sys.monolis_hr));
-//	monolis_copy_mat_value_R(&(sys.monolis_pod0), &(sys.monolis_hr));
 	monolis_clear_mat_value_rhs_R(&(sys.monolis_hr));
 
     double set_bc1 = monolis_get_time();
@@ -584,12 +615,12 @@ void HROM_nonparallel(
             sys.rom.hlpod_vals.num_modes);
         
         double t2 = monolis_get_time();
-
+/*
         FILE* fp;
         fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1 + set_bc2 - set_bc1);
         fclose(fp);
-
+*/
     
         BBFE_sys_monowrap_solve(
             &(sys.monolis_hr),
@@ -609,22 +640,21 @@ void HROM_nonparallel(
             &(sys.bc), 
             sys.rom.hlpod_vals.num_modes);
 
-        t2 = monolis_get_time();
+        ROM_sys_hlpod_fe_add_Dbc(
+            sys.hrom.hlpod_ddhr.HR_T,
+            &(sys.bc),
+            sys.fe.total_num_nodes,
+            1);
 
+        t2 = monolis_get_time();
+/*
         //FILE* fp;
         fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
-
+*/
     }
     else{
-
-        if((step_HR-step_POD) == 1){
-            HROM_set_ansvec_para(
-                &(sys.vals),
-                &(sys.hrom.hlpod_ddhr),
-                sys.fe.total_num_nodes);
-        }
         double t1 = monolis_get_time();
 
         ddhr_set_reduced_vec3(
@@ -638,7 +668,7 @@ void HROM_nonparallel(
             sys.vals.dt,
             t);
         
-        ddhr_set_D_bc2(
+        ddhr_set_D_bc3(
             &(sys.monolis_hr),
             &(sys.fe),
             &(sys.basis),
@@ -655,17 +685,17 @@ void HROM_nonparallel(
             &(sys.hrom.hlpod_ddhr),
             sys.rom.hlpod_vals.num_modes_pre,
             sys.rom.hlpod_vals.num_2nd_subdomains);
-        
-        double t2 = monolis_get_time();
 
+        double t2 = monolis_get_time();
+/*
         FILE* fp;
         fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
-        
+*/      
         BBFE_sys_monowrap_solve(
             &(sys.monolis_hr),
-            &(sys.mono_com_rom),
+            &(sys.mono_com_rom_solv),
             sys.rom.hlpod_mat.mode_coef,
             MONOLIS_ITER_CG,
             MONOLIS_PREC_DIAG,
@@ -682,14 +712,20 @@ void HROM_nonparallel(
             sys.rom.hlpod_vals.num_modes_pre,
             sys.rom.hlpod_vals.num_2nd_subdomains,
             1);
+        
+        ROM_sys_hlpod_fe_add_Dbc(
+            sys.hrom.hlpod_ddhr.HR_T,
+            &(sys.bc),
+            sys.fe.total_num_nodes,
+            1);
 
         t2 = monolis_get_time();
-
+/*
         //FILE* fp;
         fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
-
+*/
         output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);
     }
 }

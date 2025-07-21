@@ -1047,19 +1047,29 @@ void ddhr_set_reduced_vec3(
 				}
 				*/
 				int subdomain_id = hlpod_mat->subdomain_id_in_nodes[index];
+                //printf("subdomain_id = %d\n", subdomain_id);
 
 				//if(subdomain_id < num_subdomains){
 				int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id];
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
 
+                //printf("IS = %d, IE = %d\n", IS, IE);
+
 				for(int k = IS; k < IE; k++){
 					double val = integ_val * hlpod_mat->pod_modes[index][k];
+                    //printf("k = %d, val = %e\n", k, val);
 					hlpod_ddhr->reduced_RH[k] += hlpod_ddhr->ovl_elem_weight_D_bc[m] * val;
 				}
 				
 			}
 		//}
 	}
+
+    for(int k = 0; k < num_modes * num_subdomains; k++){
+        //printf("reduced_RH[%d] = %e\n", k, hlpod_ddhr->reduced_RH[k]);
+//        hlpod_ddhr->reduced_RH[ k ] = 0.0;
+    }
+    //exit(1);
 
 	BB_std_free_1d_double(val_ip,      basis->num_integ_points);
 	BB_std_free_1d_double(Jacobian_ip, basis->num_integ_points);

@@ -93,17 +93,6 @@ void ddhr_set_D_bc2(
     const int 		num_subdomains,
     const double    dt);
 
-void ddhr_set_reduced_vec3(
-    MONOLIS*     	monolis,
-    BBFE_DATA*     	fe,
-    BBFE_BASIS*	 	basis,
-    HLPOD_DDHR*     hlpod_ddhr,
-    HLPOD_MAT*     hlpod_mat,
-    const int		num_modes,
-    const int 		num_subdomains,
-    const double    dt,
-    double       	t);
-
 void ddhr_set_reduced_mat3(
     MONOLIS*     	monolis,
     BBFE_DATA*     	fe,

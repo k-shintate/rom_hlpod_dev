@@ -132,3 +132,11 @@ void ddhr_to_monollis_rhs(
     HLPOD_DDHR*     hlpod_ddhr,
 	const int 		num_base,
 	const int		num_subdomains);
+
+void ddhr_monolis_set_matrix3(
+	MONOLIS*     	monolis,
+	HLPOD_MAT*     hlpod_mat,
+	HLPOD_DDHR*     hlpod_ddhr,
+    HLPOD_META*     hlpod_meta,
+    const int 		num_base,
+	const int		num_2nddd);

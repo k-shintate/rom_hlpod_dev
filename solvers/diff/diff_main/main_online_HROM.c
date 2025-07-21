@@ -219,22 +219,49 @@ int main (
             metagraph_name,
             sys.cond.directory);
     
+	ROM_std_hlpod_online_pre(
+            &(sys.monolis_hr0),
+            &(sys.monolis_com),
+            &(sys.mono_com_rom),
+            &(sys.mono_com_rom_solv),
+            &(sys.rom),
+            sys.fe.total_num_nodes,
+            metagraph_name,
+            sys.cond.directory);
+    
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
     monolis_com_initialize_by_self(&(sys.mono_com0));
     /******************/
 
-    /*for Hyper-reduction*/
-    ddhr_lb_set_element_para2(
-        &(sys.fe),
-        &(sys.hrom.hlpod_ddhr),
-        sys.rom.hlpod_vals.num_2nd_subdomains,
-        sys.cond.directory);
 
-    ddhr_memory_allocation_para_online(
-        &(sys.rom.hlpod_vals),
-        &(sys.hrom.hlpod_ddhr),
-        &(sys.rom.hlpod_mat),
-        sys.fe.total_num_nodes);
+    /*for Hyper-reduction*/
+	if(monolis_mpi_get_global_comm_size() == 1){
+        ddhr_set_element2(
+            &(sys.hrom.hlpod_ddhr),
+            sys.rom.hlpod_vals.num_2nd_subdomains,
+            sys.cond.directory);
+            
+        ddhr_memory_allocation2(
+            sys.fe.total_num_nodes,
+            sys.fe.total_num_elems,
+            sys.rom.hlpod_vals.num_snapshot,
+            sys.rom.hlpod_vals.num_modes_pre,
+            sys.rom.hlpod_vals.num_2nd_subdomains,
+            &(sys.hrom.hlpod_ddhr));
+	}
+    else{
+        ddhr_lb_set_element_para2(
+            &(sys.fe),
+            &(sys.hrom.hlpod_ddhr),
+            sys.rom.hlpod_vals.num_2nd_subdomains,
+            sys.cond.directory);
+
+        ddhr_memory_allocation_para_online(
+            &(sys.rom.hlpod_vals),
+            &(sys.hrom.hlpod_ddhr),
+            &(sys.rom.hlpod_mat),
+            sys.fe.total_num_nodes);
+    }
 
     if(monolis_mpi_get_global_comm_size() == 1){
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
@@ -244,7 +271,7 @@ int main (
     }
 
     if(monolis_mpi_get_global_comm_size() == 1){		
-		//HROM_pre_online_nonpara(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
 	else{
 		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
@@ -263,9 +290,10 @@ int main (
 
     monolis_copy_mat_R(&(sys.monolis0), &(sys.monolis));
    	monolis_initialize(&(sys.monolis_hr));
-//    monolis_initialize(&(sys.monolis_hr));
-    monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
-//    monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
+    //monolis_initialize(&(sys.monolis_hr0));
+    //monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr0));
+    //monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
+    monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
 
     int file_num = 0;
     int step = 0;
@@ -298,13 +326,13 @@ int main (
         solver_rom(&(sys), step, t);        
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
-/*
-        monolis_initialize(&(sys.monolis_hr0));
-        monolis_initialize(&(sys.monolis_hr));
-        monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr0));
-        monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
-*/
-        HROM_hierarchical_parallel(sys, step, 0, t);
+
+		if(monolis_mpi_get_global_comm_size() == 1){
+			HROM_nonparallel(sys, step, 0, t);
+        }
+        else{
+			HROM_hierarchical_parallel(sys, step, 0, t);
+        }
 
         if(step%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);

@@ -30,9 +30,6 @@ void ddhr_memory_allocation2(
     hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
 
 //for NNLS
-    //hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot*total_num_modes*num_subdomains*2, max_num_elem, num_subdomains);
-    //hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, total_num_snapshot*total_num_modes*num_subdomains*2, num_subdomains);
-
     hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, total_num_modes*num_subdomains, total_num_modes*num_subdomains);
     hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, total_num_modes*num_subdomains);
 
@@ -88,137 +85,6 @@ void ddhr_set_element2(
 
 }
 
-void ddhr_lb_read_selected_elements(
-    HLPOD_DDHR*     hlpod_ddhr,
-	const int num_subdomains,
-	const char* directory)
-{
-	const int myrank = monolis_mpi_get_global_my_rank();
-
-	FILE* fp;
-	char fname[BUFFER_SIZE];
-	char id[BUFFER_SIZE];
-	int ndof;
-
-
-	FILE* fp1;
-	FILE* fp2;
-	FILE* fp3;
-	FILE* fp4;
-	char fname1[BUFFER_SIZE];
-	char fname2[BUFFER_SIZE];
-
-	char fname3[BUFFER_SIZE];
-	char fname4[BUFFER_SIZE];
-
-//	snprintf(fname3, BUFFER_SIZE, "DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
-//	snprintf(fname4, BUFFER_SIZE, "DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
-
-//	fp3 = ROM_BB_write_fopen(fp3, fname3, directory);
-//	fp4 = ROM_BB_write_fopen(fp4, fname4, directory);
-
-	int Index1 = 0;
-	int Index2 = 0;
-	int tmp;
-	double val;
-	int index1 = 0;
-	int index2 = 0;
-	int num_selected_elems;
-	int num_selected_elems_D_bc;
-
-	for (int m = 0; m < num_subdomains; m++) {
-		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
-		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
-
-		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
-		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
-
-		fscanf(fp1, "%d", &(num_selected_elems));
-		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
-		Index1 += num_selected_elems;
-		Index2 += num_selected_elems_D_bc;
-
-		fclose(fp1);
-		fclose(fp2);
-	}
-
-//    hlpod_ddhr->elem_weight = BB_std_calloc_1d_double(f_ip, np);
-    hlpod_ddhr->ovl_num_selected_elems = Index1;
-    hlpod_ddhr->ovl_num_selected_elems_D_bc  = Index2;
-
-    hlpod_ddhr->ovl_elem_weight = BB_std_calloc_1d_double(hlpod_ddhr->ovl_elem_weight, Index1);
-    hlpod_ddhr->ovl_id_selected_elems = BB_std_calloc_1d_int(hlpod_ddhr->ovl_id_selected_elems, Index1);
-    hlpod_ddhr->ovl_elem_weight_D_bc = BB_std_calloc_1d_double(hlpod_ddhr->ovl_elem_weight_D_bc, Index2);
-    hlpod_ddhr->ovl_id_selected_elems_D_bc = BB_std_calloc_1d_int(hlpod_ddhr->ovl_id_selected_elems_D_bc, Index2);
-
-	for (int m = 0; m < num_subdomains; m++) {
-		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
-
-		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
-
-		fscanf(fp1, "%d", &(num_selected_elems));
-        for(int i = 0; i < num_selected_elems; i++){
-            fscanf(fp1, "%d %lf", &(hlpod_ddhr->ovl_id_selected_elems[index1]), &(hlpod_ddhr->ovl_elem_weight[index1]));
-            index1++;
-        }
-
-		fclose(fp1);
-	}
-
-    for (int m = 0; m < num_subdomains; m++) {
-		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
-
-		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
-
-		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
-
-        for(int i = 0; i < num_selected_elems_D_bc; i++){
-            fscanf(fp2, "%d %lf", &(hlpod_ddhr->ovl_id_selected_elems_D_bc[index2]), &(hlpod_ddhr->ovl_elem_weight_D_bc[index2]));
-            
-            printf("%d %lf\n", hlpod_ddhr->ovl_id_selected_elems_D_bc[index2], hlpod_ddhr->ovl_elem_weight_D_bc[index2]);
-            index2++;
-        }
-
-		fclose(fp2);
-	}
-
-
-/*
-	fprintf(fp3, "%d\n", Index1);
-	fprintf(fp4, "%d\n", Index2);
-
-	for (int m = 0; m < num_subdomains; m++) {
-		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[m]);
-		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[m]);
-
-		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
-		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
-
-		fscanf(fp1, "%d", &(num_selected_elems));
-		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
-
-		for (int i = 0; i < num_selected_elems; i++) {
-			fscanf(fp1, "%d %lf", &(tmp), &(val));
-			fprintf(fp3, "%d %.30e\n", tmp, val);
-			index1++;
-		}
-
-		for (int i = 0; i < num_selected_elems_D_bc; i++) {
-			fscanf(fp2, "%d %lf", &(tmp), &(val));
-			fprintf(fp4, "%d %.30e\n", tmp, val);
-			index2++;
-		}
-
-		fclose(fp1);
-		fclose(fp2);
-	}
-
-	fclose(fp3);
-	fclose(fp4);
-*/
-//	t = monolis_get_time_global_sync();
-}
-
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void get_neib_subdomain_id_nonpara(
@@ -226,20 +92,6 @@ void get_neib_subdomain_id_nonpara(
 	HLPOD_DDHR* 	hlpod_ddhr,
     const int       num_subdomains)
 {
-/*
-	hlpod_vals->n_neib_vec = BB_std_calloc_1d_int(hlpod_vals->n_neib_vec, np);
-	hlpod_mat->num_modes_1stdd_neib[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, hlpod_vals->n_neib_vec);
-	hlpod_mat->num_neib_modes_sum = BB_std_calloc_1d_int(hlpod_mat->num_neib_modes_sum, np);	
-	hlpod_mat->num_neib_modes_sum[0] = num_my_modes;
-	for(int i = 1; i < np; i++){
-		hlpod_mat->num_neib_modes_sum[i] = hlpod_mat->num_neib_modes_sum[i-1] + hlpod_mat->num_modes_1stdd_neib[i];
-	}
-	hlpod_vals->n_neib_vec = BB_std_calloc_1d_int(hlpod_vals->n_neib_vec, np);
-	hlpod_mat->num_modes_1stdd_neib[0] = num_my_modes;
-	monolis_mpi_update_I(monolis_com, np, 1, hlpod_vals->n_neib_vec);
-*/
-
 	hlpod_ddhr->num_neib_modes_1stdd_sum = BB_std_calloc_1d_int(hlpod_ddhr->num_neib_modes_1stdd_sum, num_subdomains +1);
 	hlpod_ddhr->num_neib_modes_1stdd_sum[0] = 0;
 	for(int i = 1; i < num_subdomains + 1; i++){
@@ -508,4 +360,137 @@ void ddhr_set_selected_elems(
 
 	fclose(fp);
 
+}
+
+void ddhr_lb_read_selected_elements(
+    HLPOD_DDHR*     hlpod_ddhr,
+	const int num_subdomains,
+	const char* directory)
+{
+	const int myrank = monolis_mpi_get_global_my_rank();
+
+	FILE* fp;
+	char fname[BUFFER_SIZE];
+	char id[BUFFER_SIZE];
+	int ndof;
+
+
+	FILE* fp1;
+	FILE* fp2;
+	FILE* fp3;
+	FILE* fp4;
+	char fname1[BUFFER_SIZE];
+	char fname2[BUFFER_SIZE];
+
+	char fname3[BUFFER_SIZE];
+	char fname4[BUFFER_SIZE];
+
+//	snprintf(fname3, BUFFER_SIZE, "DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
+//	snprintf(fname4, BUFFER_SIZE, "DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
+
+//	fp3 = BBFE_sys_write_fopen(fp3, fname3, directory);
+//	fp4 = BBFE_sys_write_fopen(fp4, fname4, directory);
+
+	int Index1 = 0;
+	int Index2 = 0;
+	int tmp;
+	double val;
+	int index1 = 0;
+	int index2 = 0;
+	int num_selected_elems;
+	int num_selected_elems_D_bc;
+
+	for (int m = 0; m < num_subdomains; m++) {
+		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
+		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
+
+		fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
+		fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
+
+		fscanf(fp1, "%d", &(num_selected_elems));
+		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
+		Index1 += num_selected_elems;
+		Index2 += num_selected_elems_D_bc;
+
+		fclose(fp1);
+		fclose(fp2);
+	}
+
+//    hlpod_ddhr->elem_weight = BB_std_calloc_1d_double(f_ip, np);
+    hlpod_ddhr->ovl_num_selected_elems = Index1;
+    hlpod_ddhr->ovl_num_selected_elems_D_bc  = Index2;
+
+    printf("Index1 = %d, Index2 = %d\n", Index1, Index2);
+
+    hlpod_ddhr->ovl_elem_weight = BB_std_calloc_1d_double(hlpod_ddhr->ovl_elem_weight, Index1);
+    hlpod_ddhr->ovl_id_selected_elems = BB_std_calloc_1d_int(hlpod_ddhr->ovl_id_selected_elems, Index1);
+    hlpod_ddhr->ovl_elem_weight_D_bc = BB_std_calloc_1d_double(hlpod_ddhr->ovl_elem_weight_D_bc, Index2);
+    hlpod_ddhr->ovl_id_selected_elems_D_bc = BB_std_calloc_1d_int(hlpod_ddhr->ovl_id_selected_elems_D_bc, Index2);
+
+	for (int m = 0; m < num_subdomains; m++) {
+		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
+
+		fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
+
+		fscanf(fp1, "%d", &(num_selected_elems));
+        for(int i = 0; i < num_selected_elems; i++){
+            fscanf(fp1, "%d %lf", &(hlpod_ddhr->ovl_id_selected_elems[index1]), &(hlpod_ddhr->ovl_elem_weight[index1]));
+            index1++;
+        }
+
+		fclose(fp1);
+	}
+
+    for (int m = 0; m < num_subdomains; m++) {
+		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
+
+		fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
+
+		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
+
+        for(int i = 0; i < num_selected_elems_D_bc; i++){
+            fscanf(fp2, "%d %lf", &(hlpod_ddhr->ovl_id_selected_elems_D_bc[index2]), &(hlpod_ddhr->ovl_elem_weight_D_bc[index2]));
+            
+            printf("%d %lf\n", hlpod_ddhr->ovl_id_selected_elems_D_bc[index2], hlpod_ddhr->ovl_elem_weight_D_bc[index2]);
+            index2++;
+        }
+
+		fclose(fp2);
+	}
+
+
+/*
+	fprintf(fp3, "%d\n", Index1);
+	fprintf(fp4, "%d\n", Index2);
+
+	for (int m = 0; m < num_subdomains; m++) {
+		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[m]);
+		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[m]);
+
+		fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
+		fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
+
+		fscanf(fp1, "%d", &(num_selected_elems));
+		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
+
+		for (int i = 0; i < num_selected_elems; i++) {
+			fscanf(fp1, "%d %lf", &(tmp), &(val));
+			fprintf(fp3, "%d %.30e\n", tmp, val);
+			index1++;
+		}
+
+		for (int i = 0; i < num_selected_elems_D_bc; i++) {
+			fscanf(fp2, "%d %lf", &(tmp), &(val));
+			fprintf(fp4, "%d %.30e\n", tmp, val);
+			index2++;
+		}
+
+		fclose(fp1);
+		fclose(fp2);
+	}
+
+	fclose(fp3);
+	fclose(fp4);
+*/
+//	t = monolis_get_time_global_sync();
 }

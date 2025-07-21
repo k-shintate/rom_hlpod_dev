@@ -258,11 +258,11 @@ int main (
                 sys.rom.hlpod_vals.num_2nd_subdomains,
                 sys.cond.directory);
                 
-            ddhr_memory_allocation2(
+            ddhr_memory_allocation(
                 sys.fe.total_num_nodes,
                 sys.fe.total_num_elems,
                 sys.rom.hlpod_vals.num_snapshot,
-                sys.rom.hlpod_vals.num_modes_pre,
+                sys.rom.hlpod_vals.num_modes,
                 sys.rom.hlpod_vals.num_2nd_subdomains,
                 &(sys.hrom.hlpod_ddhr));
         }
@@ -294,7 +294,7 @@ int main (
 
     int file_num = 0;
     int step = 0;
-    int step_POD = 0;
+    //int step_POD = 0;
     double t = 0;
 	while (t < sys.vals.finish_time) {
 		t += sys.vals.dt;
@@ -316,7 +316,7 @@ int main (
 			if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
 			}
 			else{
-				ddhr_set_matvec_only_residuals_for_NNLS2(
+				ddhr_set_matvec_only_residuals_for_NNLS3(
 					&(sys.fe),
 					&(sys.basis),
 					&(sys.bc), 
@@ -324,7 +324,7 @@ int main (
 					&(sys.rom.hlpod_vals), 
 					&(sys.hrom.hlpod_ddhr),
 					sys.rom.hlpod_vals.num_2nd_subdomains,
-					step_POD -1 ,	//index 0 start
+					step -1 ,	//index 0 start
 					sys.rom.hlpod_vals.num_snapshot,
 					sys.rom.hlpod_vals.num_modes_pre,
 					sys.vals.dt,
@@ -337,7 +337,7 @@ int main (
 					&(sys.rom.hlpod_vals), 
 					&(sys.hrom.hlpod_ddhr),
 					sys.rom.hlpod_vals.num_2nd_subdomains,
-					step_POD -1 ,	//index 0 start
+					step -1 ,	//index 0 start
 					sys.rom.hlpod_vals.num_snapshot,
 					sys.rom.hlpod_vals.num_modes_pre,
 					sys.vals.dt,
@@ -393,6 +393,7 @@ int main (
 
     if(monolis_mpi_get_global_comm_size() == 1){
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline2(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
         HROM_pre_offline2(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);

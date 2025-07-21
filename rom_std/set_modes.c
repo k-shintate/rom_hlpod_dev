@@ -271,8 +271,11 @@ void ROM_std_hlpod_read_podmodes_local(
 
     hlpod_mat->pod_modes = BB_std_calloc_2d_double(hlpod_mat->pod_modes, total_num_nodes*dof, num_modes * num_2nd_subdomains);
     hlpod_mat->num_modes_internal = BB_std_calloc_1d_int(hlpod_mat->num_modes_internal, num_2nd_subdomains);
+    hlpod_mat->subdomain_id_in_nodes = BB_std_calloc_1d_int(hlpod_mat->subdomain_id_in_nodes, total_num_nodes*dof);
+
 
     int total = 0;
+    int Total = 0;
     int index = 0;
     for(int m = 0; m < num_2nd_subdomains; m++){
         n_internal_vertex = hlpod_mat->n_internal_vertex_subd[m];
@@ -291,13 +294,21 @@ void ROM_std_hlpod_read_podmodes_local(
         for(int i = 0; i < n_internal_vertex; i++){
             for(int j = 0; j < n_basis; j++){
                 for(int k = 0; k < dof; k++){
-                    hlpod_mat->pod_modes[hlpod_mat->node_id[index] * dof + k][total + j] = S[i*dof + k][j] * sqrt(n_internal_vertex * dof);
+                    hlpod_mat->pod_modes[hlpod_mat->node_id[index] * dof + k][Total + j] = S[i*dof + k][j] * sqrt(n_internal_vertex * dof);
                 }
             }
+            hlpod_mat->subdomain_id_in_nodes[hlpod_mat->node_id[index]] = m;
             index++;
         }
 
         total += n_basis;
+        Total += num_modes;
+
+        //for arbit dof ddecm
+	    for(int i = 0; i < n_internal_vertex; i++){
+			//hlpod_mat->subdomain_id_in_nodes[hlpod_mat->node_id[i]] = m + 1;
+            //printf("subdomain_id_in_nodes[%d] = %d\n", hlpod_mat->node_id[i], hlpod_mat->subdomain_id_in_nodes[hlpod_mat->node_id[i]]);
+        }
 
         BB_std_free_2d_double(S, n_internal_vertex*dof, n_basis);
     }
