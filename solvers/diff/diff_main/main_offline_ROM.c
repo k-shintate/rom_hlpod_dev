@@ -353,7 +353,7 @@ int main (
 
 	monolis_global_finalize();
 
-	double t2 = monolis_get_time();
+	double t2 = monolis_get_time_global_sync();
 	printf("** Total time: %f\n", t2 - t1);
 
 	printf("\n");

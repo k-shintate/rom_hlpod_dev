@@ -176,11 +176,13 @@ void get_neib_subdomain_id(
         HLPOD_MAT* 	    hlpod_mat,
         const int 		num_modes);
 
+/*
 void set_max_num_modes(
 	HLPOD_VALUES*		hlpod_vals,
     const int       num_modes,
 	const int       num_1st_dd,	//並列計算領域数
 	const char*     directory);
+*/
 
 void get_neib_coordinates_pre(
     HLPOD_VALUES* 	hlpod_vals,

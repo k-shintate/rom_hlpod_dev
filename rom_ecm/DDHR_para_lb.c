@@ -20,7 +20,7 @@ static const char* INPUT_FILENAME_ELEM        = "elem.dat";
 
 static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 
-//内部要素とオーバーラップ要素の出力 (ポストプロセス)
+//内部要素とオーバーラップ要素の出力
 void ddhr_lb_get_selected_elements_internal_overlap(
 	HLPOD_DDHR*     hlpod_ddhr,
 	//const int       num_subdomains,
@@ -52,7 +52,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 	int meta_n_neib;
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d", myrank);
-	fp = ROM_BB_read_fopen(fp, fname, directory);
+	fp = BBFE_sys_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s %d", id, &(ndof));
 	fscanf(fp, "%d", &(num_subdomains));
 	fclose(fp);
@@ -62,7 +62,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 	snprintf(fname, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.id.%d", myrank);
 
-	fp = ROM_BB_read_fopen(fp, fname, directory);
+	fp = BBFE_sys_read_fopen(fp, fname, directory);
 	fscanf(fp, "%s", id);
 	fscanf(fp, "%d %d", &(ndof), &(ndof));
 	for (int i = 0; i < num_subdomains; i++) {
@@ -77,7 +77,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		printf("num_subdomains = %d, n = %d \n\n", num_subdomains, n);
 
 		snprintf(fname, BUFFER_SIZE, "parted.1/%s.recv.%d", INPUT_FILENAME_NODE, subdomain_id[n]);
-		fp = ROM_BB_read_fopen(fp, fname, directory);
+		fp = BBFE_sys_read_fopen(fp, fname, directory);
 		fscanf(fp, "%d %d", &(meta_n_neib), &(ndof));
 		int* meta_list_neib;
 		meta_list_neib = BB_std_calloc_1d_int(meta_list_neib, meta_n_neib);
@@ -88,13 +88,13 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		/*自領域*/
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[n]);
-		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+		fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
 
 		fscanf(fp1, "%d", &(val));
 		num_selected_elems += val;
 		fclose(fp1);
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[n]);
-		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
+		fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
 
 		fscanf(fp2, "%d", &(val));
 		num_selected_elems_D_bc += val;
@@ -103,7 +103,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		/*隣接領域*/
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", meta_list_neib[m]);
-			fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+			fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
 
 			fscanf(fp1, "%d", &(val));
 			num_selected_elems += val;
@@ -112,7 +112,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", meta_list_neib[m]);
-			fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
+			fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
 
 			fscanf(fp2, "%d", &(val));
 			num_selected_elems_D_bc += val;
@@ -130,7 +130,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		/*自領域*/
 		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[n]);
-		fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+		fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
 		fscanf(fp1, "%d", &(val));
 		for (int j = 0; j < val; j++) {
 			fscanf(fp1, "%d %lf", &(ovl_selected_elems[j + index]), &(ovl_selected_elems_weight[j + index]));
@@ -142,7 +142,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		/*隣接領域*/
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", meta_list_neib[m]);
-			fp1 = ROM_BB_read_fopen(fp1, fname1, directory);
+			fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
 			fscanf(fp1, "%d", &(val));
 			for (int j = 0; j < val; j++) {
 				fscanf(fp1, "%d %lf", &(ovl_selected_elems[j + index]), &(ovl_selected_elems_weight[j + index]));
@@ -154,7 +154,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		index = 0;
 		/*自領域*/
 		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[n]);
-		fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
+		fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
 		fscanf(fp2, "%d", &(val));
 		for (int j = 0; j < val; j++) {
 			fscanf(fp2, "%d %lf", &(ovl_selected_elems_D_bc[j + index]), &(ovl_selected_elems_weight_D_bc[j + index]));
@@ -165,7 +165,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		/*隣接領域*/
 		for (int m = 0; m < meta_n_neib; m++) {
 			snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", meta_list_neib[m]);
-			fp2 = ROM_BB_read_fopen(fp2, fname2, directory);
+			fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
 			fscanf(fp2, "%d", &(val));
 			for (int j = 0; j < val; j++) {
 				fscanf(fp2, "%d %lf", &(ovl_selected_elems_D_bc[j + index]), &(ovl_selected_elems_weight_D_bc[j + index]));
@@ -192,7 +192,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		//読み込む対象の要素のidを読み込み
 		snprintf(fname, BUFFER_SIZE, "parted.1/%s.%d", INPUT_FILENAME_ELEM_ID, subdomain_id[n]);
-		fp = ROM_BB_read_fopen(fp, fname, directory);
+		fp = BBFE_sys_read_fopen(fp, fname, directory);
 		fscanf(fp, "%s", id);
 		fscanf(fp, "%d %d", &(total_num_elems), &(tmp));
 		ovl_elem_global_id = BB_std_calloc_1d_int(ovl_elem_global_id, total_num_elems);
@@ -227,10 +227,8 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 			}
 		}
 
-		t = monolis_get_time_global_sync();
-
 		snprintf(fname1, BUFFER_SIZE, "DDECM/selected_elem_overlap.%d.txt", subdomain_id[n]);
-		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+		fp1 = BBFE_sys_write_fopen(fp1, fname1, directory);
 
 		index1 = 0;
 		index2 = 0;
@@ -263,15 +261,15 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 			}
 		}
 
-		fclose(fp1);
+fclose(fp1);
 
-		/*内部要素の選定のための情報読み込み*/
+		//内部要素の選定
 		int local_dof;
 		int n_internal;
 		int** conn;
 
 		snprintf(fname, BUFFER_SIZE, "parted.1/%s.%d", INPUT_FILENAME_ELEM, subdomain_id[n]);
-		fp = ROM_BB_read_fopen(fp, fname, directory);
+		fp = BBFE_sys_read_fopen(fp, fname, directory);
 
 		fscanf(fp, "%d %d", &(total_num_elems), &(local_dof));
 		conn = BB_std_calloc_2d_int(conn, total_num_elems, local_dof);
@@ -283,11 +281,10 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		fclose(fp);
 
 		snprintf(fname, BUFFER_SIZE, "parted.1/node.dat.n_internal.%d", subdomain_id[n]);
-		fp = ROM_BB_read_fopen(fp, fname, directory);
+		fp = BBFE_sys_read_fopen(fp, fname, directory);
 		fscanf(fp, "%s %d", id, &(tmp));
 		fscanf(fp, "%d", &(n_internal));
 		fclose(fp);
-		/**/
 
 		/*節点ベースの出力*/
 		index1 = 0;
@@ -330,7 +327,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		}
 
 		snprintf(fname1, BUFFER_SIZE, "DDECM/num_selected_node.%d.txt", subdomain_id[n]);
-		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+		fp1 = BBFE_sys_write_fopen(fp1, fname1, directory);
 		fprintf(fp1, "%d\n", num_selected_nodes);
 		fclose(fp1);
 		/**************/
@@ -369,7 +366,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 
 		snprintf(fname1, BUFFER_SIZE, "DDECM/selected_elem_internal.%d.txt", subdomain_id[n]);
 
-		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+		fp1 = BBFE_sys_write_fopen(fp1, fname1, directory);
 
 		index1 = 0;
 		index2 = 0;
@@ -400,8 +397,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 			}
 		}
 
-		fclose(fp1);
-		/**************/
+fclose(fp1);
 
 		BB_std_free_1d_int(ovl_elem_global_id, total_num_elems);
 
@@ -418,9 +414,9 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 		BB_std_free_1d_int(ovl_elem_local_id_D_bc, num_selected_elems_D_bc);
 
 		BB_std_free_1d_int(meta_list_neib, meta_n_neib);
-
-		double t_tmp = monolis_get_time_global_sync();
+		//double t_tmp = monolis_get_time_global_sync();
 	}
+    double t_tmp = monolis_get_time_global_sync();
 }
 
 void ddhr_lb_read_selected_elements_para(
@@ -2790,7 +2786,7 @@ void get_neib_coordinates_pad(
 
 		index_column += hlpod_mat->num_modes_internal[k];
 		index += hlpod_mat->num_modes_internal[k];
-		index += max_num_bases - hlpod_mat->num_modes_internal[k];
+		//index += max_num_bases - hlpod_mat->num_modes_internal[k];
 	}
 
 	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, hlpod_mat->pod_coordinates_all);

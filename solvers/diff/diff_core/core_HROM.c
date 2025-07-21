@@ -305,12 +305,13 @@ void HROM_pre_offline(
 //        sys->rom.hlpod_vals.num_2nd_subdomains,
 		sys->cond.directory);
 */
+
     get_neib_coordinates_pre(
         &(sys->rom.hlpod_vals),
         &(sys->rom.hlpod_mat),
         1 + sys->monolis_com.recv_n_neib,
         sys->rom.hlpod_vals.num_modes_max);
-    
+
     printf("%d %d\n", sys->rom.hlpod_vals.num_modes_max, sys->rom.hlpod_vals.num_modes_pre);
     //exit(1);
 

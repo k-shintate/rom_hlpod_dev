@@ -265,8 +265,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 							for(int ki = 0; ki < num_neib; ki++) {
 								for(int kj = 0; kj < hlpod_mat->num_modes_1stdd_neib[ki]; kj++) {							
 									double B = hlpod_mat->neib_vec[index_j][index2];            //
-									//double C = hlpod_mat->pod_coordinates_all[index1 + kj];
-                                    double C = hlpod_mat->mode_coef[index1 + kj];
+									double C = hlpod_mat->pod_coordinates_all[index1 + kj];
+                                    //double C = hlpod_mat->mode_coef[index1 + kj];
 
 									local_vec[k1] += A * B * C;
 									index2++;
