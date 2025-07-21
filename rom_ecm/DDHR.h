@@ -111,7 +111,6 @@ void ddhr_calc_solution(
     int 			num_base,
 	const int		num_subdomains,
 	const int		dof);
-//	LPOD_PRM*		lpod_prm);
 
 
 void ddhr_monolis_set_matrix(

@@ -319,7 +319,6 @@ void ddhr_calc_solution(
     int 			num_base,
 	const int		num_subdomains,
 	const int		dof)
-//	LPOD_PRM*		lpod_prm)
 {
 	int nl = fe->total_num_nodes;
 	int k = num_base * num_subdomains;

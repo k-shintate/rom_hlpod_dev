@@ -792,7 +792,6 @@ void lpod_pad_calc_block_solution_local_para(
 	}
 
 	for(int i = 0; i < bc->num_D_bcs; i++) {
-        //int index = lpod_prm->D_bc_node_id[i];
         int index = 0;
 		if(index < n_internal_vertex){
 			hlpod_ddhr->HR_T[index] = bc->imposed_D_val[index];
@@ -803,7 +802,6 @@ void lpod_pad_calc_block_solution_local_para(
 	monolis_mpi_update_R(monolis_com, fe->total_num_nodes, 1, hlpod_ddhr->HR_T);
 
 	double t2 = monolis_get_time();
-	//lpod_prm->time_calc_sol = t2-t1;
 }
 
 

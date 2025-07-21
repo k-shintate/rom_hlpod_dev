@@ -149,7 +149,7 @@ void ddhr_set_reduced_mat_para(
     const int 		num_subdomains,
     const double    dt);
 
-void ddhr_set_D_bc_para(
+void ddhr_lb_set_D_bc_para(
     MONOLIS*     	monolis,
     BBFE_DATA*     	fe,
     BBFE_BASIS* 	basis,
@@ -160,7 +160,7 @@ void ddhr_set_D_bc_para(
     const int 		num_subdomains,
     const double    dt);
 
-void ddhr_set_reduced_vec_para(
+void ddhr_lb_set_reduced_vec_para(
     MONOLIS*     	monolis,
     BBFE_DATA*     	fe,
     BBFE_BASIS*	 	basis,
@@ -172,17 +172,17 @@ void ddhr_set_reduced_vec_para(
     double       	t);
 */
 
-void ddhr_lb_set_reduced_mat_para(
-    MONOLIS*     	monolis,
-    BBFE_DATA*     	fe,
-    BBFE_BASIS* 	basis,
-    BBFE_BC*     	bc,
-    HLPOD_VALUES*   hlpod_vals,
-    HLPOD_MAT*    hlpod_mat,
-    HLPOD_DDHR*     hlpod_ddhr,
-    const int 		num_modes,
-    const int 		num_subdomains,
-    const double    dt);
+void ddhr_lb_set_reduced_vec_para(
+		MONOLIS*     	monolis,
+		BBFE_DATA*     	fe,
+		BBFE_BASIS*	 	basis,
+        HLPOD_VALUES*   hlpod_vals,
+        HLPOD_DDHR*     hlpod_ddhr,
+    	HLPOD_MAT*    hlpod_mat,
+        const int		num_modes,
+		const int 		num_subdomains,
+        const double    dt,
+		double       	t);
 
 void ddhr_lb_read_reduced_mat(
     double**		reduced_mat,

@@ -243,24 +243,48 @@ int main (
         HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
 
+    if(monolis_mpi_get_global_comm_size() == 1){	
+        if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
+            hr_memory_allocation(
+                sys.fe.total_num_nodes,
+                sys.fe.total_num_elems,
+                sys.rom.hlpod_vals.num_snapshot,
+                sys.rom.hlpod_vals.num_modes_pre,
+                &(sys.hrom.hlpod_hr));
+        }
+        else{
+            ddhr_set_element2(
+                &(sys.hrom.hlpod_ddhr),
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                sys.cond.directory);
+                
+            ddhr_memory_allocation2(
+                sys.fe.total_num_nodes,
+                sys.fe.total_num_elems,
+                sys.rom.hlpod_vals.num_snapshot,
+                sys.rom.hlpod_vals.num_modes_pre,
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                &(sys.hrom.hlpod_ddhr));
+        }
+    }
+    else{
+        ddhr_lb_set_element_para2(
+                &(sys.fe),
+                &(sys.hrom.hlpod_ddhr),
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                sys.cond.directory);
 
-    ddhr_lb_set_element_para2(
-            &(sys.fe),
-            &(sys.hrom.hlpod_ddhr),
-            sys.rom.hlpod_vals.num_2nd_subdomains,
-            sys.cond.directory);
-
-    //基底本数の分布が決定されてからメモリ割り当て
-    ddhr_memory_allocation_para(
-            &(sys.rom.hlpod_vals),
-            &(sys.hrom.hlpod_ddhr),
-            &(sys.rom.hlpod_mat),
-            sys.fe.total_num_nodes,
-            sys.fe.total_num_elems,
-            sys.rom.hlpod_vals.num_snapshot,
-            sys.rom.hlpod_vals.num_modes_pre,
-            sys.rom.hlpod_vals.num_2nd_subdomains);
-
+        //基底本数の分布が決定されてからメモリ割り当て
+        ddhr_memory_allocation_para(
+                &(sys.rom.hlpod_vals),
+                &(sys.hrom.hlpod_ddhr),
+                &(sys.rom.hlpod_mat),
+                sys.fe.total_num_nodes,
+                sys.fe.total_num_elems,
+                sys.rom.hlpod_vals.num_snapshot,
+                sys.rom.hlpod_vals.num_modes_pre,
+                sys.rom.hlpod_vals.num_2nd_subdomains);
+    }
 
     /*********************/
 
@@ -288,42 +312,76 @@ int main (
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
 
-        //for NNLS
-        get_neib_coordinates_pad(
-                &(sys.mono_com_rom),
-                &(sys.rom.hlpod_vals),
-                &(sys.rom.hlpod_mat),
-                1 + sys.mono_com_rom_solv.recv_n_neib,
-                sys.rom.hlpod_vals.num_modes_max,
-                sys.rom.hlpod_vals.num_2nd_subdomains,
-                sys.rom.hlpod_vals.num_modes_pre);
+		if(monolis_mpi_get_global_comm_size() == 1){
+			if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
+			}
+			else{
+				ddhr_set_matvec_only_residuals_for_NNLS2(
+					&(sys.fe),
+					&(sys.basis),
+					&(sys.bc), 
+					&(sys.rom.hlpod_mat),
+					&(sys.rom.hlpod_vals), 
+					&(sys.hrom.hlpod_ddhr),
+					sys.rom.hlpod_vals.num_2nd_subdomains,
+					step_POD -1 ,	//index 0 start
+					sys.rom.hlpod_vals.num_snapshot,
+					sys.rom.hlpod_vals.num_modes_pre,
+					sys.vals.dt,
+					t);
+				
+				ddhr_set_matvec_RH_for_NNLS2_only_residuals(			
+					&(sys.fe),
+					&(sys.basis),
+					&(sys.rom.hlpod_mat),
+					&(sys.rom.hlpod_vals), 
+					&(sys.hrom.hlpod_ddhr),
+					sys.rom.hlpod_vals.num_2nd_subdomains,
+					step_POD -1 ,	//index 0 start
+					sys.rom.hlpod_vals.num_snapshot,
+					sys.rom.hlpod_vals.num_modes_pre,
+					sys.vals.dt,
+					t);
 
-        ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
-                &(sys.fe),
-                &(sys.basis),
-                &(sys.rom.hlpod_mat),
-                &(sys.rom.hlpod_vals),
-                &(sys.hrom.hlpod_ddhr),
-                sys.rom.hlpod_vals.num_2nd_subdomains,
-                step -1 ,   //index 0 start
-                sys.rom.hlpod_vals.num_snapshot,
-                sys.rom.hlpod_vals.num_modes_pre,
-                sys.vals.dt,
-                t);
+			}
+		}
+        else{
+            get_neib_coordinates_pad(
+                    &(sys.mono_com_rom),
+                    &(sys.rom.hlpod_vals),
+                    &(sys.rom.hlpod_mat),
+                    1 + sys.mono_com_rom_solv.recv_n_neib,
+                    sys.rom.hlpod_vals.num_modes_max,
+                    sys.rom.hlpod_vals.num_2nd_subdomains,
+                    sys.rom.hlpod_vals.num_modes_pre);
 
-        ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
-                &(sys.fe),
-                &(sys.basis),
-                &(sys.bc),
-                &(sys.rom.hlpod_mat),
-                &(sys.rom.hlpod_vals),
-                &(sys.hrom.hlpod_ddhr),
-                sys.rom.hlpod_vals.num_2nd_subdomains,
-                step -1 ,   //index 0 start
-                sys.rom.hlpod_vals.num_snapshot,
-                1 + sys.monolis_com.recv_n_neib,
-                sys.vals.dt,
-                t);
+            ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
+                    &(sys.fe),
+                    &(sys.basis),
+                    &(sys.rom.hlpod_mat),
+                    &(sys.rom.hlpod_vals),
+                    &(sys.hrom.hlpod_ddhr),
+                    sys.rom.hlpod_vals.num_2nd_subdomains,
+                    step -1 ,   //index 0 start
+                    sys.rom.hlpod_vals.num_snapshot,
+                    sys.rom.hlpod_vals.num_modes_pre,
+                    sys.vals.dt,
+                    t);
+
+            ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
+                    &(sys.fe),
+                    &(sys.basis),
+                    &(sys.bc),
+                    &(sys.rom.hlpod_mat),
+                    &(sys.rom.hlpod_vals),
+                    &(sys.hrom.hlpod_ddhr),
+                    sys.rom.hlpod_vals.num_2nd_subdomains,
+                    step -1 ,   //index 0 start
+                    sys.rom.hlpod_vals.num_snapshot,
+                    1 + sys.monolis_com.recv_n_neib,
+                    sys.vals.dt,
+                    t);
+        }
 
         if(step%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);
