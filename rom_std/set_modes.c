@@ -294,7 +294,7 @@ void ROM_std_hlpod_read_podmodes_local(
         for(int i = 0; i < n_internal_vertex; i++){
             for(int j = 0; j < n_basis; j++){
                 for(int k = 0; k < dof; k++){
-                    hlpod_mat->pod_modes[hlpod_mat->node_id[index] * dof + k][Total + j] = S[i*dof + k][j] * sqrt(n_internal_vertex * dof);
+                    hlpod_mat->pod_modes[hlpod_mat->node_id[index] * dof + k][total + j] = S[i*dof + k][j] * sqrt(n_internal_vertex * dof);
                 }
             }
             hlpod_mat->subdomain_id_in_nodes[hlpod_mat->node_id[index]] = m;
