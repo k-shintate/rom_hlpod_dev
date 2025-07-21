@@ -571,17 +571,6 @@ void HROM_hierarchical_parallel(
         sys.vals.mat_max_iter,
         sys.vals.mat_epsilon);
 
-/*
-	BBFE_sys_monowrap_solve_V(
-		&(sys.monolis_hr),
-		&(sys.mono_com_rom_solv),
-		sys.rom.hlpod_mat.mode_coef,
-		MONOLIS_ITER_CG,
-		MONOLIS_PREC_DIAG,
-		sys.vals.mat_max_iter,
-		sys.vals.mat_epsilon,
-		sys.rom.hlpod_mat.n_dof_list);
-*/
     t1 = monolis_get_time();
 
     lpod_pad_calc_block_solution_local_para_pad(
@@ -592,7 +581,6 @@ void HROM_hierarchical_parallel(
         &(sys.bc),
         sys.rom.hlpod_vals.num_2nd_subdomains,
 		sys.rom.hlpod_vals.num_modes_pre);
-//        &(sys.rom.hlpod_mat));
 
 	ROM_sys_hlpod_fe_add_Dbc(
         sys.hrom.hlpod_ddhr.HR_T,

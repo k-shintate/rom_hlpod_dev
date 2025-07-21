@@ -792,7 +792,7 @@ double t1 = monolis_get_time_global_sync();
 
         if(monolis_mpi_get_global_my_rank() == 0) {
             for(int j = 0; j < NNLS_row; j++){
-                printf(" RH[j] = %lf\n", RH[j]);
+                //printf(" RH[j] = %lf\n", RH[j]);
             }
         }
         //double input_TOL = TOL * sqrt(global_norm) / (num_subdomains  * sqrt(local_norm));

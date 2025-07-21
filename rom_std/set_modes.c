@@ -374,15 +374,19 @@ void ROM_std_hlpod_set_podmodes_local_para(
         double t2 = monolis_get_time();
 
         if(rom_epsilon == 1){
-            n_basis = num_modes;
+            //n_basis = num_modes;
+            n_basis = 10 + 3*m;
 
             hlpod_mat->num_modes_internal[m] = n_basis;
         }
         else{
+            n_basis = 10;
+            /*
             n_basis = ROM_BB_estimate_num_pod_modes(
                 V,
                 num_snapshots,
                 rom_epsilon);
+            */
             
             hlpod_mat->num_modes_internal[m] = n_basis;
         }
