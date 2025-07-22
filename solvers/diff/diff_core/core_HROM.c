@@ -330,9 +330,6 @@ void HROM_pre_offline2(
 {
 	if(monolis_mpi_get_global_comm_size() == 1){
 		if(num_2nd_subdomains == 1){
-			monolis_initialize(&(sys->monolis_hr0));
-			monolis_initialize(&(sys->monolis_hr));
-
 			hr_get_selected_elements(
 				&(sys->fe),
 				&(sys->bc),
@@ -412,30 +409,13 @@ void HROM_pre_online(
 
     if(monolis_mpi_get_global_comm_size() == 1){
 		if(num_2nd_subdomains == 1){
-			monolis_initialize(&(sys->monolis_hr0));
+			//monolis_initialize(&(sys->monolis_hr0));
 			monolis_initialize(&(sys->monolis_hr));
-            
+            /*
             monolis_copy_mat_nonzero_pattern_R(
                 &(sys->monolis_rom0),
-                &(sys->monolis_hr0));
-/*
-			hr_get_selected_elements(
-				&(sys->fe),
-				&(sys->bc),
-				sys->fe.total_num_elems,
-				sys->rom.hlpod_vals.num_snapshot,
-				sys->rom.hlpod_vals.num_modes,
-				10000,
-				1.0e-6,
-				&(sys->hrom.hlpod_hr),
-				sys->cond.directory);
-            
-            hr_set_selected_elems(
-				&(sys->fe),
-				&(sys->hrom.hlpod_hr),
-				sys->fe.total_num_nodes,
-				sys->cond.directory);
-*/
+                &(sys->monolis_hr0));*/
+
 			hr_lb_read_selected_elements(
 				&(sys->hrom.hlpod_hr),
 				num_2nd_subdomains,
@@ -622,7 +602,7 @@ void HROM_nonparallel(
     
         BBFE_sys_monowrap_solve(
             &(sys.monolis_hr),
-            &(sys.mono_com_rom),
+            &(sys.mono_com_rom_solv),
             sys.rom.hlpod_mat.mode_coef,
             MONOLIS_ITER_CG,
             MONOLIS_PREC_DIAG,
@@ -637,13 +617,13 @@ void HROM_nonparallel(
             sys.hrom.hlpod_hr.HR_T, 
             &(sys.bc), 
             sys.rom.hlpod_vals.num_modes);
-
+/*
         ROM_sys_hlpod_fe_add_Dbc(
             sys.hrom.hlpod_hr.HR_T,
             &(sys.bc),
             sys.fe.total_num_nodes,
             1);
-
+*/
         t2 = monolis_get_time();
 /*
         //FILE* fp;
@@ -651,6 +631,7 @@ void HROM_nonparallel(
         fprintf(fp, "%e %e\n", t, t2-t1);
         fclose(fp);
 */
+        output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);
     }
     else{
         double t1 = monolis_get_time();

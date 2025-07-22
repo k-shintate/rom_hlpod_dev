@@ -495,11 +495,6 @@ void ddhr_to_monollis_rhs(
 	const int 		num_base,
 	const int		num_subdomains)
 {
-	for(int i = 0; i < num_base * num_subdomains; i++){
-        //monolis->mat.R.B[i] = 0.0;
-		//monolis->mat.R.B[i] = hlpod_ddrh->reduced_RH[i];
-	}
-
 	int index_column1 = 0;
 	int index_column2 = 0;
 
@@ -509,7 +504,6 @@ void ddhr_to_monollis_rhs(
 		}
 		index_column1 += hlpod_mat->num_modes_internal[k];
         index_column2 += hlpod_mat->num_modes_internal[k];
-		//index_column1 += num_base;
 	}
 
 }

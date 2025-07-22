@@ -432,6 +432,66 @@ int main (
         fclose(fp);
     }
 
+    if(monolis_mpi_get_global_comm_size() == 1){		
+		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+	}
+	else{
+		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+	}
+
+   	monolis_initialize(&(sys.monolis_hr));
+    monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
+
+    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
+    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hlpod_hr.HR_T, sys.fe.total_num_nodes);    
+    
+    printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
+
+	while (t < sys.vals.rom_finish_time) {
+		t += sys.vals.dt;
+		step += 1;
+
+		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
+        double calctime_fem_t1 = monolis_get_time();
+        solver_fom(sys, t, step);	
+        double calctime_fem_t2 = monolis_get_time();
+		/**********************************************/
+
+        /****************** ROM solver ****************/
+        double calctime_rom_t1 = monolis_get_time();
+        solver_rom(&(sys), step, t);        
+        double calctime_rom_t2 = monolis_get_time();
+		/**********************************************/
+
+		if(monolis_mpi_get_global_comm_size() == 1){
+			HROM_nonparallel(sys, step, 0, t);
+        }
+        else{
+			HROM_hierarchical_parallel(sys, step, 0, t);
+        }
+
+        if(step%sys.vals.output_interval == 0) {
+			ROM_output_files(&sys, file_num, t);
+                        
+            ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
+			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
+            ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "hr_solver_prm/", sys.cond.directory);
+
+            ROM_std_hlpod_output_calc_time(calctime_fem_t1-calctime_fem_t2, t,
+					"calctime/time_fem.txt", sys.cond.directory);
+            ROM_std_hlpod_output_calc_time(calctime_rom_t1-calctime_rom_t2, t,
+					"calctime/time_rom.txt", sys.cond.directory);
+
+        	HR_output_files(&sys, file_num, t);	
+		    //calctime_online += calctime_hr_t2- calctime_hr_t1;
+
+			file_num += 1;
+		}
+
+	}
+
+
+
 	BBFE_convdiff_finalize(&(sys.fe), &(sys.basis), &(sys.bc));
 
 	monolis_finalize(&(sys.monolis));

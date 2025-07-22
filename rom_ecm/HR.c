@@ -132,7 +132,6 @@ void sort_diagonal_indices(double **R, int m, int n, int *indices) {
 }
 
 
-
 void hr_memory_allocation(
         const int       total_num_nodes,
         const int       total_num_elem,
@@ -177,8 +176,8 @@ void hr_get_selected_elements(
 {
     int nl = fe->local_num_nodes;
 
-    const int max_ITER = 400;
-    const double TOL = 1.0e-6;
+    const int max_ITER = 2000;
+    const double TOL = 1.0e-9;
 
     double* ans_vec;
     ans_vec = BB_std_calloc_1d_double(ans_vec, total_num_elem);
@@ -186,6 +185,11 @@ void hr_get_selected_elements(
     double residual;
 
     int NNLS_row = total_num_snapshot * total_num_modes;
+
+    for(int i = 0; i < NNLS_row; i++){
+        //printf("matrix[%d][0] = %lf\n", i, hlpod_hr->matrix[i][0]);
+        //printf("RH[%d][0] = %lf\n", i, hlpod_hr->RH[i]);
+    }
 
     monolis_optimize_nnls_R_with_sparse_solution(
         hlpod_hr->matrix, 
@@ -252,7 +256,7 @@ void hr_get_selected_elements(
 
     int total_num_selected_elems = index;
 
-    printf("\n\nnum_selected_elems = %d\n\n", index);
+    printf("\n\n num_selected_elems = %d\n\n", index);
 
 	hr_write_NNLS_residual(residual, 0, 0, directory);
 	hr_write_NNLS_num_elems(total_num_selected_elems, 0, 0, directory);
@@ -398,11 +402,10 @@ void hr_get_selected_elements(
 
 void hr_calc_solution(
 	BBFE_DATA* 		fe,
-	HLPOD_MAT*     hlpod_mat,
-	double*       HR_T,
+	HLPOD_MAT*      hlpod_mat,
+	double*         HR_T,
 	BBFE_BC*     	bc,
     int 			num_base)
-//	LPOD_PRM*		lpod_prm)
 {
 	int nl = fe->total_num_nodes;
 	int k = num_base;
@@ -426,7 +429,6 @@ void hr_calc_solution(
 	}
 
 	double t2 = monolis_get_time();
-	//lpod_prm->time_calc_sol = t2-t1;
 }
 
 
@@ -473,7 +475,7 @@ void hr_to_monollis_rhs(
 	const int 		k)
 {
 	for(int i = 0; i < k; i++){
-        monolis->mat.R.B[i] = 0.0;
+        //monolis->mat.R.B[i] = 0.0;
 		monolis->mat.R.B[i] = hlpod_rh->reduced_RH[i];
 	}
 }
@@ -621,6 +623,7 @@ void hr_lb_read_selected_elements(
 		fscanf(fp1, "%d", &(num_selected_elems));
         for(int i = 0; i < num_selected_elems; i++){
             fscanf(fp1, "%d %lf", &(hlpod_hr->id_selected_elems[index1]), &(hlpod_hr->elem_weight[index1]));
+            printf("%d %lf\n", hlpod_hr->id_selected_elems[index1], hlpod_hr->elem_weight[index1]);
             index1++;
         }
 
