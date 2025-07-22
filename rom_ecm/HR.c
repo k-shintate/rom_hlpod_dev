@@ -154,17 +154,6 @@ void hr_memory_allocation(
 
 }
 
-/*
-void HROM_set_ansvec(
-		VALUES*         vals,
-	    HLPOD_HR*     	hlpod_hr,
-		const int       total_num_nodes)
-{
-	for(int i = 0; i < total_num_nodes; i++){
-		hlpod_hr->HR_T[i] = vals->T[i];
-	}
-}*/
-
 
 void hr_get_selected_elements(
         BBFE_DATA*     	fe,

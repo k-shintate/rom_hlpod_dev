@@ -22,17 +22,6 @@ void ddhr_memory_allocation_para(
         const int       total_num_snapshot,
         const int       total_num_modes,
 		const int		num_subdomains);
-/*
-void HROM_set_ansvec_para(
-		VALUES*        vals,
-		HLPOD_DDHR*     hlpod_ddhr,
-		const int       total_num_nodes);
-*/
-
-void ddhr_set_element_para(
-        HLPOD_DDHR*     hlpod_ddhr,
-		const int 		num_subdomains,
-		const char*     directory);
 
 void ddhr_get_selected_elements_para(
         BBFE_DATA*     	fe,
