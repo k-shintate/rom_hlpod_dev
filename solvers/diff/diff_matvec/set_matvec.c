@@ -442,6 +442,7 @@ void hr_set_reduced_vec(
 
     for(int h=0; h<(hlpod_hr->num_selected_elems); h++) {
         int e = hlpod_hr->id_selected_elems[h];
+        printf("elem = %d\n", e);
 
 		BBFE_elemmat_set_Jacobian_array(
 				Jacobian_ip,
@@ -562,6 +563,7 @@ void hr_set_reduced_vec(
             int index = fe->conn[e][i];
             for(int k = 0; k < num_modes; k++){
                 double val = integ_val * hlpod_mat->pod_modes[index][k];
+                printf("reduced_RH[%d] = %lf\n", k, hlpod_hr->reduced_RH[k]);
                 hlpod_hr->reduced_RH[ k ] += hlpod_hr->elem_weight_D_bc[h] * val;
             }
             

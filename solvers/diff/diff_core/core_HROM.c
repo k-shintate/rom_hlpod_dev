@@ -418,7 +418,7 @@ void HROM_pre_online(
             monolis_copy_mat_nonzero_pattern_R(
                 &(sys->monolis_rom0),
                 &(sys->monolis_hr0));
-
+/*
 			hr_get_selected_elements(
 				&(sys->fe),
 				&(sys->bc),
@@ -434,6 +434,11 @@ void HROM_pre_online(
 				&(sys->fe),
 				&(sys->hrom.hlpod_hr),
 				sys->fe.total_num_nodes,
+				sys->cond.directory);
+*/
+			hr_lb_read_selected_elements(
+				&(sys->hrom.hlpod_hr),
+				num_2nd_subdomains,
 				sys->cond.directory);
 
 			hr_set_reduced_mat(
@@ -582,13 +587,6 @@ void HROM_nonparallel(
 
     if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
 
-        if((step_HR-step_POD) == 1){
-            HROM_set_ansvec(
-                &(sys.vals),
-                &(sys.hrom.hlpod_hr),
-                sys.fe.total_num_nodes);
-        }
-
         hr_set_reduced_vec(
             &(sys.monolis_hr),
             &(sys.fe),
@@ -636,12 +634,12 @@ void HROM_nonparallel(
         hr_calc_solution(
             &(sys.fe), 
             &(sys.rom.hlpod_mat), 
-            &(sys.hrom.hlpod_hr), 
+            sys.hrom.hlpod_hr.HR_T, 
             &(sys.bc), 
             sys.rom.hlpod_vals.num_modes);
 
         ROM_sys_hlpod_fe_add_Dbc(
-            sys.hrom.hlpod_ddhr.HR_T,
+            sys.hrom.hlpod_hr.HR_T,
             &(sys.bc),
             sys.fe.total_num_nodes,
             1);

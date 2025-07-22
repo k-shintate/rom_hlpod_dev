@@ -16,12 +16,13 @@ void hr_memory_allocation(
         const int       total_num_snapshot,
         const int       total_num_modes,
         HLPOD_HR*       hlpod_hr);
-/*
-void HROM_set_ansvec(
-		VALUES*        vals,
-	    HLPOD_HR*     	hlpod_hr,
-		const int       total_num_nodes);
-*/
+
+void hr_memory_allocation_online(
+        const int       total_num_nodes,
+        const int       total_num_elem,
+        const int       total_num_snapshot,
+        const int       total_num_modes,
+        HLPOD_HR*       hlpod_hr);
 
 void hr_get_selected_elements(
         BBFE_DATA*     	fe,
@@ -35,12 +36,11 @@ void hr_get_selected_elements(
 		const char*		directory);
 
 void hr_calc_solution(
-        BBFE_DATA* 		fe,
-        HLPOD_MAT*     hlpod_mat,
-        HLPOD_HR*       hlpod_hr,
-        BBFE_BC*     	bc,
-        int 			num_base);
-//        LPOD_PRM*		lpod_prm);
+	BBFE_DATA* 		fe,
+	HLPOD_MAT*     hlpod_mat,
+	double*       HR_T,
+	BBFE_BC*     	bc,
+    int 			num_base);
 
 
 void hr_monolis_set_matrix(
@@ -58,3 +58,9 @@ void hr_set_selected_elems(
         HLPOD_HR*       hlpod_hr,
         const int		total_num_nodes,
 		const char*     directory);
+    
+
+void hr_lb_read_selected_elements(
+    HLPOD_HR*     hlpod_hr,
+	const int num_subdomains,
+	const char* directory);

@@ -933,11 +933,11 @@ void hr_set_matvec_RH_for_NNLS(
 
             int index = fe->conn[e][i];
             for(int k = 0; k < num_modes; k++){
-                hlpod_hr->matrix[ ns * num_modes + k][e] += integ_val * hlpod_mat->pod_modes[index][k];
-                hlpod_hr->RH[ns * num_modes + k] += integ_val * hlpod_mat->pod_modes[index][k];
+                //hlpod_hr->matrix[ ns * num_modes + k][e] += integ_val * hlpod_mat->pod_modes[index][k];
+                //hlpod_hr->RH[ns * num_modes + k] += integ_val * hlpod_mat->pod_modes[index][k];
 
-                hlpod_hr->matrix[ ns * num_modes + k + num_modes * num_snapshot][e] -= integ_val * hlpod_mat->pod_modes[index][k];
-                hlpod_hr->RH[ns * num_modes + k + num_modes * num_snapshot] -= integ_val * hlpod_mat->pod_modes[index][k];
+                hlpod_hr->matrix[ ns * num_modes + k][e] -= integ_val * hlpod_mat->pod_modes[index][k];
+                hlpod_hr->RH[ns * num_modes + k] -= integ_val * hlpod_mat->pod_modes[index][k];
             }
             
 		}
@@ -1047,11 +1047,11 @@ void hr_set_matvec_residuals_for_NNLS(
                 if( bc->D_bc_exists[index_j]) {
                     for(int k1 = 0; k1 < num_modes; k1++){
                         double val = hlpod_mat->pod_modes[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
-                        hlpod_hr->matrix[ ns * num_modes + k1][e] += -val;
-                        hlpod_hr->RH[ns * num_modes + k1] += -val;
+                        //hlpod_hr->matrix[ ns * num_modes + k1][e] += -val;
+                        //hlpod_hr->RH[ns * num_modes + k1] += -val;
 
-                        hlpod_hr->matrix[ ns * num_modes + k1 + num_modes*num_snapshot][e] += val;
-                        hlpod_hr->RH[ns * num_modes + k1 + num_modes*num_snapshot] += val;
+                        hlpod_hr->matrix[ ns * num_modes + k1][e] += val;
+                        hlpod_hr->RH[ns * num_modes + k1] += val;
                     }
                 }
                 else{
@@ -1067,8 +1067,8 @@ void hr_set_matvec_residuals_for_NNLS(
                         }
                     }
                     for(int k1 = 0; k1 < num_modes; k1++){   
-                        hlpod_hr->matrix[ns * num_modes + k1 + num_modes*num_snapshot][e] += local_vec[k1];
-                        hlpod_hr->RH[ns * num_modes + k1 + num_modes*num_snapshot] += local_vec[k1];
+                        hlpod_hr->matrix[ns * num_modes + k1][e] += local_vec[k1];
+                        hlpod_hr->RH[ns * num_modes + k1] += local_vec[k1];
                     }
                     for(int k2 = 0; k2 < num_modes; k2++){
                         local_vec[k2] = 0.0;

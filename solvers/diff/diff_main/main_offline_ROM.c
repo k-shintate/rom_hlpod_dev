@@ -245,12 +245,15 @@ int main (
 
     if(monolis_mpi_get_global_comm_size() == 1){	
         if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
+            printf("\n%s: num_2nd_subdomains = 1\n", CODENAME);
+
             hr_memory_allocation(
                 sys.fe.total_num_nodes,
                 sys.fe.total_num_elems,
                 sys.rom.hlpod_vals.num_snapshot,
                 sys.rom.hlpod_vals.num_modes_pre,
                 &(sys.hrom.hlpod_hr));
+            //exit(1);
         }
         else{
             ddhr_set_element2(
@@ -314,6 +317,30 @@ int main (
 
 		if(monolis_mpi_get_global_comm_size() == 1){
 			if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
+            	hr_set_matvec_RH_for_NNLS(
+					&(sys.fe),
+					&(sys.basis),
+					&(sys.rom.hlpod_mat),
+					&(sys.rom.hlpod_vals), 
+					&(sys.hrom.hlpod_hr),
+					step -1 ,	//index 0 start
+					sys.rom.hlpod_vals.num_snapshot,
+					sys.rom.hlpod_vals.num_modes,
+					sys.vals.dt,
+					t);
+				
+				hr_set_matvec_residuals_for_NNLS(
+					&(sys.fe),
+					&(sys.basis),
+					&(sys.bc), 
+					&(sys.rom.hlpod_mat),
+					&(sys.rom.hlpod_vals), 
+					&(sys.hrom.hlpod_hr),
+					step -1 ,	//index 0 start
+					sys.rom.hlpod_vals.num_snapshot,
+					sys.rom.hlpod_vals.num_modes,
+					sys.vals.dt,
+					t);
 			}
 			else{
 				ddhr_set_matvec_only_residuals_for_NNLS3(

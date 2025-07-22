@@ -142,16 +142,25 @@ void hr_memory_allocation(
 {
     hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
 
-//for NNLS
-//    hlpod_hr->matrix = BB_std_calloc_2d_double(hlpod_hr->matrix, total_num_snapshot * total_num_modes * 2, total_num_elem);
-//    hlpod_hr->RH = BB_std_calloc_1d_double(hlpod_hr->RH, total_num_snapshot * total_num_modes * 2);
-
     hlpod_hr->matrix = BB_std_calloc_2d_double(hlpod_hr->matrix, total_num_snapshot * total_num_modes, total_num_elem);
     hlpod_hr->RH = BB_std_calloc_1d_double(hlpod_hr->RH, total_num_snapshot * total_num_modes);
 
     hlpod_hr->reduced_mat = BB_std_calloc_2d_double(hlpod_hr->reduced_mat, total_num_modes, total_num_modes);
     hlpod_hr->reduced_RH = BB_std_calloc_1d_double(hlpod_hr->reduced_RH, total_num_modes);
 
+}
+
+void hr_memory_allocation_online(
+        const int       total_num_nodes,
+        const int       total_num_elem,
+        const int       total_num_snapshot,
+        const int       total_num_modes,
+        HLPOD_HR*       hlpod_hr)
+{
+    hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
+
+    hlpod_hr->reduced_mat = BB_std_calloc_2d_double(hlpod_hr->reduced_mat, total_num_modes, total_num_modes);
+    hlpod_hr->reduced_RH = BB_std_calloc_1d_double(hlpod_hr->reduced_RH, total_num_modes);
 }
 
 
@@ -176,7 +185,7 @@ void hr_get_selected_elements(
 
     double residual;
 
-    int NNLS_row = total_num_snapshot * total_num_modes *2;
+    int NNLS_row = total_num_snapshot * total_num_modes;
 
     monolis_optimize_nnls_R_with_sparse_solution(
         hlpod_hr->matrix, 
@@ -340,6 +349,38 @@ void hr_get_selected_elements(
         }
     }
 
+    FILE* fp1;
+    FILE* fp2;
+    char fname1[BUFFER_SIZE];
+    char fname2[BUFFER_SIZE];
+
+    snprintf(fname1, BUFFER_SIZE,"DDECM/lb_selected_elem_D_bc.%d.txt", 0);
+    snprintf(fname2, BUFFER_SIZE,"DDECM/lb_selected_elem.%d.txt", 0);
+
+    fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+    fp2 = ROM_BB_write_fopen(fp2, fname2, directory);
+
+    fprintf(fp1, "%d\n", index1);
+    fprintf(fp2, "%d\n", index2);
+
+    int index_1 = 0;
+    int index_2 = 0;
+
+    for(int h=0; h<(total_num_selected_elems); h++) {
+        if(bool_elem[h]) {
+            fprintf(fp1, "%d %.30e\n", hlpod_hr->id_selected_elems_D_bc[index_1], hlpod_hr->elem_weight_D_bc[index_1]);
+            index_1++;
+        }
+        else{
+            fprintf(fp2, "%d %.30e\n", hlpod_hr->id_selected_elems[index_2], hlpod_hr->elem_weight[index_2]);
+
+            index_2++;
+        }
+    }
+    
+    fclose(fp1);
+    fclose(fp2);
+
     /*input
     hlpod_hr->matrix, 
     hlpod_hr->RH,
@@ -358,7 +399,7 @@ void hr_get_selected_elements(
 void hr_calc_solution(
 	BBFE_DATA* 		fe,
 	HLPOD_MAT*     hlpod_mat,
-	HLPOD_HR*       hlpod_hr,
+	double*       HR_T,
 	BBFE_BC*     	bc,
     int 			num_base)
 //	LPOD_PRM*		lpod_prm)
@@ -369,18 +410,18 @@ void hr_calc_solution(
 	double t1 = monolis_get_time();
 
 	for(int j = 0; j < nl; j++){
-		hlpod_hr->HR_T[j] = 0.0;
+		HR_T[j] = 0.0;
 	}
 
 	for(int i = 0; i < k; i++){
 		for(int j = 0; j < nl; j++){
-			hlpod_hr->HR_T[j] += hlpod_mat->pod_modes[j][i] * hlpod_mat->mode_coef[i];
+			HR_T[j] += hlpod_mat->pod_modes[j][i] * hlpod_mat->mode_coef[i];
 		}
 	}
 
 	for(int i=0; i < nl; i++) {
 		if( bc->D_bc_exists[i] ) {
-			hlpod_hr->HR_T[i] = bc->imposed_D_val[i];
+			HR_T[i] = bc->imposed_D_val[i];
 		}
 	}
 
@@ -502,5 +543,105 @@ void hr_set_selected_elems(
 	BB_std_free_1d_double(ECM_elem, fe->total_num_nodes);
 
 	fclose(fp);
+
+}
+
+
+
+void hr_lb_read_selected_elements(
+    HLPOD_HR*     hlpod_hr,
+	const int num_subdomains,
+	const char* directory)
+{
+	const int myrank = monolis_mpi_get_global_my_rank();
+
+	FILE* fp;
+	char fname[BUFFER_SIZE];
+	char id[BUFFER_SIZE];
+	int ndof;
+
+
+	FILE* fp1;
+	FILE* fp2;
+	FILE* fp3;
+	FILE* fp4;
+	char fname1[BUFFER_SIZE];
+	char fname2[BUFFER_SIZE];
+
+	char fname3[BUFFER_SIZE];
+	char fname4[BUFFER_SIZE];
+
+//	snprintf(fname3, BUFFER_SIZE, "DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
+//	snprintf(fname4, BUFFER_SIZE, "DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
+
+//	fp3 = BBFE_sys_write_fopen(fp3, fname3, directory);
+//	fp4 = BBFE_sys_write_fopen(fp4, fname4, directory);
+
+	int Index1 = 0;
+	int Index2 = 0;
+	int tmp;
+	double val;
+	int index1 = 0;
+	int index2 = 0;
+	int num_selected_elems;
+	int num_selected_elems_D_bc;
+
+	for (int m = 0; m < num_subdomains; m++) {
+		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
+		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
+
+		fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
+		fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
+
+		fscanf(fp1, "%d", &(num_selected_elems));
+		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
+		Index1 += num_selected_elems;
+		Index2 += num_selected_elems_D_bc;
+
+		fclose(fp1);
+		fclose(fp2);
+	}
+
+//    hlpod_hr->elem_weight = BB_std_calloc_1d_double(f_ip, np);
+    hlpod_hr->num_selected_elems = Index1;
+    hlpod_hr->num_selected_elems_D_bc  = Index2;
+
+    printf("Index1 = %d, Index2 = %d\n", Index1, Index2);
+
+    hlpod_hr->elem_weight = BB_std_calloc_1d_double(hlpod_hr->elem_weight, Index1);
+    hlpod_hr->id_selected_elems = BB_std_calloc_1d_int(hlpod_hr->id_selected_elems, Index1);
+    hlpod_hr->elem_weight_D_bc = BB_std_calloc_1d_double(hlpod_hr->elem_weight_D_bc, Index2);
+    hlpod_hr->id_selected_elems_D_bc = BB_std_calloc_1d_int(hlpod_hr->id_selected_elems_D_bc, Index2);
+
+	for (int m = 0; m < num_subdomains; m++) {
+		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", m);
+
+		fp1 = BBFE_sys_read_fopen(fp1, fname1, directory);
+
+		fscanf(fp1, "%d", &(num_selected_elems));
+        for(int i = 0; i < num_selected_elems; i++){
+            fscanf(fp1, "%d %lf", &(hlpod_hr->id_selected_elems[index1]), &(hlpod_hr->elem_weight[index1]));
+            index1++;
+        }
+
+		fclose(fp1);
+	}
+
+    for (int m = 0; m < num_subdomains; m++) {
+		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", m);
+
+		fp2 = BBFE_sys_read_fopen(fp2, fname2, directory);
+
+		fscanf(fp2, "%d", &(num_selected_elems_D_bc));
+
+        for(int i = 0; i < num_selected_elems_D_bc; i++){
+            fscanf(fp2, "%d %lf", &(hlpod_hr->id_selected_elems_D_bc[index2]), &(hlpod_hr->elem_weight_D_bc[index2]));
+            
+            printf("%d %lf\n", hlpod_hr->id_selected_elems_D_bc[index2], hlpod_hr->elem_weight_D_bc[index2]);
+            index2++;
+        }
+
+		fclose(fp2);
+	}
 
 }

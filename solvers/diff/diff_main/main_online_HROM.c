@@ -236,18 +236,28 @@ int main (
 
     /*for Hyper-reduction*/
 	if(monolis_mpi_get_global_comm_size() == 1){
-        ddhr_set_element2(
-            &(sys.hrom.hlpod_ddhr),
-            sys.rom.hlpod_vals.num_2nd_subdomains,
-            sys.cond.directory);
-            
-        ddhr_memory_allocation2(
-            sys.fe.total_num_nodes,
-            sys.fe.total_num_elems,
-            sys.rom.hlpod_vals.num_snapshot,
-            sys.rom.hlpod_vals.num_modes_pre,
-            sys.rom.hlpod_vals.num_2nd_subdomains,
-            &(sys.hrom.hlpod_ddhr));
+        if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
+            hr_memory_allocation_online(
+                sys.fe.total_num_nodes,
+                sys.fe.total_num_elems,
+                sys.rom.hlpod_vals.num_snapshot,
+                sys.rom.hlpod_vals.num_modes_pre,
+                &(sys.hrom.hlpod_hr));
+        }
+        else{
+            ddhr_set_element2(
+                &(sys.hrom.hlpod_ddhr),
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                sys.cond.directory);
+                
+            ddhr_memory_allocation2(
+                sys.fe.total_num_nodes,
+                sys.fe.total_num_elems,
+                sys.rom.hlpod_vals.num_snapshot,
+                sys.rom.hlpod_vals.num_modes_pre,
+                sys.rom.hlpod_vals.num_2nd_subdomains,
+                &(sys.hrom.hlpod_ddhr));
+        }
 	}
     else{
         ddhr_lb_set_element_para2(
@@ -307,7 +317,7 @@ int main (
     }
 
     ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
-    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hlpod_ddhr.HR_T, sys.fe.total_num_nodes);    
+    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hlpod_hr.HR_T, sys.fe.total_num_nodes);    
     
     printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
 

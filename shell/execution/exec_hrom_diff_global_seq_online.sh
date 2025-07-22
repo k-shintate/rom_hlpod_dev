@@ -7,7 +7,7 @@ e=20
 ep=5
 
 #podモード数
-num_modes=(10)
+num_modes=(20)
 #POD計算領域数
 num_1stdd=(1)
 #並列計算領域数 (=並列数)
@@ -24,7 +24,7 @@ do
     	for np in "${num_parallel[@]}"
     	do
 	
-	    . shell/diff_hrom/execution_online_seq.sh $e $ep $nm $nd $np $pa $st
+	    . shell/diff_hrom/execution_online.sh $e $ep $nm $nd $np $pa $st
 
         done
 	done
