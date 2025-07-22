@@ -386,8 +386,8 @@ void ROM_std_hlpod_set_podmodes_local_para(
 
         if(rom_epsilon == 1){
             //n_basis = num_modes;
-            //n_basis = 5 + 3*monolis_mpi_get_global_my_rank();
-            n_basis = 10;
+            n_basis = 5 + 3*monolis_mpi_get_global_my_rank();
+            //n_basis = 10;
 
             hlpod_mat->num_modes_internal[m] = n_basis;
         }
