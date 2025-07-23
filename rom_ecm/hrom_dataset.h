@@ -13,9 +13,9 @@
 //Hyper-reduction (ECM) の計算情報
 typedef struct
 {
-	double* HR_T;
+	double* sol_vec;
 
-} HLPOD_HR;
+} HR_VALUES;
 
 
 //Hyper-reduction (ECM) の計算情報
@@ -103,7 +103,7 @@ typedef struct
 
 typedef struct
 {
-    HLPOD_VALUES    hlpod_vals;
+    HR_VALUES       hr_vals;
     HLPOD_HR        hlpod_hr;
     HLPOD_DDHR      hlpod_ddhr;
 } HROM;

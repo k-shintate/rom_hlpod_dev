@@ -439,11 +439,13 @@ int main (
 		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
 
+    memory_allocation_hr_sol_vec(&(sys.hrom.hr_vals), sys.fe.total_num_nodes, 1);
+
    	monolis_initialize(&(sys.monolis_hr));
     monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
 
     ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
-    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hlpod_hr.HR_T, sys.fe.total_num_nodes);    
+    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hr_vals.sol_vec, sys.fe.total_num_nodes);    
     
     printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
 

@@ -22,18 +22,6 @@
 #include "core_FOM.h"
 #include "core_ROM.h"
 
-
-
-/*for Hyper-reduction*/
-void HR_output_result_file_vtk(
-		BBFE_DATA*      fe,
-		VALUES*         vals,
-		HLPOD_VALUES*     hlpod_vals,
-		HLPOD_HR*       hlpod_hr,		
-		const char*     filename,
-		const char*     directory,
-		double          t);
-
 /*for Hyper-reduction*/
 void HR_output_files(
 		FE_SYSTEM*      sys,

@@ -317,7 +317,7 @@ int main (
     }
 
     ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
-    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hlpod_hr.HR_T, sys.fe.total_num_nodes);    
+    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hr_vals.sol_vec, sys.fe.total_num_nodes);    
     
     printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
 

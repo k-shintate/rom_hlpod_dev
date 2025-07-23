@@ -20,13 +20,11 @@ static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
 static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 
 void memory_allocation_hr_sol_vec(
-        HLPOD_VALUES*   hlpod_vals,
-	    HLPOD_DDHR*     hlpod_ddhr,
-	    HLPOD_MAT*      hlpod_mat,
+	    HR_VALUES*      hr_vals,
         const int       total_num_nodes,
         const int       dof)
 {
-    //hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+    hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes*dof);
 }
 
 
@@ -36,7 +34,7 @@ void ddhr_memory_allocation_para_online(
 	    HLPOD_MAT*      hlpod_mat,
         const int       total_num_nodes)
 {
-	//hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+	//hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
     hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, hlpod_vals->n_neib_vec, hlpod_vals->n_neib_vec);
     hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_vals->n_neib_vec);
 }
@@ -59,7 +57,7 @@ void ddhr_memory_allocation_para(
 		max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 	}
 
-    //hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+    //hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
 
 //for NNLS
     hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
@@ -682,19 +680,18 @@ void ddhr_to_monollis_rhs_para(
 void lpod_pad_calc_block_solution_local_para(
 	MONOLIS_COM*	monolis_com,
 	BBFE_DATA* 		fe,
+    HR_VALUES*      hr_vals,
 	HLPOD_DDHR*     hlpod_ddhr,
-	HLPOD_MAT*    hlpod_mat,
+	HLPOD_MAT*      hlpod_mat,
 	BBFE_BC*      	bc,
 	const int		num_2nddd)
-	//LPOD_PRM*		lpod_prm)
 {
-//	const int n_internal_vertex = hlpod_mat->n_internal_vertex;
     const int n_internal_vertex = monolis_com->n_internal_vertex;
 
 	double t1 = monolis_get_time();
 
 	for(int j = 0; j < fe->total_num_nodes; j++){
-		hlpod_ddhr->HR_T[j] = 0.0;
+		hr_vals->sol_vec[j] = 0.0;
 	}
 
 	int index_row = 0;
@@ -705,7 +702,7 @@ void lpod_pad_calc_block_solution_local_para(
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
 			for(int j = 0; j < hlpod_mat->n_internal_vertex_subd[k]; j++){
 				index_row = hlpod_mat->node_id[j + sum];
-				hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->mode_coef[index_column + i];
+				hr_vals->sol_vec[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->mode_coef[index_column + i];
 			}
 		}
 		index_column += hlpod_mat->num_modes_internal[k];
@@ -715,12 +712,12 @@ void lpod_pad_calc_block_solution_local_para(
 	for(int i = 0; i < bc->num_D_bcs; i++) {
         int index = 0;
 		if(index < n_internal_vertex){
-			hlpod_ddhr->HR_T[index] = bc->imposed_D_val[index];
+			hr_vals->sol_vec[index] = bc->imposed_D_val[index];
 		}
     }
 
 	//解ベクトルのupdate
-	monolis_mpi_update_R(monolis_com, fe->total_num_nodes, 1, hlpod_ddhr->HR_T);
+	monolis_mpi_update_R(monolis_com, fe->total_num_nodes, 1, hr_vals->sol_vec);
 
 	double t2 = monolis_get_time();
 }
@@ -758,6 +755,7 @@ void ddhr_to_monollis_rhs_para_pad(
 void lpod_pad_calc_block_solution_local_para_pad(
 	MONOLIS_COM*	monolis_com,
 	BBFE_DATA* 		fe,
+    HR_VALUES*      hr_vals,
 	HLPOD_DDHR*     hlpod_ddhr,
 	HLPOD_MAT*      hlpod_mat,
 	BBFE_BC*      	bc,
@@ -771,7 +769,7 @@ void lpod_pad_calc_block_solution_local_para_pad(
 	double t1 = monolis_get_time();
 
 	for(int j = 0; j < fe->total_num_nodes; j++){
-		hlpod_ddhr->HR_T[j] = 0.0;
+		hr_vals->sol_vec[j] = 0.0;
 	}
 
 	int index_row = 0;
@@ -783,7 +781,7 @@ void lpod_pad_calc_block_solution_local_para_pad(
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
 			for(int j = 0; j < hlpod_mat->n_internal_vertex_subd[k]; j++){
 				index_row = hlpod_mat->node_id[j + sum];
-				hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->mode_coef[index + i];
+				hr_vals->sol_vec[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->mode_coef[index + i];
 			}
 		}
 		index_column += hlpod_mat->num_modes_internal[k];
@@ -796,12 +794,12 @@ void lpod_pad_calc_block_solution_local_para_pad(
         //int index = lpod_prm->D_bc_node_id[i];
         int index = 0;
 		if(index < n_internal_vertex){
-			hlpod_ddhr->HR_T[index] = bc->imposed_D_val[index];
+			hr_vals->sol_vec[index] = bc->imposed_D_val[index];
 		}
     }
 
 	//解ベクトルのupdate
-	monolis_mpi_update_R(monolis_com, fe->total_num_nodes, 1, hlpod_ddhr->HR_T);
+	monolis_mpi_update_R(monolis_com, fe->total_num_nodes, 1, hr_vals->sol_vec);
 
 	double t2 = monolis_get_time();
 	//lpod_prm->time_calc_sol = t2-t1;

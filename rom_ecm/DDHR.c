@@ -63,7 +63,8 @@ void ddhr_memory_allocation(
 		const int		num_subdomains,
         HLPOD_DDHR*     hlpod_ddhr)
 {
-    //hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+
+    //hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
 
 //for NNLS
     hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot * total_num_modes * 2, total_num_elem, num_subdomains);
@@ -310,7 +311,8 @@ for(int m = 0; m < num_subdomains; m++){
 
 void ddhr_calc_solution(
 	BBFE_DATA* 		fe,
-	HLPOD_MAT*     hlpod_mat,
+    HR_VALUES*      hr_vals,
+	HLPOD_MAT*      hlpod_mat,
 	HLPOD_DDHR*     hlpod_ddhr,
 	BBFE_BC*     	bc,
     int 			num_base,
@@ -323,12 +325,12 @@ void ddhr_calc_solution(
 	double t1 = monolis_get_time();
 
 	for(int j = 0; j < nl; j++){
-		hlpod_ddhr->HR_T[j] = 0.0;
+		hr_vals->sol_vec[j] = 0.0;
 	}
 /*
 	for(int i = 0; i < k; i++){
 		for(int j = 0; j < nl; j++){
-			hlpod_ddhr->HR_T[j] += hlpod_mat->pod_modes[j][i] * hlpod_mat->mode_coef[i];
+			hr_vals->sol_vec[j] += hlpod_mat->pod_modes[j][i] * hlpod_mat->mode_coef[i];
 		}
 	}
 */
@@ -343,7 +345,7 @@ void ddhr_calc_solution(
 				for(int l = 0; l < dof; l++){
 					//index_row = hlpod_mat->node_id[j]*dof + l + sum;
 					index_row = hlpod_mat->node_id[j+sum]*dof + l;
-					hlpod_ddhr->HR_T[index_row] += hlpod_mat->pod_modes[index_row][index_column1 + i] * hlpod_mat->mode_coef[index_column1 + i];
+					hr_vals->sol_vec[index_row] += hlpod_mat->pod_modes[index_row][index_column1 + i] * hlpod_mat->mode_coef[index_column1 + i];
 				}
 			}
 		}
@@ -355,7 +357,7 @@ void ddhr_calc_solution(
 
 	for(int i = 0; i < nl; i++) {
 		if( bc->D_bc_exists[i] ) {
-			hlpod_ddhr->HR_T[i] = bc->imposed_D_val[i];
+			hr_vals->sol_vec[i] = bc->imposed_D_val[i];
 		}
 	}
 

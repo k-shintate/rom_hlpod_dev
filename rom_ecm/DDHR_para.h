@@ -6,12 +6,16 @@
 #include "write_std.h"
 #include "write_BB.h"
 
+void memory_allocation_hr_sol_vec(
+	    HR_VALUES*      hr_vals,
+        const int       total_num_nodes,
+        const int       dof);
+
 void ddhr_memory_allocation_para_online(
         HLPOD_VALUES*   hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 	    HLPOD_MAT*      hlpod_mat,
         const int       total_num_nodes);
-
 
 void ddhr_memory_allocation_para(
         HLPOD_VALUES*   hlpod_vals,
@@ -70,6 +74,7 @@ void ddhr_to_monollis_rhs_para(
 void lpod_pad_calc_block_solution_local_para(
 		MONOLIS_COM*	monolis_com,
 		BBFE_DATA* 		fe,
+        HR_VALUES*      hr_vals,
 		HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*      hlpod_mat,
 		BBFE_BC*      	bc,
@@ -86,6 +91,7 @@ void ddhr_to_monollis_rhs_para_pad(
 void lpod_pad_calc_block_solution_local_para_pad(
 		MONOLIS_COM*	monolis_com,
 		BBFE_DATA* 		fe,
+        HR_VALUES*      hr_vals,
 		HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*      hlpod_mat,
 		BBFE_BC*      	bc,

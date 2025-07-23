@@ -410,8 +410,9 @@ void hr_set_reduced_vec(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
+        HR_VALUES*      hr_vals,
         HLPOD_HR*       hlpod_hr,
-    	HLPOD_MAT*     hlpod_mat,
+    	HLPOD_MAT*      hlpod_mat,
         const int		num_modes,
         const double    dt,
 		double       	t)
@@ -442,7 +443,7 @@ void hr_set_reduced_vec(
 
     for(int h=0; h<(hlpod_hr->num_selected_elems); h++) {
         int e = hlpod_hr->id_selected_elems[h];
-        //printf("elem = %d\n", e);
+        printf("elem = %d\n", e);
 
 		BBFE_elemmat_set_Jacobian_array(
 				Jacobian_ip,
@@ -458,7 +459,7 @@ void hr_set_reduced_vec(
 		double h_e = cbrt(vol);
 
 		BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-		BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_hr->HR_T, e);
+		BBFE_elemmat_set_local_array_scalar(local_T, fe, hr_vals->sol_vec, e);
 
 		for(int p=0; p<np; p++) {
 			BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -522,7 +523,7 @@ void hr_set_reduced_vec(
 		double h_e = cbrt(vol);
 
 		BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-		BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_hr->HR_T, e);
+		BBFE_elemmat_set_local_array_scalar(local_T, fe, hr_vals->sol_vec, e);
 
 		for(int p=0; p<np; p++) {
 			BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -588,6 +589,7 @@ void ddhr_set_reduced_vec3(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
+        HR_VALUES*      hr_vals,
         HLPOD_DDHR*     hlpod_ddhr,
     	HLPOD_MAT*     hlpod_mat,
         const int		num_modes,
@@ -638,7 +640,7 @@ void ddhr_set_reduced_vec3(
 			double h_e = cbrt(vol);
 
 			BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-			BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_ddhr->HR_T, e);
+			BBFE_elemmat_set_local_array_scalar(local_T, fe, hr_vals->sol_vec, e);
 
 			for(int p=0; p<np; p++) {
 				BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -714,7 +716,7 @@ void ddhr_set_reduced_vec3(
 			double h_e = cbrt(vol);
 
 			BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-			BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_ddhr->HR_T, e);
+			BBFE_elemmat_set_local_array_scalar(local_T, fe, hr_vals->sol_vec, e);
 
 			for(int p=0; p<np; p++) {
 				BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);
@@ -1736,6 +1738,7 @@ void ddhr_lb_set_reduced_vec_para(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
+        HR_VALUES*      hr_vals,
         HLPOD_VALUES*   hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
     	HLPOD_MAT*    hlpod_mat,
@@ -1786,7 +1789,7 @@ void ddhr_lb_set_reduced_vec_para(
 		double h_e = cbrt(vol);
 
 		BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-		BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_ddhr->HR_T, e);
+		BBFE_elemmat_set_local_array_scalar(local_T, fe, hr_vals->sol_vec, e);
 /*
         for(int i=0; i<nl; i++) {
             int index = fe->conn[e][i];
@@ -1796,10 +1799,10 @@ void ddhr_lb_set_reduced_vec_para(
             int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
 
             for(int k = IS; k < IE; k++){
-                hlpod_ddhr->HR_T[index] = 0.0;
+                hr_vals->sol_vec[index] = 0.0;
             }
             for(int k = IS; k < IE; k++){
-                hlpod_ddhr->HR_T[index] += hlpod_mat->pod_modes[index][k] 
+                hr_vals->sol_vec[index] += hlpod_mat->pod_modes[index][k] 
                     * hlpod_mat->mode_coef[k - IS + num_modes*subdomain_id];
             }
         }
@@ -1881,7 +1884,7 @@ void ddhr_lb_set_reduced_vec_para(
 		double h_e = cbrt(vol);
 
 		BBFE_elemmat_set_local_array_vector(local_x, fe, fe->x,   e, 3);
-		BBFE_elemmat_set_local_array_scalar(local_T, fe, hlpod_ddhr->HR_T, e);
+		BBFE_elemmat_set_local_array_scalar(local_T, fe, hr_vals->sol_vec, e);
 
 		for(int p=0; p<np; p++) {
 			BBFE_std_mapping_vector3d(x_ip[p], nl, local_x, basis->N[p]);

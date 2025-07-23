@@ -21,13 +21,14 @@ void ddhr_memory_allocation2(
         const int       total_num_snapshot,
         const int       total_num_modes,
 		const int		num_subdomains,
+        //HR_VALUES*      hr_vals,
         HLPOD_DDHR*     hlpod_ddhr)
 {
 	printf("\n%d\n", num_subdomains);
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 
-    //hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+    //hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
 
 //for NNLS
     hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, total_num_modes*num_subdomains, total_num_modes*num_subdomains);

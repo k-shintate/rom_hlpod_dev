@@ -70,41 +70,9 @@ void ddhr_get_selected_elements(
     HLPOD_DDHR*     hlpod_ddhr,
     const char*		directory);
 
-void ddhr_set_reduced_mat(
-    MONOLIS*     	monolis,
-    BBFE_DATA*     	fe,
-    BBFE_BASIS* 	basis,
-    BBFE_BC*     	bc,
-    HLPOD_MAT*     hlpod_mat,
-    HLPOD_DDHR*     hlpod_ddhr,
-    const int 		num_modes,
-    const int 		num_subdomains,
-    const double    dt);
-
-void ddhr_set_D_bc(
-    MONOLIS*     	monolis,
-    BBFE_DATA*     	fe,
-    BBFE_BASIS* 	basis,
-    BBFE_BC*     	bc,
-    HLPOD_MAT*     hlpod_mat,
-    HLPOD_DDHR*     hlpod_ddhr,
-    const int		num_modes,
-    const int 		num_subdomains,
-    const double    dt);
-
-void ddhr_set_reduced_vec(
-    MONOLIS*     	monolis,
-    BBFE_DATA*     	fe,
-    BBFE_BASIS*	 	basis,
-    HLPOD_DDHR*     hlpod_ddhr,
-    HLPOD_MAT*     hlpod_mat,
-    const int		num_modes,
-    const int 		num_subdomains,
-    const double    dt,
-    double       	t);
-
 void ddhr_calc_solution(
 	BBFE_DATA* 		fe,
+    HR_VALUES*      hr_vals,
 	HLPOD_MAT*     hlpod_mat,
 	HLPOD_DDHR*     hlpod_ddhr,
 	BBFE_BC*     	bc,

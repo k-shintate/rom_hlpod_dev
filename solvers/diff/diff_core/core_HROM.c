@@ -8,30 +8,11 @@ static const char* OUTPUT_FILENAME_VTK          = "result_%06d.vtk";
 static const char* OUTPUT_FILENAME_ASCII_TEMP   = "temparature_%06d.dat";
 static const char* OUTPUT_FILENAME_ASCII_SOURCE = "source_%06d.dat";
 
-void HROM_set_ansvec(
-		VALUES*         vals,
-	    HLPOD_HR*     	hlpod_hr,
-		const int       total_num_nodes)
-{
-	for(int i = 0; i < total_num_nodes; i++){
-		hlpod_hr->HR_T[i] = vals->T[i];
-	}
-}
-
-void HROM_set_ansvec_para(
-		VALUES*         vals,
-		HLPOD_DDHR*     hlpod_ddhr,
-		const int       total_num_nodes)
-{
-	for(int i = 0; i < total_num_nodes; i++){
-		hlpod_ddhr->HR_T[i] = vals->T[i];
-	}
-}
-
 /*for Hyper-reduction*/
 void HR_output_result_file_vtk(
 		BBFE_DATA*     fe,
 		VALUES*        vals,
+        HR_VALUES*      hr_vals,
 		HLPOD_VALUES*    hlpod_vals,
 		HLPOD_HR*      hlpod_hr,		
 		const char*    filename,
@@ -54,13 +35,13 @@ void HR_output_result_file_vtk(
 	fprintf(fp, "POINT_DATA %d\n", fe->total_num_nodes);
 	BB_vtk_write_point_vals_scalar(fp, vals->T, fe->total_num_nodes, "fem-temperature");
 	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->sol_vec, fe->total_num_nodes, "pod-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hlpod_hr->HR_T, fe->total_num_nodes, "hr-temperature");
+	BB_vtk_write_point_vals_scalar(fp, hr_vals->sol_vec, fe->total_num_nodes, "hr-temperature");
 	// for manufactured solution
 	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, vals->T, hlpod_hr->HR_T);
+			fe, vals->error, vals->T, hr_vals->sol_vec);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-fem_abs_error");
 	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, hlpod_vals->sol_vec, hlpod_hr->HR_T);
+			fe, vals->error, hlpod_vals->sol_vec, hr_vals->sol_vec);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-pod_abs_error");
 
 	double* source;
@@ -78,6 +59,7 @@ void HR_output_result_file_vtk(
 void HR_output_result_file_vtk_para(
 		BBFE_DATA*     fe,
 		VALUES*        vals,
+        HR_VALUES*      hr_vals,
 		HLPOD_VALUES*    hlpod_vals,
 		HLPOD_DDHR*     hlpod_ddhr,		
 		const char*    filename,
@@ -100,13 +82,13 @@ void HR_output_result_file_vtk_para(
 	fprintf(fp, "POINT_DATA %d\n", fe->total_num_nodes);
 	BB_vtk_write_point_vals_scalar(fp, vals->T, fe->total_num_nodes, "fem-temperature");
 	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->sol_vec, fe->total_num_nodes, "pod-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hlpod_ddhr->HR_T, fe->total_num_nodes, "hr-temperature");
+	BB_vtk_write_point_vals_scalar(fp, hr_vals->sol_vec, fe->total_num_nodes, "hr-temperature");
 	// for manufactured solution
 	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, vals->T, hlpod_ddhr->HR_T);
+			fe, vals->error, vals->T, hr_vals->sol_vec);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-fem_abs_error");
 	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, hlpod_vals->sol_vec, hlpod_ddhr->HR_T);
+			fe, vals->error, hlpod_vals->sol_vec, hr_vals->sol_vec);
 	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-pod_abs_error");
 
 	double* source;
@@ -142,6 +124,7 @@ void HR_output_files(
         HR_output_result_file_vtk(
                 &(sys->fe),
                 &(sys->vals),
+                &(sys->hrom.hr_vals),
                 &(sys->rom.hlpod_vals),
                 &(sys->hrom.hlpod_hr),
                 filename,
@@ -152,6 +135,7 @@ void HR_output_files(
         HR_output_result_file_vtk_para(
                 &(sys->fe),
                 &(sys->vals),
+                &(sys->hrom.hr_vals),
                 &(sys->rom.hlpod_vals),
                 &(sys->hrom.hlpod_ddhr),
                 filename,
@@ -189,7 +173,7 @@ void HR_output_files(
 					&(sys->basis),
 					&(sys->monolis_com),
 					t,
-					sys->hrom.hlpod_hr.HR_T,
+					sys->hrom.hr_vals.sol_vec,
 					sys->vals.T);
 					
 			L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
@@ -198,7 +182,7 @@ void HR_output_files(
 					&(sys->monolis_com),
 					t,
 					sys->rom.hlpod_vals.sol_vec,
-					sys->hrom.hlpod_hr.HR_T);
+					sys->hrom.hr_vals.sol_vec);
 		}
 		else{
 			L2_error_fem_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
@@ -207,7 +191,7 @@ void HR_output_files(
 					&(sys->monolis_com),
 					t,
 					sys->vals.T,
-					sys->hrom.hlpod_ddhr.HR_T);
+					sys->hrom.hr_vals.sol_vec);
 					
 			L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 					&(sys->fe),
@@ -215,7 +199,7 @@ void HR_output_files(
 					&(sys->monolis_com),
 					t,
 					sys->rom.hlpod_vals.sol_vec,
-					sys->hrom.hlpod_ddhr.HR_T);
+					sys->hrom.hr_vals.sol_vec);
 		}
 	}
 	else{
@@ -225,7 +209,7 @@ void HR_output_files(
 				&(sys->monolis_com),
 				t,
 				sys->vals.T,
-				sys->hrom.hlpod_ddhr.HR_T);
+				sys->hrom.hr_vals.sol_vec);
 				
 		L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 				&(sys->fe),
@@ -233,7 +217,7 @@ void HR_output_files(
 				&(sys->monolis_com),
 				t,
 				sys->rom.hlpod_vals.sol_vec,
-				sys->hrom.hlpod_ddhr.HR_T);
+				sys->hrom.hr_vals.sol_vec);
 	}
 
 	printf("%s L2 error fem-hrom: %e\n", CODENAME, L2_error_fem_hr);
@@ -431,8 +415,7 @@ void HROM_pre_online(
 
 		}
 		else{
-			monolis_initialize(&(sys->monolis_hr));
-                    
+			monolis_initialize(&(sys->monolis_hr));        
 			get_neib_subdomain_id_nonpara(
 				&(sys->rom.hlpod_mat),
 				&(sys->hrom.hlpod_ddhr),
@@ -548,6 +531,7 @@ void HROM_nonparallel(
             &(sys.monolis_hr),
             &(sys.fe),
             &(sys.basis),
+            &(sys.hrom.hr_vals),
             &(sys.hrom.hlpod_hr),
             &(sys.rom.hlpod_mat),
             sys.rom.hlpod_vals.num_modes,
@@ -585,12 +569,12 @@ void HROM_nonparallel(
         hr_calc_solution(
             &(sys.fe), 
             &(sys.rom.hlpod_mat), 
-            sys.hrom.hlpod_hr.HR_T, 
+            sys.hrom.hr_vals.sol_vec, 
             &(sys.bc), 
             sys.rom.hlpod_vals.num_modes);
 
         ROM_sys_hlpod_fe_add_Dbc(
-            sys.hrom.hlpod_hr.HR_T,
+            sys.hrom.hr_vals.sol_vec,
             &(sys.bc),
             sys.fe.total_num_nodes,
             1);
@@ -606,6 +590,7 @@ void HROM_nonparallel(
             &(sys.monolis_hr),
             &(sys.fe),
             &(sys.basis),
+            &(sys.hrom.hr_vals),
             &(sys.hrom.hlpod_ddhr),
             &(sys.rom.hlpod_mat),
             sys.rom.hlpod_vals.num_modes_pre,
@@ -646,6 +631,7 @@ void HROM_nonparallel(
 
         ddhr_calc_solution(
             &(sys.fe), 
+            &(sys.hrom.hr_vals), 
             &(sys.rom.hlpod_mat), 
             &(sys.hrom.hlpod_ddhr), 
             &(sys.bc), 
@@ -654,7 +640,7 @@ void HROM_nonparallel(
             1);
         
         ROM_sys_hlpod_fe_add_Dbc(
-            sys.hrom.hlpod_ddhr.HR_T,
+            sys.hrom.hr_vals.sol_vec,
             &(sys.bc),
             sys.fe.total_num_nodes,
             1);
@@ -690,17 +676,11 @@ void HROM_parallel(
 			&(sys.rom.hlpod_mat));
 	double set_bc2 = monolis_get_time();
 
-    if((step_HR-step_POD) == 1){
-        HROM_set_ansvec_para(
-            &(sys.vals),
-            &(sys.hrom.hlpod_ddhr),
-            sys.fe.total_num_nodes);
-    }
-
     ddhr_lb_set_reduced_vec_para(
         &(sys.monolis_hr),
         &(sys.fe),
         &(sys.basis),
+        &(sys.hrom.hr_vals),
         &(sys.rom.hlpod_vals),
         &(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
@@ -750,6 +730,7 @@ void HROM_parallel(
     lpod_pad_calc_block_solution_local_para(
         &(sys.monolis_com),
         &(sys.fe),
+        &(sys.hrom.hr_vals),
         &(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
         &(sys.bc),
@@ -777,15 +758,6 @@ void HROM_hierarchical_parallel(
     const int   step_POD,
     const double t)
 {
-    /*
-    if((step_HR-step_POD) == 1){
-        HROM_set_ansvec_para(
-            &(sys.vals),
-            &(sys.hrom.hlpod_ddhr),
-            sys.fe.total_num_nodes);
-    }
-    */
-
     double t1 = monolis_get_time();
 
     //monolis_copy_mat_value_R(&(sys.monolis_hr0), &(sys.monolis_hr));
@@ -806,6 +778,7 @@ void HROM_hierarchical_parallel(
         &(sys.monolis_hr),
         &(sys.fe),
         &(sys.basis),
+        &(sys.hrom.hr_vals),
         &(sys.rom.hlpod_vals),
         &(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
@@ -856,6 +829,7 @@ void HROM_hierarchical_parallel(
     lpod_pad_calc_block_solution_local_para_pad(
         &(sys.monolis_com),
         &(sys.fe),
+        &(sys.hrom.hr_vals),
         &(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
         &(sys.bc),
@@ -863,7 +837,7 @@ void HROM_hierarchical_parallel(
 		sys.rom.hlpod_vals.num_modes_pre);
 
 	ROM_sys_hlpod_fe_add_Dbc(
-        sys.hrom.hlpod_ddhr.HR_T,
+        sys.hrom.hr_vals.sol_vec,
 		&(sys.bc),
 		sys.fe.total_num_nodes,
 		1);

@@ -12,6 +12,7 @@ void ddhr_memory_allocation2(
         const int       total_num_snapshot,
         const int       total_num_modes,
 		const int		num_subdomains,
+        //HR_VALUES*      hr_vals,
         HLPOD_DDHR*     hlpod_ddhr);
 
 void ddhr_set_element2(

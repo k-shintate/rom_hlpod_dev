@@ -139,7 +139,7 @@ void hr_memory_allocation(
         const int       total_num_modes,
         HLPOD_HR*       hlpod_hr)
 {
-    //hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
+    //hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
 
     hlpod_hr->matrix = BB_std_calloc_2d_double(hlpod_hr->matrix, total_num_snapshot * total_num_modes, total_num_elem);
     hlpod_hr->RH = BB_std_calloc_1d_double(hlpod_hr->RH, total_num_snapshot * total_num_modes);
@@ -156,7 +156,7 @@ void hr_memory_allocation_online(
         const int       total_num_modes,
         HLPOD_HR*       hlpod_hr)
 {
-    //hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
+    //hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
 
     hlpod_hr->reduced_mat = BB_std_calloc_2d_double(hlpod_hr->reduced_mat, total_num_modes, total_num_modes);
     hlpod_hr->reduced_RH = BB_std_calloc_1d_double(hlpod_hr->reduced_RH, total_num_modes);

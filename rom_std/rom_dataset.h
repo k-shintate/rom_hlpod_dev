@@ -25,8 +25,6 @@ typedef struct
     int n_neib_vec;			    //number of modes including neighboring subdomains in the parallel computation domain
 
     bool bool_global_mode;
-
-    //追加
     
 
 } HLPOD_VALUES;
