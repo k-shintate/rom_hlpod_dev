@@ -40,6 +40,28 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 	double** v_ip; 
 	v_ip = BB_std_calloc_2d_double(v_ip, np, 3);
 
+for(int i=0; i<1000; i++) {
+    //printf("hlpod_mat->neib_vec = %lf\n", hlpod_mat->neib_vec[i][0]);
+}
+
+    double** val_ip_1stdd;
+    val_ip_1stdd = BB_std_calloc_2d_double(val_ip_1stdd, 4, np);
+
+    for(int i=0; i<4; i++) {
+        for(int j=0; j<np; j++) {
+            val_ip_1stdd[i][j] = 0.0;
+        }
+    }
+
+    double** val_ip_2nddd;
+    val_ip_2nddd = BB_std_calloc_2d_double(val_ip_2nddd, 4, np);
+
+    for(int i=0; i<4; i++) {
+        for(int j=0; j<np; j++) {
+            val_ip_2nddd[i][j] = 0.0;
+        }
+}
+
 	for(int n=0; n < num_subdomains; n++) {
 		for(int m=0; m < hlpod_ddhr->num_elems[n]; m++) {
             int e = hlpod_ddhr->elem_id_local[m][n];
@@ -79,14 +101,18 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 				int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id];
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
 
+                //printf("\n\nns = %d, m = %d, n = %d, index = %d, IS = %d, IE = %d\n", ns, m, n, index, IS, IE);
 
                 for(int d=0; d<4; d++) {
                     integ_val[d] = BBFE_std_integ_calc(
                             np, val_ip[d], basis->integ_weight, Jacobian_ip);
-
+                            
                     for(int k = IS; k < IE; k++){
-                        hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k][m][n] -= integ_val[d] * hlpod_mat->neib_vec[index + d][k];
-                        hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index + d][k]; 
+                        //printf("\n\nns = %d, k = %d, m = %d, n = %d, integ_val[%d] = %.30e index = %d\n", ns, k, m, n, d, integ_val[d], index);
+                        hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k][m][n] -= integ_val[d] * hlpod_mat->neib_vec[index][k];
+                        //hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index + d][k]; 
+                        //hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= 0; 
+                        hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index][k]; 
                     }
                 }
 

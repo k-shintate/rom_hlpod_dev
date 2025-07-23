@@ -2664,13 +2664,14 @@ void get_neib_num_modes_pad(
 //for arbit dof ddecm
 void get_neib_subdomain_id(
 	MONOLIS_COM*  	monolis_com,
-	//LPOD_COM* 		lpod_com,
 	HLPOD_MAT* 	    hlpod_mat,
 	const int 		num_modes)		//num_2nd_subdomains
 {
     int n_neib_vec;
     int n_vec = num_modes;    //自領域のベクトル数
     
+printf("get_neib_subdomain_id: num_modes = %d\n", num_modes);
+
     monolis_mpi_get_n_neib_vector(
         monolis_com,
         n_vec,
@@ -2678,16 +2679,18 @@ void get_neib_subdomain_id(
 
     const int np = monolis_com->n_internal_vertex + monolis_com->recv_index[monolis_com->recv_n_neib]; //配列サイズ
     const int n_internal_vertex = monolis_com->n_internal_vertex;
-
+printf("get_neib_subdomain_id: np = %d, n_internal_vertex = %d, n_neib_vec = %d\n", np, n_internal_vertex, n_neib_vec);
     double** my_vec;
     my_vec = BB_std_calloc_2d_double(my_vec, np, n_vec);
+
+printf("%d = hlpod_mat->subdomain_id_in_nodes_internal[j][i]\n\n", hlpod_mat->subdomain_id_in_nodes_internal[0][0]);
 
     for(int i = 0; i < n_vec; i++){	
         for(int j = 0; j < n_internal_vertex; j++){
 			my_vec[j][i] = hlpod_mat->subdomain_id_in_nodes_internal[j][i];
         }
     }
-
+printf("get_neib_subdomain_id: my_vec[0][0] = %d\n", (int)my_vec[0][0]);
 	double t2 = monolis_get_time_global_sync();
 
 	BB_std_free_2d_int(hlpod_mat->subdomain_id_in_nodes_internal, monolis_com->n_internal_vertex + monolis_com->recv_index[monolis_com->recv_n_neib], num_modes);
@@ -2703,7 +2706,7 @@ void get_neib_subdomain_id(
         n_neib_vec,				//自領域と隣接領域の合計ベクトル数
         my_vec,					//自領域のベクトル
         neib_vec);	//自領域と隣接領域が並んだベクトル
-
+printf("get_neib_subdomain_id: neib_vec[0][0] = %d\n", (int)neib_vec[0][0]);
 	for(int i = 0; i < n_neib_vec; i++){
 		for(int j = 0; j < np; j++){
 			if(neib_vec[j][i] != 0){
@@ -2717,37 +2720,7 @@ void get_neib_subdomain_id(
 }
 
 
-/*
-void set_max_num_modes(
-	HLPOD_VALUES*		hlpod_vals,
-    const int       num_modes,
-	const int       num_1st_dd,	//並列計算領域数
-	const char*     directory)
-{
-	char fname_n_internal_graph[BUFFER_SIZE];
-    char char_n_internal[BUFFER_SIZE];
-    FILE* fp;
-	int max_metagraph_n_internal = 0;
-	int metagraph_n_internal;
-	int graph_ndof;
 
-	for (int i = 0; i < num_1st_dd; i++){
-        snprintf(fname_n_internal_graph, BUFFER_SIZE, "metagraph_parted.0/metagraph.dat.n_internal.%d", i);
-        fp = ROM_BB_read_fopen(fp, fname_n_internal_graph, directory);
-        fscanf(fp, "%s %d", char_n_internal, &(graph_ndof));
-        fscanf(fp, "%d", &(metagraph_n_internal));
-        fclose(fp);
-
-		if (max_metagraph_n_internal < metagraph_n_internal)
-		{
-			max_metagraph_n_internal = metagraph_n_internal;
-		}
-	}
-	hlpod_vals->num_modes_max = num_modes * max_metagraph_n_internal;
-
-    printf("\n\nset_max_num_modes,  num_modes = %d\n\n", hlpod_vals->num_modes);
-}
-*/
 
 void get_neib_coordinates_pre(
     HLPOD_VALUES* 	hlpod_vals,
@@ -2755,11 +2728,7 @@ void get_neib_coordinates_pre(
     const int       np,				//並列計算領域数
 	const int       max_num_basis)	//level 1の基底本数 (並列計算領域が担当する基底本数の総和)
 {
-//	const int num_basis = max_num_basis * (1 + hlpod_vals->n_neib_vec);	//自領域+隣接領域
     const int num_basis = max_num_basis * np;
-    printf("\n\nnum_basis = %d\n\n", num_basis);
-    printf("\n\nnum_modes = %d\n\n", max_num_basis);
-//level2 のメタグラフではなく、level1のグラフに対する座標の計算
 	hlpod_mat->pod_coordinates_all = BB_std_calloc_1d_double(hlpod_mat->pod_coordinates_all, num_basis);
 }
 
@@ -2772,7 +2741,6 @@ void get_neib_coordinates_pad(
 	const int 		num_subdomains,
 	const int		max_num_bases)
 {
-//	const int num_basis = max_num_basis * (1 + hlpod_vals->n_neib_vec);	//自領域+隣接領域
     const int num_basis = max_num_basis * np;
 
 	int index_row = 0;
@@ -2786,7 +2754,6 @@ void get_neib_coordinates_pad(
 
 		index_column += hlpod_mat->num_modes_internal[k];
 		index += hlpod_mat->num_modes_internal[k];
-		//index += max_num_bases - hlpod_mat->num_modes_internal[k];
 	}
 
 	monolis_mpi_update_R(monolis_com, num_basis, max_num_basis, hlpod_mat->pod_coordinates_all);
@@ -2826,7 +2793,6 @@ void hlpod_hr_sys_set_bc_id(
 //for arbit dof ddecm
 void get_neib_subdomain_id_2nddd(
 	MONOLIS_COM*  	monolis_com,
-	//LPOD_COM* 		lpod_com,
 	HLPOD_MAT* 	hlpod_mat,
 	const int 		num_modes)		//num_2nd_subdomains
 {
@@ -2846,15 +2812,11 @@ void get_neib_subdomain_id_2nddd(
 
     for(int i = 0; i < n_vec; i++){	
         for(int j = 0; j < n_internal_vertex; j++){
-			//my_vec[j][i] = hlpod_mat->subdomain_id_in_nodes_internal[j][i];
 			my_vec[j][i] = 1;	//非零
         }
     }
 
 	double t2 = monolis_get_time_global_sync();
-	printf("\npass_sparse_dense_matvec0-00\n");
-
-	//BB_std_free_2d_int(hlpod_mat->subdomain_id_in_nodes_internal, monolis_com->n_internal_vertex + monolis_com->recv_index[monolis_com->recv_n_neib], num_modes);
 
     double** neib_vec = BB_std_calloc_2d_double(neib_vec, np, n_neib_vec);
 

@@ -169,13 +169,10 @@ int main (
 
 	ROM_std_hlpod_offline_set_num_snapmat(
 			&(sys.rom),
-			sys.fe.total_num_nodes,
-            sys.monolis_com.n_internal_vertex,
             sys.vals.finish_time,
             sys.vals.dt,
             sys.vals.snapshot_interval,
-            1,
-			1);
+            1);
     /******************/
 
 	/*for online phase*/

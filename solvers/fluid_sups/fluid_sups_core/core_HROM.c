@@ -242,6 +242,14 @@ void HROM_pre_offline(
 	monolis_initialize(&(sys->monolis_hr));
 
 	double t = monolis_get_time_global_sync();
+/*  
+	monolis_com_initialize_by_parted_files(
+		&(sys->mono_com0),
+		monolis_mpi_get_global_comm(),
+		MONOLIS_DEFAULT_TOP_DIR,
+		MONOLIS_DEFAULT_PART_DIR,
+		"node.dat");
+*/
 	//for arbit dof ddecm
 	get_neib_subdomain_id(
 		&(sys->mono_com),

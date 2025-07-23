@@ -14,13 +14,10 @@ void ROM_std_hlpod_online_memory_allocation_ansvec(
 
 void ROM_std_hlpod_offline_set_num_snapmat(
         ROM*            rom,
-        const int		total_num_nodes,
-        const int		n_internal_vertex,
         const double    finish_time,
         const double    dt,
         const int       snapshot_interval,
-        const int       num_case,
-        const int	    dof)
+        const int       num_case)
 {
     double quotient = finish_time / dt / snapshot_interval;
     
@@ -445,6 +442,7 @@ void ROM_std_hlpod_read_pod_modes_diag(
                     rom_p->hlpod_vals.num_modes_pre,
                     rom_p->hlpod_vals.num_2nd_subdomains,
                     ndof2);
+            
         }
         else{
             ROM_std_hlpod_read_podmodes_global_para(
@@ -816,7 +814,8 @@ void ROM_std_hlpod_pre_lpod_para(
             monolis_com,
             &(rom->hlpod_vals),
             &(rom->hlpod_mat),
-            rom->hlpod_vals.num_modes);
+            rom->hlpod_vals.num_modes,
+            4);
 
     ROM_std_hlpod_get_neib_num_modes_para_subd(
             mono_com_rom,

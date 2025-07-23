@@ -2,7 +2,7 @@
 
 #mesh
 #一方向分割数
-e=20
+e=15
 #解析領域の大きさ
 ep=5
 
@@ -11,7 +11,7 @@ num_modes=(20)
 #POD計算領域数
 num_1stdd=(6)
 #並列計算領域数 (=並列数)
-num_parallel=(3)
+num_parallel=(6)
 #基底本数可変の閾値 1.0E-{pa}
 pa=0
 #solver type

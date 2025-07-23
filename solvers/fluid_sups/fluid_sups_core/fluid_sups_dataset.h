@@ -73,7 +73,6 @@ typedef struct
 	MONOLIS_COM  mono_com0;	        //初期化関数
 	MONOLIS_COM  mono_com_rom_solv;	//線形ソルバ用コミュニケータ
 
-
 	ROM_PRM		 rom_prm_p;		    //p の input データ用
 	ROM_PRM		 rom_prm_v;		    //v の input データ用
 

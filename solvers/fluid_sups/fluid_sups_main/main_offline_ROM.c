@@ -173,7 +173,6 @@ int main (
             metagraph_name,
             parted_file_name,
 			sys.cond.directory);
-
     /******************/
 
 	/*for online*/
@@ -232,23 +231,28 @@ int main (
     /********************/
 
     /*for Hyper-reduction*/
-    HROM_pre(&sys, &(sys.rom), &(sys.hrom));
-    HROM_memory_allocation(&sys, &(sys.rom), &(sys.hrom));
+    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
+
+	ROM_std_hlpod_offline_set_num_snapmat(
+			&(sys.rom_sups),
+            sys.vals.finish_time,
+            sys.vals.dt,
+            sys.vals.snapshot_interval,
+            1);
+
+    HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
+    HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
     /*********************/
 
     /*for Hyper-reduction*/
-    HROM_memory_allocation_online(&sys, &(sys.rom), &(sys.hrom));
-    HROM_pre(&sys, &(sys.rom), &(sys.hrom));
-    HROM_pre_online(&sys, &(sys.rom), &(sys.hrom));
-
     hlpod_hr_sys_set_bc_id(
         &(sys.fe),
         (&sys.bc),
-        &(sys.hrom.hlpod_ddhr),
-        BLOCK_SIZE,
-        &(sys.rom.hlpod_mat));
+        &(sys.hrom_sups.hlpod_ddhr),
+        4,
+        &(sys.rom_sups.hlpod_mat));
     
-    memory_allocation_hr_sol_vec(&(sys.hrom.hr_vals), sys.fe.total_num_nodes, 1);
+    memory_allocation_hr_sol_vec(&(sys.hrom_sups.hr_vals), sys.fe.total_num_nodes, 1);
     /************************/
 
 
@@ -309,7 +313,7 @@ int main (
 		/**********************************/
 
 		double calctime_hr_t2 = monolis_get_time();
-        HROM_set_matvec(&(sys),&(sys.rom),&(sys.hrom),step_rom,t);
+        HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_rom,t);
 		double calctime_hr_t1 = monolis_get_time();
 
 		if(step_rom%sys.vals.output_interval == 0) {
@@ -327,7 +331,7 @@ int main (
 		}
 	}
 
-    HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom));
+    HROM_pre_offline2(&sys, &(sys.rom_sups), &(sys.hrom_sups));
 
 	BBFE_fluid_finalize(&(sys.fe), &(sys.basis));
 	BBFE_sys_memory_free_Dirichlet_bc(&(sys.bc), sys.fe.total_num_nodes, 4);

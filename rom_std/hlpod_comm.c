@@ -1,6 +1,7 @@
 
 #include "hlpod_comm.h"
 
+/*
 void ROM_std_hlpod_get_neib_vec(
     MONOLIS_COM*  	monolis_com,
     HLPOD_VALUES*	hlpod_vals,
@@ -30,13 +31,6 @@ void ROM_std_hlpod_get_neib_vec(
     }
 
     hlpod_mat->neib_vec = BB_std_calloc_2d_double(hlpod_mat->neib_vec, np, n_neib_vec);
-/*
-    for(int i = 0; i < n_vec; i++){	
-        for(int j = 0; j < n_internal_vertex; j++){
-            hlpod_mat->neib_vec[j][i] = hlpod_mat->pod_modes[j][i];
-        }
-    }
-    */
 
 
     const int n_dof = 1;    //計算点が持つ自由度
@@ -45,6 +39,63 @@ void ROM_std_hlpod_get_neib_vec(
         monolis_com,
         np,						//配列サイズ
         n_dof,					//計算点が持つ自由度
+        n_vec,					//自領域のベクトル数
+        n_neib_vec,				//自領域と隣接領域の合計ベクトル数
+        my_vec,					//自領域のベクトル
+        hlpod_mat->neib_vec);	//自領域と隣接領域が並んだベクトル
+
+}
+*/
+
+
+void ROM_std_hlpod_get_neib_vec(
+    MONOLIS_COM*  	monolis_com,
+    HLPOD_VALUES*	hlpod_vals,
+    HLPOD_MAT* 	    hlpod_mat,
+    const int 		num_modes,
+    const int       ndof)
+{
+    int n_neib_vec;
+    int n_vec = num_modes;    //自領域のベクトル数
+    
+    monolis_mpi_get_n_neib_vector(
+        monolis_com,
+        n_vec,
+        &n_neib_vec);       //出力：自領域と隣接領域の合計ベクトル数
+
+    hlpod_vals->n_neib_vec = n_neib_vec;
+
+    printf("\n\nn_neib_vec = %d, n_vec = %d\n", n_neib_vec, n_vec);
+
+    const int np = monolis_com->n_internal_vertex + monolis_com->recv_index[monolis_com->recv_n_neib];
+    const int n_internal_vertex = monolis_com->n_internal_vertex;
+
+    double** my_vec;
+    my_vec = BB_std_calloc_2d_double(my_vec, np*ndof, n_vec);
+
+    for(int i = 0; i < n_vec; i++){	
+        for(int j = 0; j < n_internal_vertex; j++){
+            for(int k = 0; k < ndof; k++){
+                my_vec[j*ndof + k][i] = hlpod_mat->pod_modes[j*ndof + k][i];
+            }
+            // /my_vec[j][i] = hlpod_mat->pod_modes[j][i];
+        }
+    }
+
+    hlpod_mat->neib_vec = BB_std_calloc_2d_double(hlpod_mat->neib_vec, np*ndof, n_neib_vec);
+/*
+    for(int i = 0; i < n_vec; i++){	
+        for(int j = 0; j < n_internal_vertex; j++){
+            hlpod_mat->neib_vec[j][i] = hlpod_mat->pod_modes[j][i];
+        }
+    }
+    */
+//    const int n_dof = 1;    //計算点が持つ自由度
+
+    monolis_mpi_get_neib_vector_R(
+        monolis_com,
+        np,						//配列サイズ
+        ndof,					//計算点が持つ自由度
         n_vec,					//自領域のベクトル数
         n_neib_vec,				//自領域と隣接領域の合計ベクトル数
         my_vec,					//自領域のベクトル
