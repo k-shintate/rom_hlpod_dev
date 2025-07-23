@@ -19,13 +19,24 @@ static const int BUFFER_SIZE = 10000;
 static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
 static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 
+void memory_allocation_hr_sol_vec(
+        HLPOD_VALUES*   hlpod_vals,
+	    HLPOD_DDHR*     hlpod_ddhr,
+	    HLPOD_MAT*      hlpod_mat,
+        const int       total_num_nodes,
+        const int       dof)
+{
+    //hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+}
+
+
 void ddhr_memory_allocation_para_online(
         HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 	    HLPOD_MAT*      hlpod_mat,
         const int       total_num_nodes)
 {
-	hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+	//hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
     hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, hlpod_vals->n_neib_vec, hlpod_vals->n_neib_vec);
     hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_vals->n_neib_vec);
 }
@@ -48,7 +59,7 @@ void ddhr_memory_allocation_para(
 		max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 	}
 
-    hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+    //hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
 
 //for NNLS
     hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);

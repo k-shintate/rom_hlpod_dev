@@ -139,7 +139,7 @@ void hr_memory_allocation(
         const int       total_num_modes,
         HLPOD_HR*       hlpod_hr)
 {
-    hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
+    //hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
 
     hlpod_hr->matrix = BB_std_calloc_2d_double(hlpod_hr->matrix, total_num_snapshot * total_num_modes, total_num_elem);
     hlpod_hr->RH = BB_std_calloc_1d_double(hlpod_hr->RH, total_num_snapshot * total_num_modes);
@@ -156,7 +156,7 @@ void hr_memory_allocation_online(
         const int       total_num_modes,
         HLPOD_HR*       hlpod_hr)
 {
-    hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
+    //hlpod_hr->HR_T = BB_std_calloc_1d_double(hlpod_hr->HR_T, total_num_nodes);
 
     hlpod_hr->reduced_mat = BB_std_calloc_2d_double(hlpod_hr->reduced_mat, total_num_modes, total_num_modes);
     hlpod_hr->reduced_RH = BB_std_calloc_1d_double(hlpod_hr->reduced_RH, total_num_modes);
@@ -410,8 +410,6 @@ void hr_calc_solution(
 	int nl = fe->total_num_nodes;
 	int k = num_base;
 
-	double t1 = monolis_get_time();
-
 	for(int j = 0; j < nl; j++){
 		HR_T[j] = 0.0;
 	}
@@ -421,14 +419,6 @@ void hr_calc_solution(
 			HR_T[j] += hlpod_mat->pod_modes[j][i] * hlpod_mat->mode_coef[i];
 		}
 	}
-
-	for(int i=0; i < nl; i++) {
-		if( bc->D_bc_exists[i] ) {
-			HR_T[i] = bc->imposed_D_val[i];
-		}
-	}
-
-	double t2 = monolis_get_time();
 }
 
 

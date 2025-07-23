@@ -15,6 +15,14 @@ typedef struct
 {
 	double* HR_T;
 
+} HLPOD_HR;
+
+
+//Hyper-reduction (ECM) の計算情報
+typedef struct
+{
+//	double* HR_T;
+
 	int num_selected_elems;
 	int num_selected_elems_D_bc;
 
@@ -40,7 +48,7 @@ typedef struct
 //domain decomposition + Hyper-reduction (ECM) の計算情報
 typedef struct
 {
-	double* HR_T;
+//	double* HR_T;
 	double** reduced_mat;
 	double* reduced_RH;
 
@@ -95,6 +103,7 @@ typedef struct
 
 typedef struct
 {
+    HLPOD_VALUES    hlpod_vals;
     HLPOD_HR        hlpod_hr;
     HLPOD_DDHR      hlpod_ddhr;
 } HROM;

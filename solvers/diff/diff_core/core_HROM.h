@@ -40,52 +40,42 @@ void HR_output_files(
 		int             file_num,
 		double          t);
 
-void HROM_pre(
-		FE_SYSTEM* 		sys,
-		const int 		num_modes,
-		const int 		num_snapshot,
-		const int 		num_2nd_subdomains);
-
-
 void HROM_pre_offline(
 		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int num_modes,
 		const int num_snapshot,
 		const int num_2nd_subdomains);
 
 void HROM_pre_offline2(
 		FE_SYSTEM* 		sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int 		num_modes,
 		const int 		num_snapshot,
 		const int 		num_2nd_subdomains);
 
-void HROM_pre_online_nonpara(
-		FE_SYSTEM* sys,
-		const int num_modes,
-		const int num_snapshot,
-		const int num_2nd_subdomains);
-
 void HROM_pre_online(
 		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int num_modes,
 		const int num_snapshot,
 		const int num_2nd_subdomains);
 
 void HROM_nonparallel(
 		FE_SYSTEM       sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int       step_HR,
 		const int       step_POD,
 		const double    t);
-/*
-void HROM_parallel(
-		FE_SYSTEM       sys,
-		const int       step_HR,
-		const int       step_POD,
-		const double    t);
-*/
 
 void HROM_hierarchical_parallel(
 		FE_SYSTEM 		sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int 		step_HR,
 		const int 		step_POD,
 		const double 	t);

@@ -240,7 +240,7 @@ int main (
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
-        HROM_pre_offline(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
 
     if(monolis_mpi_get_global_comm_size() == 1){	
@@ -420,10 +420,10 @@ int main (
 
     if(monolis_mpi_get_global_comm_size() == 1){
         //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-        HROM_pre_offline2(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
-        HROM_pre_offline2(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+        HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
 
     if(monolis_mpi_get_global_my_rank() == 0){
@@ -433,10 +433,10 @@ int main (
     }
 
     if(monolis_mpi_get_global_comm_size() == 1){		
-		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
 	else{
-		HROM_pre_online(&sys, sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
+		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
 
    	monolis_initialize(&(sys.monolis_hr));
@@ -464,10 +464,10 @@ int main (
 		/**********************************************/
 
 		if(monolis_mpi_get_global_comm_size() == 1){
-			HROM_nonparallel(sys, step, 0, t);
+			HROM_nonparallel(sys, &(sys.rom), &(sys.hrom), step, 0, t);
         }
         else{
-			HROM_hierarchical_parallel(sys, step, 0, t);
+			HROM_hierarchical_parallel(sys, &(sys.rom), &(sys.hrom), step, 0, t);
         }
 
         if(step%sys.vals.output_interval == 0) {
@@ -489,8 +489,6 @@ int main (
 		}
 
 	}
-
-
 
 	BBFE_convdiff_finalize(&(sys.fe), &(sys.basis), &(sys.bc));
 

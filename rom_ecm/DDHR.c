@@ -63,10 +63,7 @@ void ddhr_memory_allocation(
 		const int		num_subdomains,
         HLPOD_DDHR*     hlpod_ddhr)
 {
-
-	printf("\n%d\n", num_subdomains);
-
-    hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
+    //hlpod_ddhr->HR_T = BB_std_calloc_1d_double(hlpod_ddhr->HR_T, total_num_nodes);
 
 //for NNLS
     hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot * total_num_modes * 2, total_num_elem, num_subdomains);

@@ -263,6 +263,8 @@ void HR_output_files(
 
 void HROM_pre_offline(
 		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int num_modes,
 		const int num_snapshot,
 		const int num_2nd_subdomains)
@@ -324,6 +326,8 @@ void HROM_pre_offline(
 
 void HROM_pre_offline2(
 		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int num_modes,
 		const int num_snapshot,
 		const int num_2nd_subdomains)
@@ -359,14 +363,7 @@ void HROM_pre_offline2(
 				1.0e-6,
 				&(sys->hrom.hlpod_ddhr),
 				sys->cond.directory);
-/*
-			ddhr_set_selected_elems(
-				&(sys->fe),
-				&(sys->hrom.hlpod_ddhr),
-				sys->fe.total_num_nodes,
-				num_2nd_subdomains,
-				sys->cond.directory);
-*/
+
         }
     }
     else{
@@ -398,23 +395,19 @@ void HROM_pre_offline2(
 
 void HROM_pre_online(
 		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
 		const int num_modes,
 		const int num_snapshot,
 		const int num_2nd_subdomains)
 {
-	//monolis_initialize(&(sys->monolis_hr0));
 	monolis_initialize(&(sys->monolis_hr));
 
 	double t = monolis_get_time_global_sync();
 
     if(monolis_mpi_get_global_comm_size() == 1){
 		if(num_2nd_subdomains == 1){
-			//monolis_initialize(&(sys->monolis_hr0));
 			monolis_initialize(&(sys->monolis_hr));
-            /*
-            monolis_copy_mat_nonzero_pattern_R(
-                &(sys->monolis_rom0),
-                &(sys->monolis_hr0));*/
 
 			hr_lb_read_selected_elements(
 				&(sys->hrom.hlpod_hr),
@@ -438,26 +431,8 @@ void HROM_pre_online(
 
 		}
 		else{
-			//monolis_initialize(&(sys->monolis_hr0));
 			monolis_initialize(&(sys->monolis_hr));
-
-            printf("num_2nd_subdomains: %d\n", num_2nd_subdomains);
-            printf("num_modes_pre: %d\n", sys->rom.hlpod_vals.num_modes_pre);
-            printf("num_snapshot: %d\n", sys->rom.hlpod_vals.num_snapshot);
-        
-
-        
-            //monolis_copy_mat_nonzero_pattern_R(
-            //    &(sys->monolis_rom0),
-            //    &(sys->monolis_hr0));
-/*
-        monolis_get_nonzero_pattern_by_nodal_graph_V_R(
-            &(sys->monolis_hr0),
-            sys->rom.hlpod_meta.num_meta_nodes,
-            sys->rom.hlpod_mat.num_modes_internal,
-            sys->rom.hlpod_meta.index,
-            sys->rom.hlpod_meta.item);
-*/
+                    
 			get_neib_subdomain_id_nonpara(
 				&(sys->rom.hlpod_mat),
 				&(sys->hrom.hlpod_ddhr),
@@ -546,6 +521,8 @@ void HROM_pre_online(
 
 void HROM_nonparallel(
     FE_SYSTEM       sys,
+    ROM*            rom,
+    HROM*           hrom,
     const int       step_HR,
     const int       step_POD,
     const double    t)
@@ -593,13 +570,7 @@ void HROM_nonparallel(
             sys.rom.hlpod_vals.num_modes);
         
         double t2 = monolis_get_time();
-/*
-        FILE* fp;
-        fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
-        fprintf(fp, "%e %e\n", t, t2-t1 + set_bc2 - set_bc1);
-        fclose(fp);
-*/
-    
+
         BBFE_sys_monowrap_solve(
             &(sys.monolis_hr),
             &(sys.mono_com_rom_solv),
@@ -617,20 +588,15 @@ void HROM_nonparallel(
             sys.hrom.hlpod_hr.HR_T, 
             &(sys.bc), 
             sys.rom.hlpod_vals.num_modes);
-/*
+
         ROM_sys_hlpod_fe_add_Dbc(
             sys.hrom.hlpod_hr.HR_T,
             &(sys.bc),
             sys.fe.total_num_nodes,
             1);
-*/
+
         t2 = monolis_get_time();
-/*
-        //FILE* fp;
-        fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
-        fprintf(fp, "%e %e\n", t, t2-t1);
-        fclose(fp);
-*/
+
         output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);
     }
     else{
@@ -666,12 +632,7 @@ void HROM_nonparallel(
             sys.rom.hlpod_vals.num_2nd_subdomains);
 
         double t2 = monolis_get_time();
-/*
-        FILE* fp;
-        fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
-        fprintf(fp, "%e %e\n", t, t2-t1);
-        fclose(fp);
-*/      
+  
         BBFE_sys_monowrap_solve(
             &(sys.monolis_hr),
             &(sys.mono_com_rom_solv),
@@ -699,12 +660,7 @@ void HROM_nonparallel(
             1);
 
         t2 = monolis_get_time();
-/*
-        //FILE* fp;
-        fp = BBFE_sys_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
-        fprintf(fp, "%e %e\n", t, t2-t1);
-        fclose(fp);
-*/
+
         output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);
     }
 }
@@ -712,6 +668,8 @@ void HROM_nonparallel(
 
 void HROM_parallel(
     FE_SYSTEM       sys,
+    ROM*        rom,
+    HROM*       hrom,
     const int       step_HR,
     const int       step_POD,
     const double    t)
@@ -812,9 +770,11 @@ void HROM_parallel(
 
 
 void HROM_hierarchical_parallel(
-    FE_SYSTEM sys,
-    const int step_HR,
-    const int step_POD,
+    FE_SYSTEM   sys,
+    ROM*        rom,
+    HROM*       hrom,
+    const int   step_HR,
+    const int   step_POD,
     const double t)
 {
     /*
