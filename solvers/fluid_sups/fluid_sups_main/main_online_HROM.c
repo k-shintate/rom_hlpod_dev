@@ -231,6 +231,22 @@ int main (
 
     /********************/
 
+    /*for Hyper-reduction*/
+    HROM_memory_allocation_online(&sys, &(sys.rom), &(sys.hrom));
+    HROM_pre(&sys, &(sys.rom), &(sys.hrom));
+    HROM_pre_online(&sys, &(sys.rom), &(sys.hrom));
+
+    hlpod_hr_sys_set_bc_id(
+        &(sys.fe),
+        (&sys.bc),
+        &(sys.hrom.hlpod_ddhr),
+        BLOCK_SIZE,
+        &(sys.rom.hlpod_mat));
+    
+    memory_allocation_hr_sol_vec(&(sys.hrom.hr_vals), sys.fe.total_num_nodes, 1);
+    /************************/
+
+
     /**************************************************/
 
     read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                      //set vals
@@ -288,6 +304,14 @@ int main (
 		/**********************************/
 
 		double calctime_hr_t2 = monolis_get_time();
+
+		if(monolis_mpi_get_global_comm_size() == 1){
+			HROM_nonparallel(sys, &(sys.rom), &(sys.hrom), step_rom, 0, t);
+        }
+        else{
+			HROM_hierarchical_parallel(sys, &(sys.rom), &(sys.hrom), step_rom, 0, t);
+        }
+
 		double calctime_hr_t1 = monolis_get_time();
 
 		if(step_rom%sys.vals.output_interval == 0) {
