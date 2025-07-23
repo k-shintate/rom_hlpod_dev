@@ -3,6 +3,7 @@
 //残差ベクトルのみをNNLSに使う
 void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 		BBFE_DATA*     	fe,
+		VALUES*         vals,
 		BBFE_BASIS*	 	basis,
         HLPOD_MAT*     hlpod_mat,
         HLPOD_VALUES*     hlpod_vals,
@@ -17,6 +18,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 //残差ベクトルのみをNNLSに使う
 void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 		BBFE_DATA*     	fe,
+		VALUES*         vals,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
         HLPOD_MAT*      hlpod_mat,

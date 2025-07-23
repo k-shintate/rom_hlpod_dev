@@ -363,6 +363,7 @@ void HROM_pre_online(
         ddhr_lb_set_reduced_mat_para_save_memory(
             &(sys->monolis_hr0),
             &(sys->fe),
+            &(sys->vals),
             &(sys->basis),
             &(sys->bc),
             &(rom->hlpod_vals),
@@ -427,6 +428,7 @@ void HROM_hierarchical_parallel(
     ddhr_lb_set_reduced_vec_para(
         &(sys.monolis_hr),
         &(sys.fe),
+        &(sys.vals),
         &(sys.basis),
         &(hrom->hr_vals),
         &(rom->hlpod_vals),
@@ -440,6 +442,7 @@ void HROM_hierarchical_parallel(
     ddhr_lb_set_D_bc_para(
         &(sys.monolis_hr),
         &(sys.fe),
+        &(sys.vals),
         &(sys.basis),
         &(sys.bc),
         &(rom->hlpod_mat),
@@ -574,6 +577,7 @@ void HROM_set_matvec(
 
         ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
                 &(sys->fe),
+                &(sys->vals),
                 &(sys->basis),
                 &(rom->hlpod_mat),
                 &(rom->hlpod_vals),
@@ -587,6 +591,7 @@ void HROM_set_matvec(
 
         ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
                 &(sys->fe),
+                &(sys->vals),
                 &(sys->basis),
                 &(sys->bc),
                 &(rom->hlpod_mat),
