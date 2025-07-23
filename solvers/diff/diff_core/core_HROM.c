@@ -663,7 +663,6 @@ void HROM_parallel(
     double t1 = monolis_get_time();
 
     monolis_copy_mat_value_R(&(sys.monolis_hr0), &(sys.monolis_hr));
-//	monolis_copy_mat_value_R(&(sys.monolis_pod0), &(sys.monolis_hr));
 	monolis_clear_mat_value_rhs_R(&(sys.monolis_hr));
 
 	double set_bc1 = monolis_get_time();
@@ -760,7 +759,6 @@ void HROM_hierarchical_parallel(
 {
     double t1 = monolis_get_time();
 
-    //monolis_copy_mat_value_R(&(sys.monolis_hr0), &(sys.monolis_hr));
 	monolis_copy_mat_value_matrix_R(&(sys.monolis_hr0), &(sys.monolis_hr));
 	monolis_clear_mat_value_rhs_R(&(sys.monolis_hr));
 
@@ -853,4 +851,244 @@ void HROM_hierarchical_parallel(
 
 	output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);
 
+}
+
+
+void HROM_pre(
+        FE_SYSTEM* sys,
+        ROM*        rom,
+        HROM*       hrom)
+{
+    if(monolis_mpi_get_global_comm_size() == 1){
+    }
+    else{
+        HROM_pre_offline(sys, rom, hrom, rom->hlpod_vals.num_modes_pre, rom->hlpod_vals.num_snapshot, rom->hlpod_vals.num_2nd_subdomains);
+    }
+}
+
+
+void HROM_memory_allocation(
+        FE_SYSTEM* sys,
+        ROM*        rom,
+        HROM*       hrom)
+{
+    if(monolis_mpi_get_global_comm_size() == 1){	
+        if(rom->hlpod_vals.num_2nd_subdomains == 1){
+            hr_memory_allocation(
+                sys->fe.total_num_nodes,
+                sys->fe.total_num_elems,
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes_pre,
+                &(hrom->hlpod_hr));
+        }
+        else{
+            ddhr_set_element2(
+                &(hrom->hlpod_ddhr),
+                rom->hlpod_vals.num_2nd_subdomains,
+                sys->cond.directory);
+                
+            ddhr_memory_allocation(
+                sys->fe.total_num_nodes,
+                sys->fe.total_num_elems,
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes,
+                rom->hlpod_vals.num_2nd_subdomains,
+                &(hrom->hlpod_ddhr));
+        }
+    }
+    else{
+        ddhr_lb_set_element_para2(
+                &(sys->fe),
+                &(hrom->hlpod_ddhr),
+                rom->hlpod_vals.num_2nd_subdomains,
+                sys->cond.directory);
+
+        //基底本数の分布が決定されてからメモリ割り当て
+        ddhr_memory_allocation_para(
+                &(rom->hlpod_vals),
+                &(hrom->hlpod_ddhr),
+                &(rom->hlpod_mat),
+                sys->fe.total_num_nodes,
+                sys->fe.total_num_elems,
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes_pre,
+                rom->hlpod_vals.num_2nd_subdomains);
+    }
+}
+
+
+void HROM_set_matvec(
+        FE_SYSTEM* sys,
+        ROM*        rom,
+        HROM*       hrom,
+        int step,
+        double t)
+{
+    if(monolis_mpi_get_global_comm_size() == 1){
+        if(rom->hlpod_vals.num_2nd_subdomains == 1){
+            hr_set_matvec_RH_for_NNLS(
+                &(sys->fe),
+                &(sys->basis),
+                &(rom->hlpod_mat),
+                &(rom->hlpod_vals), 
+                &(hrom->hlpod_hr),
+                step -1 ,	//index 0 start
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes,
+                sys->vals.dt,
+                t);
+            
+            hr_set_matvec_residuals_for_NNLS(
+                &(sys->fe),
+                &(sys->basis),
+                &(sys->bc), 
+                &(rom->hlpod_mat),
+                &(rom->hlpod_vals), 
+                &(hrom->hlpod_hr),
+                step -1 ,	//index 0 start
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes,
+                sys->vals.dt,
+                t);
+        }
+        else{
+            ddhr_set_matvec_only_residuals_for_NNLS3(
+                &(sys->fe),
+                &(sys->basis),
+                &(sys->bc), 
+                &(rom->hlpod_mat),
+                &(rom->hlpod_vals), 
+                &(hrom->hlpod_ddhr),
+                rom->hlpod_vals.num_2nd_subdomains,
+                step -1 ,	//index 0 start
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes_pre,
+                sys->vals.dt,
+                t);
+            
+            ddhr_set_matvec_RH_for_NNLS2_only_residuals(			
+                &(sys->fe),
+                &(sys->basis),
+                &(rom->hlpod_mat),
+                &(rom->hlpod_vals), 
+                &(hrom->hlpod_ddhr),
+                rom->hlpod_vals.num_2nd_subdomains,
+                step -1 ,	//index 0 start
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes_pre,
+                sys->vals.dt,
+                t);
+
+        }
+    }
+    else{
+        get_neib_coordinates_pad(
+                &(sys->mono_com_rom),
+                &(rom->hlpod_vals),
+                &(rom->hlpod_mat),
+                1 + sys->mono_com_rom_solv.recv_n_neib,
+                rom->hlpod_vals.num_modes_max,
+                rom->hlpod_vals.num_2nd_subdomains,
+                rom->hlpod_vals.num_modes_pre);
+
+        ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
+                &(sys->fe),
+                &(sys->basis),
+                &(rom->hlpod_mat),
+                &(rom->hlpod_vals),
+                &(hrom->hlpod_ddhr),
+                rom->hlpod_vals.num_2nd_subdomains,
+                step -1 ,   //index 0 start
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes_pre,
+                sys->vals.dt,
+                t);
+
+        ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
+                &(sys->fe),
+                &(sys->basis),
+                &(sys->bc),
+                &(rom->hlpod_mat),
+                &(rom->hlpod_vals),
+                &(hrom->hlpod_ddhr),
+                rom->hlpod_vals.num_2nd_subdomains,
+                step -1 ,   //index 0 start
+                rom->hlpod_vals.num_snapshot,
+                1 + sys->monolis_com.recv_n_neib,
+                sys->vals.dt,
+                t);
+    }
+}
+
+
+void HROM_pre_offline2(
+        FE_SYSTEM* sys,
+        ROM*        rom,
+        HROM*       hrom)
+{
+    if(monolis_mpi_get_global_comm_size() == 1){
+        HROM_pre_offline2(sys, rom, hrom, rom->hlpod_vals.num_modes_pre, rom->hlpod_vals.num_snapshot, rom->hlpod_vals.num_2nd_subdomains);
+    }
+    else{
+        HROM_pre_offline2(sys, rom, hrom, rom->hlpod_vals.num_modes_pre, rom->hlpod_vals.num_snapshot, rom->hlpod_vals.num_2nd_subdomains);
+    }
+}
+
+
+void HROM_memory_allocation_online(
+        FE_SYSTEM* sys,
+        ROM*        rom,
+        HROM*       hrom)
+{
+	if(monolis_mpi_get_global_comm_size() == 1){
+        if(rom->hlpod_vals.num_2nd_subdomains == 1){
+            hr_memory_allocation_online(
+                sys->fe.total_num_nodes,
+                sys->fe.total_num_elems,
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes_pre,
+                &(hrom->hlpod_hr));
+        }
+        else{
+            ddhr_set_element2(
+                &(hrom->hlpod_ddhr),
+                rom->hlpod_vals.num_2nd_subdomains,
+                sys->cond.directory);
+                
+            ddhr_memory_allocation2(
+                sys->fe.total_num_nodes,
+                sys->fe.total_num_elems,
+                rom->hlpod_vals.num_snapshot,
+                rom->hlpod_vals.num_modes_pre,
+                rom->hlpod_vals.num_2nd_subdomains,
+                &(hrom->hlpod_ddhr));
+        }
+	}
+    else{
+        ddhr_lb_set_element_para2(
+            &(sys->fe),
+            &(hrom->hlpod_ddhr),
+            rom->hlpod_vals.num_2nd_subdomains,
+            sys->cond.directory);
+
+        ddhr_memory_allocation_para_online(
+            &(rom->hlpod_vals),
+            &(hrom->hlpod_ddhr),
+            &(rom->hlpod_mat),
+            sys->fe.total_num_nodes);
+    }
+}
+
+
+void HROM_pre_online(
+        FE_SYSTEM* sys,
+        ROM*        rom,
+        HROM*       hrom)
+{
+    if(monolis_mpi_get_global_comm_size() == 1){		
+		HROM_pre_online(sys, rom, hrom, rom->hlpod_vals.num_modes_pre, rom->hlpod_vals.num_snapshot, rom->hlpod_vals.num_2nd_subdomains);
+	}
+	else{
+		HROM_pre_online(sys, rom, hrom, rom->hlpod_vals.num_modes_pre, rom->hlpod_vals.num_snapshot, rom->hlpod_vals.num_2nd_subdomains);
+	}
 }

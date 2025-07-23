@@ -236,24 +236,22 @@ int main (
     /**************************************************/
 
     /*for Hyper-reduction*/
+    /*
     if(monolis_mpi_get_global_comm_size() == 1){
-        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
         HROM_pre_offline(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
-
+    */
+/*
     if(monolis_mpi_get_global_comm_size() == 1){	
         if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
-            printf("\n%s: num_2nd_subdomains = 1\n", CODENAME);
-
             hr_memory_allocation(
                 sys.fe.total_num_nodes,
                 sys.fe.total_num_elems,
                 sys.rom.hlpod_vals.num_snapshot,
                 sys.rom.hlpod_vals.num_modes_pre,
                 &(sys.hrom.hlpod_hr));
-            //exit(1);
         }
         else{
             ddhr_set_element2(
@@ -288,6 +286,10 @@ int main (
                 sys.rom.hlpod_vals.num_modes_pre,
                 sys.rom.hlpod_vals.num_2nd_subdomains);
     }
+    */
+
+   HROM_pre(&sys, &(sys.rom), &(sys.hrom));
+   HROM_memory_allocation(&sys, &(sys.rom), &(sys.hrom));
 
     /*********************/
 
@@ -297,7 +299,6 @@ int main (
 
     int file_num = 0;
     int step = 0;
-    //int step_POD = 0;
     double t = 0;
 	while (t < sys.vals.finish_time) {
 		t += sys.vals.dt;
@@ -315,100 +316,7 @@ int main (
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
 
-		if(monolis_mpi_get_global_comm_size() == 1){
-			if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
-            	hr_set_matvec_RH_for_NNLS(
-					&(sys.fe),
-					&(sys.basis),
-					&(sys.rom.hlpod_mat),
-					&(sys.rom.hlpod_vals), 
-					&(sys.hrom.hlpod_hr),
-					step -1 ,	//index 0 start
-					sys.rom.hlpod_vals.num_snapshot,
-					sys.rom.hlpod_vals.num_modes,
-					sys.vals.dt,
-					t);
-				
-				hr_set_matvec_residuals_for_NNLS(
-					&(sys.fe),
-					&(sys.basis),
-					&(sys.bc), 
-					&(sys.rom.hlpod_mat),
-					&(sys.rom.hlpod_vals), 
-					&(sys.hrom.hlpod_hr),
-					step -1 ,	//index 0 start
-					sys.rom.hlpod_vals.num_snapshot,
-					sys.rom.hlpod_vals.num_modes,
-					sys.vals.dt,
-					t);
-			}
-			else{
-				ddhr_set_matvec_only_residuals_for_NNLS3(
-					&(sys.fe),
-					&(sys.basis),
-					&(sys.bc), 
-					&(sys.rom.hlpod_mat),
-					&(sys.rom.hlpod_vals), 
-					&(sys.hrom.hlpod_ddhr),
-					sys.rom.hlpod_vals.num_2nd_subdomains,
-					step -1 ,	//index 0 start
-					sys.rom.hlpod_vals.num_snapshot,
-					sys.rom.hlpod_vals.num_modes_pre,
-					sys.vals.dt,
-					t);
-				
-				ddhr_set_matvec_RH_for_NNLS2_only_residuals(			
-					&(sys.fe),
-					&(sys.basis),
-					&(sys.rom.hlpod_mat),
-					&(sys.rom.hlpod_vals), 
-					&(sys.hrom.hlpod_ddhr),
-					sys.rom.hlpod_vals.num_2nd_subdomains,
-					step -1 ,	//index 0 start
-					sys.rom.hlpod_vals.num_snapshot,
-					sys.rom.hlpod_vals.num_modes_pre,
-					sys.vals.dt,
-					t);
-
-			}
-		}
-        else{
-            get_neib_coordinates_pad(
-                    &(sys.mono_com_rom),
-                    &(sys.rom.hlpod_vals),
-                    &(sys.rom.hlpod_mat),
-                    1 + sys.mono_com_rom_solv.recv_n_neib,
-                    sys.rom.hlpod_vals.num_modes_max,
-                    sys.rom.hlpod_vals.num_2nd_subdomains,
-                    sys.rom.hlpod_vals.num_modes_pre);
-
-            ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
-                    &(sys.fe),
-                    &(sys.basis),
-                    &(sys.rom.hlpod_mat),
-                    &(sys.rom.hlpod_vals),
-                    &(sys.hrom.hlpod_ddhr),
-                    sys.rom.hlpod_vals.num_2nd_subdomains,
-                    step -1 ,   //index 0 start
-                    sys.rom.hlpod_vals.num_snapshot,
-                    sys.rom.hlpod_vals.num_modes_pre,
-                    sys.vals.dt,
-                    t);
-
-            ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
-                    &(sys.fe),
-                    &(sys.basis),
-                    &(sys.bc),
-                    &(sys.rom.hlpod_mat),
-                    &(sys.rom.hlpod_vals),
-                    &(sys.hrom.hlpod_ddhr),
-                    sys.rom.hlpod_vals.num_2nd_subdomains,
-                    step -1 ,   //index 0 start
-                    sys.rom.hlpod_vals.num_snapshot,
-                    1 + sys.monolis_com.recv_n_neib,
-                    sys.vals.dt,
-                    t);
-        }
+        HROM_set_matvec(&(sys),&(sys.rom),&(sys.hrom),step,t);
 
         if(step%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);
@@ -417,80 +325,22 @@ int main (
 		}
     }
 
-
+    /*
     if(monolis_mpi_get_global_comm_size() == 1){
-        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
         HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
         HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
+    */
+
+   HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom));
 
     if(monolis_mpi_get_global_my_rank() == 0){
         fp = BBFE_sys_write_fopen(fp, "calctime/time_offline.txt", sys.cond.directory);
         //fprintf(fp, "%e\n", calctime_offline);
         fclose(fp);
     }
-
-    if(monolis_mpi_get_global_comm_size() == 1){		
-		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-	}
-	else{
-		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-	}
-
-    memory_allocation_hr_sol_vec(&(sys.hrom.hr_vals), sys.fe.total_num_nodes, 1);
-
-   	monolis_initialize(&(sys.monolis_hr));
-    monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
-
-    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
-    ROM_BB_vec_copy(sys.vals.T, sys.hrom.hr_vals.sol_vec, sys.fe.total_num_nodes);    
-    
-    printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
-
-	while (t < sys.vals.rom_finish_time) {
-		t += sys.vals.dt;
-		step += 1;
-
-		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
-        double calctime_fem_t1 = monolis_get_time();
-        solver_fom(sys, t, step);	
-        double calctime_fem_t2 = monolis_get_time();
-		/**********************************************/
-
-        /****************** ROM solver ****************/
-        double calctime_rom_t1 = monolis_get_time();
-        solver_rom(&(sys), step, t);        
-        double calctime_rom_t2 = monolis_get_time();
-		/**********************************************/
-
-		if(monolis_mpi_get_global_comm_size() == 1){
-			HROM_nonparallel(sys, &(sys.rom), &(sys.hrom), step, 0, t);
-        }
-        else{
-			HROM_hierarchical_parallel(sys, &(sys.rom), &(sys.hrom), step, 0, t);
-        }
-
-        if(step%sys.vals.output_interval == 0) {
-			ROM_output_files(&sys, file_num, t);
-                        
-            ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
-			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
-            ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "hr_solver_prm/", sys.cond.directory);
-
-            ROM_std_hlpod_output_calc_time(calctime_fem_t1-calctime_fem_t2, t,
-					"calctime/time_fem.txt", sys.cond.directory);
-            ROM_std_hlpod_output_calc_time(calctime_rom_t1-calctime_rom_t2, t,
-					"calctime/time_rom.txt", sys.cond.directory);
-
-        	HR_output_files(&sys, file_num, t);	
-		    //calctime_online += calctime_hr_t2- calctime_hr_t1;
-
-			file_num += 1;
-		}
-
-	}
 
 	BBFE_convdiff_finalize(&(sys.fe), &(sys.basis), &(sys.bc));
 

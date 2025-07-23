@@ -235,6 +235,7 @@ int main (
 
 
     /*for Hyper-reduction*/
+    /*
 	if(monolis_mpi_get_global_comm_size() == 1){
         if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
             hr_memory_allocation_online(
@@ -272,9 +273,9 @@ int main (
             &(sys.rom.hlpod_mat),
             sys.fe.total_num_nodes);
     }
-
+    */
+    /*
     if(monolis_mpi_get_global_comm_size() == 1){
-        //HROM_pre(&sys, sys.rom.hlpod_vals.num_modes, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
     }
     else{
         HROM_pre_offline(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
@@ -286,6 +287,11 @@ int main (
 	else{
 		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
 	}
+    */
+
+    HROM_memory_allocation_online(&sys, &(sys.rom), &(sys.hrom));
+    HROM_pre(&sys, &(sys.rom), &(sys.hrom));
+    HROM_pre_online(&sys, &(sys.rom), &(sys.hrom));
 
     hlpod_hr_sys_set_bc_id(
         &(sys.fe),
@@ -300,9 +306,6 @@ int main (
 
     monolis_copy_mat_R(&(sys.monolis0), &(sys.monolis));
    	monolis_initialize(&(sys.monolis_hr));
-    //monolis_initialize(&(sys.monolis_hr0));
-    //monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr0));
-    //monolis_copy_mat_R(&(sys.monolis_rom0), &(sys.monolis_hr));
     monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
 
     int file_num = 0;
@@ -315,6 +318,8 @@ int main (
 		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
         solver_fom(sys, t, step);	
     }
+
+    memory_allocation_hr_sol_vec(&(sys.hrom.hr_vals), sys.fe.total_num_nodes, 1);
 
     ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
     ROM_BB_vec_copy(sys.vals.T, sys.hrom.hr_vals.sol_vec, sys.fe.total_num_nodes);    
