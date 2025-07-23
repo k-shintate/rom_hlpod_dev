@@ -87,7 +87,7 @@ void ddhr_to_monollis_rhs_para_pad(
 		HLPOD_MAT*      hlpod_mat,
 		const int		num_2nddd,
 		const int		max_num_bases);
-
+/*
 void lpod_pad_calc_block_solution_local_para_pad(
 		MONOLIS_COM*	monolis_com,
 		BBFE_DATA* 		fe,
@@ -98,3 +98,12 @@ void lpod_pad_calc_block_solution_local_para_pad(
 		const int		num_2nddd,
 		const int		max_num_bases);
 //		LPOD_PRM*		lpod_prm);
+*/
+
+void lpod_pad_calc_block_solution_local_para_pad(
+	MONOLIS_COM*	monolis_com,
+	BBFE_DATA* 		fe,
+    HR_VALUES*      hr_vals,
+	HLPOD_MAT*      hlpod_mat,
+	const int		num_2nddd,
+    const int 		dof);

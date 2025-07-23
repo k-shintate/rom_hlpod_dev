@@ -326,6 +326,8 @@ int main (
 		}
 	}
 
+    HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom));
+
 	BBFE_fluid_finalize(&(sys.fe), &(sys.basis));
 	BBFE_sys_memory_free_Dirichlet_bc(&(sys.bc), sys.fe.total_num_nodes, 4);
 	monolis_finalize(&(sys.monolis));

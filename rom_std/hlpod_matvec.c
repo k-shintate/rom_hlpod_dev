@@ -477,9 +477,6 @@ void ROM_std_hlpod_reduced_rhs_to_monollis(
     for(int k = 0; k < num_2nd_subdomains; k++){
         for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
             monolis->mat.R.B[index + i] = hlpod_mat->VTf[index + i];
-            if(monolis_mpi_get_global_my_rank() == 1){
-                printf("monolis->mat.R.B[%d] = %f\n", index + i, monolis->mat.R.B[index + i]);
-            }
         }
         index += hlpod_mat->num_modes_internal[k];
     }
