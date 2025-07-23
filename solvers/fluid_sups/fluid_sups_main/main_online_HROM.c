@@ -1,5 +1,6 @@
 
 #include "core_ROM.h"
+#include "core_HROM.h"
 
 static const char* OPTION_NUM_MODES     = "-nm";
 static const char* OPTION_NUM_1STDD     = "-nd";

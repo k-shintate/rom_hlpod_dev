@@ -2,7 +2,7 @@
 
 #include "fluid_core.h"
 #include "rom_dataset.h"
-
+#include "hrom_dataset.h"
 
 typedef struct
 {
@@ -80,5 +80,12 @@ typedef struct
 	ROM		  	 rom_p;		        //p の snapshot matrix 用関数
 	ROM		  	 rom_v;		        //v の snapshot matrix 用関数
 	ROM		  	 rom_sups;	        //p+v　の行列演算関連
+
+	HROM		 hrom_p;		    //p の snapshot matrix 用関数
+	HROM		 hrom_v;		    //v の snapshot matrix 用関数
+	HROM		 hrom_sups;	        //p+v　の行列演算関連
+
+	MONOLIS      monolis_hr;
+	MONOLIS      monolis_hr0;
 
 } FE_SYSTEM;

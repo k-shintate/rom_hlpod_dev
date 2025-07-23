@@ -260,8 +260,8 @@ void HROM_pre_offline(
 	//for arbit dof ddecm
 	get_neib_subdomain_id(
 		&(sys->monolis_com),
-		&(sys->rom.hlpod_mat),
-		sys->rom.hlpod_vals.num_2nd_subdomains);		//num_2nd_subdomains
+		&(rom->hlpod_mat),
+		rom->hlpod_vals.num_2nd_subdomains);		//num_2nd_subdomains
 
     printf("get_neib_subdomain_id done\n");
 
@@ -269,40 +269,40 @@ void HROM_pre_offline(
 
     get_neib_num_modes_pad(
         &(sys->mono_com_rom),
-        &(sys->rom.hlpod_vals),
-        &(sys->rom.hlpod_mat),
+        &(rom->hlpod_vals),
+        &(rom->hlpod_mat),
         1 + sys->monolis_com.recv_n_neib,
-        sys->rom.hlpod_vals.num_modes);
+        rom->hlpod_vals.num_modes);
 
 
     get_neib_coordinates_pre(
-        &(sys->rom.hlpod_vals),
-        &(sys->rom.hlpod_mat),
+        &(rom->hlpod_vals),
+        &(rom->hlpod_mat),
         1 + sys->monolis_com.recv_n_neib,
-        sys->rom.hlpod_vals.num_modes_max);
+        rom->hlpod_vals.num_modes_max);
 
-    printf("%d %d\n", sys->rom.hlpod_vals.num_modes_max, sys->rom.hlpod_vals.num_modes_pre);
+    printf("%d %d\n", rom->hlpod_vals.num_modes_max, rom->hlpod_vals.num_modes_pre);
 
 	//level2領域の最大基底本数の共有
     get_neib_max_num_modes_pad(
 		&(sys->mono_com_rom),
-        &(sys->rom.hlpod_vals),
-		&(sys->rom.hlpod_mat),
+        &(rom->hlpod_vals),
+		&(rom->hlpod_mat),
         1 + sys->monolis_com.recv_n_neib,
-		sys->rom.hlpod_vals.num_modes_max);
+		rom->hlpod_vals.num_modes_max);
 
 	get_meta_neib(
 		&(sys->mono_com_rom_solv),
-		&(sys->rom.hlpod_meta),
+		&(rom->hlpod_meta),
 		sys->cond.directory);
 
 	ddhr_lb_set_neib(
 		&(sys->mono_com_rom_solv),
-		&(sys->rom.hlpod_mat),
-		&(sys->hrom.hlpod_ddhr),
-		&(sys->rom.hlpod_meta),
+		&(rom->hlpod_mat),
+		&(hrom->hlpod_ddhr),
+		&(rom->hlpod_meta),
 		num_2nd_subdomains,
-		sys->rom.hlpod_vals.num_snapshot,
+		rom->hlpod_vals.num_snapshot,
 		sys->cond.directory);
 
 }
@@ -322,16 +322,16 @@ void HROM_pre_offline2(
 				&(sys->fe),
 				&(sys->bc),
 				sys->fe.total_num_elems,
-				sys->rom.hlpod_vals.num_snapshot,
-				sys->rom.hlpod_vals.num_modes,
+				rom->hlpod_vals.num_snapshot,
+				rom->hlpod_vals.num_modes,
 				10000,
 				1.0e-6,
-				&(sys->hrom.hlpod_hr),
+				&(hrom->hlpod_hr),
 				sys->cond.directory);
             
             hr_set_selected_elems(
 				&(sys->fe),
-				&(sys->hrom.hlpod_hr),
+				&(hrom->hlpod_hr),
 				sys->fe.total_num_nodes,
 				sys->cond.directory);
         }
@@ -340,12 +340,12 @@ void HROM_pre_offline2(
 				&(sys->fe),
 				&(sys->bc),
 				sys->fe.total_num_elems,
-				sys->rom.hlpod_vals.num_snapshot,
-				sys->rom.hlpod_vals.num_modes_pre,
+				rom->hlpod_vals.num_snapshot,
+				rom->hlpod_vals.num_modes_pre,
 				num_2nd_subdomains,
 				10000,
 				1.0e-6,
-				&(sys->hrom.hlpod_ddhr),
+				&(hrom->hlpod_ddhr),
 				sys->cond.directory);
 
         }
@@ -355,20 +355,20 @@ void HROM_pre_offline2(
             &(sys->mono_com_rom_solv),
             &(sys->fe),
             &(sys->bc),
-            &(sys->rom.hlpod_vals),
-            &(sys->hrom.hlpod_ddhr),
-            &(sys->rom.hlpod_mat),
-            &(sys->rom.hlpod_meta),
+            &(rom->hlpod_vals),
+            &(hrom->hlpod_ddhr),
+            &(rom->hlpod_mat),
+            &(rom->hlpod_meta),
             sys->fe.total_num_elems,
-            sys->rom.hlpod_vals.num_snapshot,
-            sys->rom.hlpod_vals.num_modes_pre,
+            rom->hlpod_vals.num_snapshot,
+            rom->hlpod_vals.num_modes_pre,
             num_2nd_subdomains,
             10000,
             1.0e-8,
             sys->cond.directory);
 
         ddhr_lb_get_selected_elements_internal_overlap(
-                &(sys->hrom.hlpod_ddhr),
+                &(hrom->hlpod_ddhr),
                 sys->cond.directory);
 
         double t_tmp = monolis_get_time_global_sync();
@@ -394,7 +394,7 @@ void HROM_pre_online(
 			monolis_initialize(&(sys->monolis_hr));
 
 			hr_lb_read_selected_elements(
-				&(sys->hrom.hlpod_hr),
+				&(hrom->hlpod_hr),
 				num_2nd_subdomains,
 				sys->cond.directory);
 
@@ -403,26 +403,26 @@ void HROM_pre_online(
 				&(sys->fe),
 				&(sys->basis),
 				&(sys->bc),
-				&(sys->rom.hlpod_mat),
-				&(sys->hrom.hlpod_hr),
-				sys->rom.hlpod_vals.num_modes,
+				&(rom->hlpod_mat),
+				&(hrom->hlpod_hr),
+				rom->hlpod_vals.num_modes,
 				sys->vals.dt);
 
 			hr_monolis_set_matrix(
 				&(sys->monolis_hr0),
-				&(sys->hrom.hlpod_hr),
-				sys->rom.hlpod_vals.num_modes);
+				&(hrom->hlpod_hr),
+				rom->hlpod_vals.num_modes);
 
 		}
 		else{
 			monolis_initialize(&(sys->monolis_hr));        
 			get_neib_subdomain_id_nonpara(
-				&(sys->rom.hlpod_mat),
-				&(sys->hrom.hlpod_ddhr),
+				&(rom->hlpod_mat),
+				&(hrom->hlpod_ddhr),
 				num_2nd_subdomains);
         
 			ddhr_lb_read_selected_elements(
-				&(sys->hrom.hlpod_ddhr),
+				&(hrom->hlpod_ddhr),
 				num_2nd_subdomains,
 				sys->cond.directory);
 
@@ -431,40 +431,40 @@ void HROM_pre_online(
 				&(sys->fe),
 				&(sys->basis),
 				&(sys->bc),
-				&(sys->rom.hlpod_mat),
-				&(sys->hrom.hlpod_ddhr),
-				sys->rom.hlpod_vals.num_modes_pre,
+				&(rom->hlpod_mat),
+				&(hrom->hlpod_ddhr),
+				rom->hlpod_vals.num_modes_pre,
 				num_2nd_subdomains,
 				sys->vals.dt);
 
 			ddhr_monolis_set_matrix2(
 				&(sys->monolis_hr0),
-                &(sys->rom.hlpod_mat),
-				&(sys->hrom.hlpod_ddhr),
-                &(sys->rom.hlpod_meta),
-				sys->rom.hlpod_vals.num_modes_pre,
+                &(rom->hlpod_mat),
+				&(hrom->hlpod_ddhr),
+                &(rom->hlpod_meta),
+				rom->hlpod_vals.num_modes_pre,
 				num_2nd_subdomains);
 		}
 	}
     else{
         get_neib_subdomain_id_2nddd(
             &(sys->monolis_com),
-            &(sys->rom.hlpod_mat),
-            sys->rom.hlpod_vals.num_2nd_subdomains);
+            &(rom->hlpod_mat),
+            rom->hlpod_vals.num_2nd_subdomains);
 
         ddhr_lb_read_selected_elements_para(
             num_2nd_subdomains,
             sys->cond.directory);
 
         ddhr_lb_get_selected_elements_para_add(
-            &(sys->hrom.hlpod_ddhr),
+            &(hrom->hlpod_ddhr),
             monolis_mpi_get_global_comm_size(),
             sys->cond.directory);
 
         lpod_hdd_lb_set_hr_podbasis(
             &(sys->monolis_com),
-            &(sys->rom.hlpod_vals),
-            &(sys->rom.hlpod_mat),
+            &(rom->hlpod_vals),
+            &(rom->hlpod_mat),
             sys->fe.total_num_nodes);
 
         ddhr_lb_set_reduced_mat_para_save_memory(
@@ -472,29 +472,29 @@ void HROM_pre_online(
             &(sys->fe),
             &(sys->basis),
             &(sys->bc),
-            &(sys->rom.hlpod_vals),
-            &(sys->rom.hlpod_mat),
-            &(sys->hrom.hlpod_ddhr),
-            sys->rom.hlpod_vals.num_modes_pre,
+            &(rom->hlpod_vals),
+            &(rom->hlpod_mat),
+            &(hrom->hlpod_ddhr),
+            rom->hlpod_vals.num_modes_pre,
             num_2nd_subdomains,
             sys->vals.dt);
 
         monolis_get_nonzero_pattern_by_nodal_graph_V_R(
             &(sys->monolis_hr0),
-            sys->rom.hlpod_meta.num_meta_nodes,
-            sys->rom.hlpod_meta.n_dof_list,
-            sys->rom.hlpod_meta.index,
-            sys->rom.hlpod_meta.item);
+            rom->hlpod_meta.num_meta_nodes,
+            rom->hlpod_meta.n_dof_list,
+            rom->hlpod_meta.index,
+            rom->hlpod_meta.item);
 
         ddhr_hlpod_calc_block_mat_bcsr_pad(
             &(sys->monolis_hr0),
             &(sys->mono_com_rom_solv),
-            &(sys->rom.hlpod_vals),
-            &(sys->rom.hlpod_mat),
-            &(sys->hrom.hlpod_ddhr),
-            &(sys->rom.hlpod_meta),
-            sys->rom.hlpod_vals.num_modes_pre,
-            sys->rom.hlpod_vals.num_2nd_subdomains,
+            &(rom->hlpod_vals),
+            &(rom->hlpod_mat),
+            &(hrom->hlpod_ddhr),
+            &(rom->hlpod_meta),
+            rom->hlpod_vals.num_modes_pre,
+            rom->hlpod_vals.num_2nd_subdomains,
             sys->cond.directory);
     }
 	
