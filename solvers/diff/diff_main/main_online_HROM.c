@@ -235,60 +235,6 @@ int main (
 
 
     /*for Hyper-reduction*/
-    /*
-	if(monolis_mpi_get_global_comm_size() == 1){
-        if(sys.rom.hlpod_vals.num_2nd_subdomains == 1){
-            hr_memory_allocation_online(
-                sys.fe.total_num_nodes,
-                sys.fe.total_num_elems,
-                sys.rom.hlpod_vals.num_snapshot,
-                sys.rom.hlpod_vals.num_modes_pre,
-                &(sys.hrom.hlpod_hr));
-        }
-        else{
-            ddhr_set_element2(
-                &(sys.hrom.hlpod_ddhr),
-                sys.rom.hlpod_vals.num_2nd_subdomains,
-                sys.cond.directory);
-                
-            ddhr_memory_allocation2(
-                sys.fe.total_num_nodes,
-                sys.fe.total_num_elems,
-                sys.rom.hlpod_vals.num_snapshot,
-                sys.rom.hlpod_vals.num_modes_pre,
-                sys.rom.hlpod_vals.num_2nd_subdomains,
-                &(sys.hrom.hlpod_ddhr));
-        }
-	}
-    else{
-        ddhr_lb_set_element_para2(
-            &(sys.fe),
-            &(sys.hrom.hlpod_ddhr),
-            sys.rom.hlpod_vals.num_2nd_subdomains,
-            sys.cond.directory);
-
-        ddhr_memory_allocation_para_online(
-            &(sys.rom.hlpod_vals),
-            &(sys.hrom.hlpod_ddhr),
-            &(sys.rom.hlpod_mat),
-            sys.fe.total_num_nodes);
-    }
-    */
-    /*
-    if(monolis_mpi_get_global_comm_size() == 1){
-    }
-    else{
-        HROM_pre_offline(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-    }
-
-    if(monolis_mpi_get_global_comm_size() == 1){		
-		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-	}
-	else{
-		HROM_pre_online(&sys, &(sys.rom), &(sys.hrom), sys.rom.hlpod_vals.num_modes_pre, sys.rom.hlpod_vals.num_snapshot, sys.rom.hlpod_vals.num_2nd_subdomains);
-	}
-    */
-
     HROM_memory_allocation_online(&sys, &(sys.rom), &(sys.hrom));
     HROM_pre(&sys, &(sys.rom), &(sys.hrom));
     HROM_pre_online(&sys, &(sys.rom), &(sys.hrom));
