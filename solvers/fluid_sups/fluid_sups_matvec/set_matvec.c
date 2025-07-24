@@ -15,14 +15,12 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 		const int 		num_subdomains,
 		const double    dt)
 {
-
-        for(int i = 0; i < hlpod_vals->n_neib_vec; i++){
+    for(int i = 0; i < hlpod_vals->n_neib_vec; i++){
         for(int j = 0; j < hlpod_vals->n_neib_vec; j++){
             hlpod_ddhr->reduced_mat[i][j] = 0.0;
         }
         hlpod_ddhr->reduced_RH[i] = 0.0;
     }
-
 
 	int nl = fe->local_num_nodes;
 	int np = basis->num_integ_points;
@@ -83,7 +81,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 						double integ_val = BBFE_std_integ_calc(
 								np, val_ip[a][b], basis->integ_weight, Jacobian_ip);
 
-                        if( bc->D_bc_exists[index_j]){
+                        if( bc->D_bc_exists[index_j*4+b]){
                         }
                         else{
                             int subdomain_id_i = hlpod_mat->subdomain_id_in_nodes[index_i];
@@ -99,7 +97,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
                             if(subdomain_id_j < num_subdomains){
                                 for(int k1 = IS; k1 < IE; k1++){
                                     for(int k2 = JS; k2 < JE; k2++){
-                                        double val = hlpod_mat->pod_basis_hr[index_i + a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j + b][k2];
+                                        double val = hlpod_mat->pod_basis_hr[index_i*4+a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j*4+b][k2];
                                         hlpod_ddhr->reduced_mat[k1][k2] += hlpod_ddhr->ovl_elem_weight[m] *  val;
                                     }
                                 }
@@ -163,7 +161,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 						double integ_val = BBFE_std_integ_calc(
 								np, val_ip[a][b], basis->integ_weight, Jacobian_ip);
 
-                        if( bc->D_bc_exists[index_j]) {
+                        if( bc->D_bc_exists[index_j*4+b]) {
                         }
                         else{
                             int subdomain_id_i = hlpod_mat->subdomain_id_in_nodes[index_i];
@@ -179,7 +177,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
                             if(subdomain_id_j < num_subdomains){
                                 for(int k1 = IS; k1 < IE; k1++){
                                     for(int k2 = JS; k2 < JE; k2++){
-                                        double val = hlpod_mat->pod_basis_hr[index_i + a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j + b][k2] ;
+                                        double val = hlpod_mat->pod_basis_hr[index_i*4+a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j*4+b][k2] ;
                                         hlpod_ddhr->reduced_mat[k1][k2] += hlpod_ddhr->ovl_elem_weight_D_bc[m] *  val;
                                     }
                                 }
@@ -188,7 +186,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
                             if(subdomain_id_j >= num_subdomains){
                                 for(int k1 = IS; k1 < IE; k1++){
                                     for(int k2 = JS - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2 < JE - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2++){
-                                        double val = hlpod_mat->pod_basis_hr[index_i + a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j + b][k2] ;
+                                        double val = hlpod_mat->pod_basis_hr[index_i*4+a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j*4+b][k2] ;
                                         hlpod_ddhr->reduced_mat[k1][k2 + hlpod_mat->num_neib_modes_sum[subdomain_id-1]] += hlpod_ddhr->ovl_elem_weight_D_bc[m] *  val;
                                     }
                                 }
@@ -286,7 +284,7 @@ void ddhr_lb_set_D_bc_para(
 		    					np, val_ip[a][b], basis->integ_weight, Jacobian_ip);
 
                         for(int k1 = IS; k1 < IE; k1++){
-                            double val = hlpod_mat->pod_modes[index_i + a][k1] * integ_val * bc->imposed_D_val[index_j + b];
+                            double val = hlpod_mat->pod_modes[index_i*4+a][k1] * integ_val * bc->imposed_D_val[index_j*4+b];
                             hlpod_ddhr->reduced_RH[k1] += - hlpod_ddhr->ovl_elem_weight_D_bc[m] * val;
                         }
                     }
@@ -379,7 +377,7 @@ void ddhr_lb_set_reduced_vec_para(
 						np, val_ip[d], basis->integ_weight, Jacobian_ip);
 
 			    	for(int k = IS; k < IE; k++){
-		    			double val = integ_val[d] * hlpod_mat->pod_modes[index + d][k];
+		    			double val = integ_val[d] * hlpod_mat->pod_modes[index*4+d][k];
 	    				hlpod_ddhr->reduced_RH[k] += hlpod_ddhr->ovl_elem_weight[m] * val;
     				}
                 }
@@ -432,7 +430,7 @@ void ddhr_lb_set_reduced_vec_para(
 						np, val_ip[d], basis->integ_weight, Jacobian_ip);
 
 			    	for(int k = IS; k < IE; k++){
-		    			double val = integ_val[d] * hlpod_mat->pod_modes[index + d][k];
+		    			double val = integ_val[d] * hlpod_mat->pod_modes[index*4+d][k];
 	    				hlpod_ddhr->reduced_RH[k] += hlpod_ddhr->ovl_elem_weight_D_bc[m] * val;
     				}
                 }

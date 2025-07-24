@@ -71,16 +71,6 @@ void ddhr_to_monollis_rhs_para(
 		HLPOD_MAT*      hlpod_mat,
 		const int 		k);
 
-void lpod_pad_calc_block_solution_local_para(
-		MONOLIS_COM*	monolis_com,
-		BBFE_DATA* 		fe,
-        HR_VALUES*      hr_vals,
-		HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*      hlpod_mat,
-		BBFE_BC*      	bc,
-		const int		num_2nddd);
-//		LPOD_PRM*		lpod_prm);
-
 void ddhr_to_monollis_rhs_para_pad(
 		MONOLIS*		monolis,
 		HLPOD_DDHR*     hlpod_ddrh,

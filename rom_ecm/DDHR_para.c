@@ -677,52 +677,6 @@ void ddhr_to_monollis_rhs_para(
 	}
 }
 
-void lpod_pad_calc_block_solution_local_para(
-	MONOLIS_COM*	monolis_com,
-	BBFE_DATA* 		fe,
-    HR_VALUES*      hr_vals,
-	HLPOD_DDHR*     hlpod_ddhr,
-	HLPOD_MAT*      hlpod_mat,
-	BBFE_BC*      	bc,
-	const int		num_2nddd)
-{
-    const int n_internal_vertex = monolis_com->n_internal_vertex;
-
-	double t1 = monolis_get_time();
-
-	for(int j = 0; j < fe->total_num_nodes; j++){
-		hr_vals->sol_vec[j] = 0.0;
-	}
-
-	int index_row = 0;
-	int index_column = 0;
-	int sum = 0;
-	
-	for(int k = 0; k < num_2nddd; k++){
-		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
-			for(int j = 0; j < hlpod_mat->n_internal_vertex_subd[k]; j++){
-				index_row = hlpod_mat->node_id[j + sum];
-				hr_vals->sol_vec[index_row] += hlpod_mat->pod_modes[index_row][index_column + i] * hlpod_mat->mode_coef[index_column + i];
-			}
-		}
-		index_column += hlpod_mat->num_modes_internal[k];
-		sum += hlpod_mat->n_internal_vertex_subd[k];
-	}
-
-	for(int i = 0; i < bc->num_D_bcs; i++) {
-        int index = 0;
-		if(index < n_internal_vertex){
-			hr_vals->sol_vec[index] = bc->imposed_D_val[index];
-		}
-    }
-
-	//解ベクトルのupdate
-	monolis_mpi_update_R(monolis_com, fe->total_num_nodes, 1, hr_vals->sol_vec);
-
-	double t2 = monolis_get_time();
-}
-
-
 void ddhr_to_monollis_rhs_para_pad(
 	MONOLIS*		monolis,
     HLPOD_DDHR*     hlpod_ddrh,
@@ -760,7 +714,7 @@ void lpod_pad_calc_block_solution_local_para_pad(
 	const int		num_2nddd,
     const int 		dof)
 {
-    const int n_internal_vertex = monolis_com->n_internal_vertex;
+    //const int n_internal_vertex = monolis_com->n_internal_vertex;
 
 	double t1 = monolis_get_time();
 

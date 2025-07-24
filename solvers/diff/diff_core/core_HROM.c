@@ -465,7 +465,8 @@ void HROM_pre_online(
             &(sys->monolis_com),
             &(rom->hlpod_vals),
             &(rom->hlpod_mat),
-            sys->fe.total_num_nodes);
+            sys->fe.total_num_nodes,
+            1);
 
         ddhr_lb_set_reduced_mat_para_save_memory(
             &(sys->monolis_hr0),

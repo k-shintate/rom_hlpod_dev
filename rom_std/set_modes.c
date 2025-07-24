@@ -385,8 +385,8 @@ void ROM_std_hlpod_set_podmodes_local_para(
         double t2 = monolis_get_time();
 
         if(rom_epsilon == 1){
-            //n_basis = num_modes;
-            n_basis = 5 + 3*monolis_mpi_get_global_my_rank();
+            n_basis = num_modes;
+            //n_basis = 5 + 3*monolis_mpi_get_global_my_rank();
             //n_basis = 10;
 
             hlpod_mat->num_modes_internal[m] = n_basis;
@@ -826,6 +826,7 @@ void ROM_std_hlpod_set_podmodes_global_para_diag(
 
 
 /*for hyper-reduction*/
+/*
 void lpod_hdd_lb_set_hr_podbasis(
     MONOLIS_COM*  	monolis_com,
 	HLPOD_VALUES*		hlpod_vals,
@@ -852,6 +853,46 @@ void lpod_hdd_lb_set_hr_podbasis(
 		}
 
 		monolis_mpi_update_R( monolis_com, NDOF, 1, monolis_in);
+
+		for(int k = 0; k < NDOF; k++){
+            hlpod_mat->pod_basis_hr[k][l] = monolis_in[k];
+        }
+
+	}
+
+	BB_std_free_1d_double(monolis_in, NDOF);
+
+}
+*/
+
+/*for hyper-reduction*/
+void lpod_hdd_lb_set_hr_podbasis(
+    MONOLIS_COM*  	monolis_com,
+	HLPOD_VALUES*		hlpod_vals,
+    HLPOD_MAT*    hlpod_mat,
+	const int		total_num_nodes,
+    const int       dof)
+{
+	//hrのインデックスのみで値が非零のPODモード
+	hlpod_mat->pod_basis_hr = BB_std_calloc_2d_double(hlpod_mat->pod_basis_hr, total_num_nodes*dof, hlpod_vals->num_modes_max);
+
+//    const int NDOF  = hlpod_mat->NDOF;
+    const int NDOF  = total_num_nodes*dof;
+
+    double* monolis_in;
+    monolis_in = BB_std_calloc_1d_double(monolis_in, NDOF);
+
+    for(int l = 0; l < hlpod_vals->num_modes_max; l++){
+
+		for(int k = 0; k < NDOF; k++){
+			monolis_in[k] = 0;
+		}
+
+		for(int j = 0; j < monolis_com->n_internal_vertex * dof; j++){
+			monolis_in[j] = hlpod_mat->pod_modes[j][l];
+		}
+
+		monolis_mpi_update_R( monolis_com, NDOF, dof, monolis_in);
 
 		for(int k = 0; k < NDOF; k++){
             hlpod_mat->pod_basis_hr[k][l] = monolis_in[k];

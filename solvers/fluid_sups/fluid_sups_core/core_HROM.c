@@ -392,8 +392,9 @@ void HROM_pre_online(
             &(sys->mono_com),
             &(rom->hlpod_vals),
             &(rom->hlpod_mat),
-            sys->fe.total_num_nodes);
-
+            sys->fe.total_num_nodes,
+            4);
+/*
         ddhr_lb_set_reduced_mat_para_save_memory(
             &(sys->monolis_hr0),
             &(sys->fe),
@@ -406,14 +407,14 @@ void HROM_pre_online(
             rom->hlpod_vals.num_modes_pre,
             num_2nd_subdomains,
             sys->vals.dt);
-
+*/
         monolis_get_nonzero_pattern_by_nodal_graph_V_R(
             &(sys->monolis_hr0),
             rom->hlpod_meta.num_meta_nodes,
             rom->hlpod_meta.n_dof_list,
             rom->hlpod_meta.index,
             rom->hlpod_meta.item);
-
+/*
         ddhr_hlpod_calc_block_mat_bcsr_pad(
             &(sys->monolis_hr0),
             &(sys->mono_com_rom_solv),
@@ -424,7 +425,7 @@ void HROM_pre_online(
             rom->hlpod_vals.num_modes_pre,
             rom->hlpod_vals.num_2nd_subdomains,
             sys->cond.directory);
-	
+*/	
 }
 
 void HROM_hierarchical_parallel(
@@ -435,7 +436,9 @@ void HROM_hierarchical_parallel(
     const int   step_POD,
     const double t)
 {
-	monolis_clear_mat_value_R(&(sys.monolis_hr));
+    monolis_initialize(&(sys.monolis_hr));
+    monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_hr0), &(sys.monolis_hr));
+	//monolis_clear_mat_value_R(&(sys.monolis_hr));
 
     ddhr_lb_set_reduced_mat_para_save_memory(
         &(sys.monolis_hr),
@@ -515,18 +518,20 @@ void HROM_hierarchical_parallel(
         hrom->hr_vals.sol_vec,
 		&(sys.bc),
 		sys.fe.total_num_nodes,
-		1);
+		4);
 
-	monolis_mpi_update_R(&(sys.mono_com), sys.fe.total_num_nodes, 4, sys.rom_sups.hlpod_vals.sol_vec);
+	monolis_mpi_update_R(&(sys.mono_com), sys.fe.total_num_nodes, 4, hrom->hr_vals.sol_vec);
 
     BBFE_fluid_sups_renew_velocity(
         sys.vals_hrom.v, 
-        sys.rom_sups.hlpod_vals.sol_vec,
+        hrom->hr_vals.sol_vec,
+        //rom->hlpod_vals.sol_vec,
         sys.fe.total_num_nodes);
 
     BBFE_fluid_sups_renew_pressure(
         sys.vals_hrom.p, 
-        sys.rom_sups.hlpod_vals.sol_vec,
+        hrom->hr_vals.sol_vec,
+        //rom->hlpod_vals.sol_vec,
         sys.fe.total_num_nodes);
 
 	output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);

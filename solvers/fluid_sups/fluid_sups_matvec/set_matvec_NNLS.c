@@ -110,7 +110,7 @@ for(int i=0; i<1000; i++) {
                     for(int k = IS; k < IE; k++){
                         //printf("\n\nns = %d, k = %d, m = %d, n = %d, integ_val[%d] = %.30e index = %d\n", ns, k, m, n, d, integ_val[d], index);
                         hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k][m][n] -= integ_val[d] * hlpod_mat->neib_vec[index][k];
-                        //hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index + d][k]; 
+                        //hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index*4+d][k]; 
                         //hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= 0; 
                         hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index][k]; 
                     }
@@ -218,9 +218,9 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
                             double integ_val = BBFE_std_integ_calc(
                                     np, val_ip[a][b], basis->integ_weight, Jacobian_ip);
 
-                            if( bc->D_bc_exists[index_j + b]) {
+                            if( bc->D_bc_exists[index_j*4+b]) {
                                 for(int k1 = IS; k1 < IE; k1++){
-                                    double val = hlpod_mat->neib_vec[index_i + a][k1] * integ_val * bc->imposed_D_val[index_j + b];
+                                    double val = hlpod_mat->neib_vec[index_i*4+a][k1] * integ_val * bc->imposed_D_val[index_j*4+b];
 
                                     hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1][m][n] += val;
                                     hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1][n] += val;
@@ -228,7 +228,7 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
                             }
                             else{
                                 for(int k1 = IS; k1 < IE; k1++) {
-                                    double A = hlpod_mat->neib_vec[index_i + a][k1] * integ_val;        //
+                                    double A = hlpod_mat->neib_vec[index_i*4+a][k1] * integ_val;        //
                                     local_vec[k1] = 0.0;
 
                                     int index1 = 0;
@@ -236,7 +236,7 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 
                                     for(int ki = 0; ki < num_neib; ki++) {
                                         for(int kj = 0; kj < hlpod_mat->num_modes_1stdd_neib[ki]; kj++) {							
-                                            double B = hlpod_mat->neib_vec[index_j + b][index2];            //
+                                            double B = hlpod_mat->neib_vec[index_j*4+b][index2];            //
                                             double C = hlpod_mat->pod_coordinates_all[index1 + kj];
                                             //double C = hlpod_mat->mode_coef[index1 + kj];
 
