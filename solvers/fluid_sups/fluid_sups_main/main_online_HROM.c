@@ -251,6 +251,7 @@ int main (
 
     /**************************************************/
 
+    /*for rom*/
     read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                      //set vals
     memory_allocation_nodal_values(&(sys.vals_rom), sys.fe.total_num_nodes);        //set vals
 
@@ -261,6 +262,19 @@ int main (
 
 	set_target_parameter(&(sys.vals), sys.cond.directory);
 	set_target_parameter(&(sys.vals_rom), sys.cond.directory);
+    /**********/
+
+    /*for hrom*/
+    read_calc_conditions(&(sys.vals_hrom), sys.cond.directory);                      //set vals
+    memory_allocation_nodal_values(&(sys.vals_hrom), sys.fe.total_num_nodes);        //set vals
+
+	initialize_velocity_pressure(sys.vals_hrom.v, sys.vals_hrom.p, sys.fe.total_num_nodes);
+	initialize_velocity_pressure(sys.vals_hrom.v, sys.vals_hrom.p, sys.fe.total_num_nodes);
+
+    //ROM_std_hlpod_online_memory_allocation_ansvec(&(sys.rom_sups.hlpod_vals), sys.fe.total_num_nodes, 4);
+
+	set_target_parameter(&(sys.vals_hrom), sys.cond.directory);
+    /******** */
 
 	double FOM_t2 = monolis_get_time();
 	double ROM_t1 = monolis_get_time();
@@ -317,7 +331,7 @@ int main (
 		double calctime_hr_t1 = monolis_get_time();
 
 		if(step_rom%sys.vals.output_interval == 0) {
-			ROM_output_files(&sys, file_num, t);
+			HROM_output_files(&sys, file_num, t);
                         
             ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
 			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);

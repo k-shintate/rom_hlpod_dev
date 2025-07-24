@@ -8,20 +8,18 @@ static const char* OUTPUT_FILENAME_VTK          = "result_%06d.vtk";
 static const char* OUTPUT_FILENAME_ASCII_TEMP   = "temparature_%06d.dat";
 static const char* OUTPUT_FILENAME_ASCII_SOURCE = "source_%06d.dat";
 
-/*for Hyper-reduction*/
-void HR_output_result_file_vtk(
+static const char* ROM_OUTPUT_FILENAME_VTK          = "rom_result_%06d.vtk";
+
+
+void HROM_output_vtk_shape(
 		BBFE_DATA*     fe,
-		VALUES*        vals,
-        HR_VALUES*      hr_vals,
-		HLPOD_VALUES*    hlpod_vals,
-		HLPOD_HR*      hlpod_hr,		
 		const char*    filename,
 		const char*    directory,
 		double         t)
 {
 	FILE* fp;
 	fp = ROM_BB_write_fopen(fp, filename, directory);
-/*
+
 	switch( fe->local_num_nodes ) {
 		case 4:
 			BBFE_sys_write_vtk_shape(fp, fe, TYPE_VTK_TETRA);
@@ -33,201 +31,229 @@ void HR_output_result_file_vtk(
 	}
 
 	fprintf(fp, "POINT_DATA %d\n", fe->total_num_nodes);
-	BB_vtk_write_point_vals_scalar(fp, vals->T, fe->total_num_nodes, "fem-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->sol_vec, fe->total_num_nodes, "pod-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hr_vals->sol_vec, fe->total_num_nodes, "hr-temperature");
-	// for manufactured solution
-	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, vals->T, hr_vals->sol_vec);
-	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-fem_abs_error");
-	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, hlpod_vals->sol_vec, hr_vals->sol_vec);
-	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-pod_abs_error");
-
-	double* source;
-	source = BB_std_calloc_1d_double(source, fe->total_num_nodes);
-	manusol_set_source(fe, source, t);
-	BB_vtk_write_point_vals_scalar(fp, source, fe->total_num_nodes, "source");
-	BB_std_free_1d_double(source, fe->total_num_nodes);
 
 	fclose(fp);
-*/
 }
-/********/
 
-/*for Hyper-reduction*/
-void HR_output_result_file_vtk_para(
+void HROM_add_output_vtk_pressure(
 		BBFE_DATA*     fe,
-		VALUES*        vals,
-        HR_VALUES*      hr_vals,
-		HLPOD_VALUES*    hlpod_vals,
-		HLPOD_DDHR*     hlpod_ddhr,		
+		double*        fem_pressure,
+		double*    	   rom_pressure,
+        double*    	   hrom_pressure,
 		const char*    filename,
 		const char*    directory,
 		double         t)
 {
 	FILE* fp;
-	fp = ROM_BB_write_fopen(fp, filename, directory);
-/*
-	switch( fe->local_num_nodes ) {
-		case 4:
-			BBFE_sys_write_vtk_shape(fp, fe, TYPE_VTK_TETRA);
-			break;
+	fp = ROM_BB_write_add_fopen(fp, filename, directory);
 
-		case 8:
-			BBFE_sys_write_vtk_shape(fp, fe, TYPE_VTK_HEXAHEDRON);
-			break;
-	}
+	/*for pressure*/
+	BB_vtk_write_point_vals_scalar(fp, rom_pressure, fe->total_num_nodes, "ROM-Pressure");
 
-	fprintf(fp, "POINT_DATA %d\n", fe->total_num_nodes);
-	BB_vtk_write_point_vals_scalar(fp, vals->T, fe->total_num_nodes, "fem-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hlpod_vals->sol_vec, fe->total_num_nodes, "pod-temperature");
-	BB_vtk_write_point_vals_scalar(fp, hr_vals->sol_vec, fe->total_num_nodes, "hr-temperature");
-	// for manufactured solution
-	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, vals->T, hr_vals->sol_vec);
-	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-fem_abs_error");
-	BBFE_manusol_calc_nodal_error_scalar(
-			fe, vals->error, hlpod_vals->sol_vec, hr_vals->sol_vec);
-	BB_vtk_write_point_vals_scalar(fp, vals->error   , fe->total_num_nodes, "hr-pod_abs_error");
+    BB_vtk_write_point_vals_scalar(fp, hrom_pressure, fe->total_num_nodes, "HROM-Pressure");
 
-	double* source;
-	source = BB_std_calloc_1d_double(source, fe->total_num_nodes);
-	manusol_set_source(fe, source, t);
-	BB_vtk_write_point_vals_scalar(fp, source, fe->total_num_nodes, "source");
-	BB_std_free_1d_double(source, fe->total_num_nodes);
+	double* error_p;
+	error_p = BB_std_calloc_1d_double(error_p, fe->total_num_nodes);
+	BBFE_manusol_calc_nodal_error_scalar(fe, error_p, fem_pressure, rom_pressure);
+	BB_vtk_write_point_vals_scalar(fp, error_p, fe->total_num_nodes, "abs_error-FEM_ROM-Pressure");
+
+	BBFE_manusol_calc_nodal_error_scalar(fe, error_p, fem_pressure, hrom_pressure);
+	BB_vtk_write_point_vals_scalar(fp, error_p, fe->total_num_nodes, "abs_error-FEM_HROM-Pressure");
+
+	BBFE_manusol_calc_nodal_error_scalar(fe, error_p, rom_pressure, hrom_pressure);
+	BB_vtk_write_point_vals_scalar(fp, error_p, fe->total_num_nodes, "abs_error-ROM_HROM-Pressure");
+
+	BB_vtk_write_point_vals_scalar(fp, fem_pressure, fe->total_num_nodes, "FEM-Pressure");
+	BB_std_free_1d_double(error_p, fe->total_num_nodes);
 
 	fclose(fp);
-*/
 }
-/********/
 
 
+void HROM_add_output_vtk_velocity(
+		BBFE_DATA*     fe,
+		double**       fem_velocity,
+		double**	   rom_velocity,
+        double**	   hrom_velocity,
+		const char*    filename,
+		const char*    directory,
+		double         t)
+{
+	FILE* fp;
+	fp = ROM_BB_write_add_fopen(fp, filename, directory);
 
-/*for Hyper-reduction*/
-void HR_output_files(
+	double** error_v;
+	error_v = BB_std_calloc_2d_double(error_v, fe->total_num_nodes, 3);
+	for (int i = 0; i < fe->total_num_nodes; i++){
+		for (int j = 0; j < 3; j++){
+			error_v[i][j] =	abs(fem_velocity[i][j] - rom_velocity[i][j]);
+		}
+	}
+	
+	/*for velocity*/
+   	BB_vtk_write_point_vals_vector(fp, fem_velocity, fe->total_num_nodes, "FEM-Velocity");
+	BB_vtk_write_point_vals_vector(fp, rom_velocity, fe->total_num_nodes, "ROM-Velocity");
+    BB_vtk_write_point_vals_vector(fp, hrom_velocity, fe->total_num_nodes, "HROM-Velocity");
+
+	BB_vtk_write_point_vals_vector(fp, error_v, fe->total_num_nodes, "abs_error-FEM_ROM-Velosity");
+
+	for (int i = 0; i < fe->total_num_nodes; i++){
+		for (int j = 0; j < 3; j++){
+			error_v[i][j] =	abs(fem_velocity[i][j] - hrom_velocity[i][j]);
+		}
+	}
+
+    BB_vtk_write_point_vals_vector(fp, error_v, fe->total_num_nodes, "abs_error-FEM_HROM-Velosity");
+
+	for (int i = 0; i < fe->total_num_nodes; i++){
+		for (int j = 0; j < 3; j++){
+			error_v[i][j] =	abs(rom_velocity[i][j] - hrom_velocity[i][j]);
+		}
+	}
+
+    BB_vtk_write_point_vals_vector(fp, error_v, fe->total_num_nodes, "abs_error-ROM_HROM-Velosity");
+
+	fclose(fp);
+
+	BB_std_free_2d_double(error_v, fe->total_num_nodes, 3);
+}
+
+
+void HROM_output_files(
 		FE_SYSTEM* sys,
 		int file_num,
 		double t)
 {
 	const char* filename;
 	char fname_vtk[BUFFER_SIZE];
-	char fname_tem[BUFFER_SIZE];
-	char fname_sou[BUFFER_SIZE];
-	snprintf(fname_vtk, BUFFER_SIZE, OUTPUT_FILENAME_VTK, file_num);
-	snprintf(fname_tem, BUFFER_SIZE, OUTPUT_FILENAME_ASCII_TEMP, file_num);
-	snprintf(fname_sou, BUFFER_SIZE, OUTPUT_FILENAME_ASCII_SOURCE, file_num);
+	snprintf(fname_vtk, BUFFER_SIZE, ROM_OUTPUT_FILENAME_VTK, file_num);
 
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname_vtk);
-/*
-	if(monolis_mpi_get_global_comm_size() == 1 &&sys->rom.hlpod_vals.num_2nd_subdomains == 1){
-        HR_output_result_file_vtk(
-                &(sys->fe),
-                &(sys->vals),
-                &(sys->hrom.hr_vals),
-                &(sys->rom.hlpod_vals),
-                &(sys->hrom.hlpod_hr),
-                filename,
-                sys->cond.directory,
-                t);
-    }
-    else{  
-        HR_output_result_file_vtk_para(
-                &(sys->fe),
-                &(sys->vals),
-                &(sys->hrom.hr_vals),
-                &(sys->rom.hlpod_vals),
-                &(sys->hrom.hlpod_ddhr),
-                filename,
-                sys->cond.directory,
-                t);
-    }
 
-	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname_tem);
-	BBFE_write_ascii_nodal_vals_scalar(
+	HROM_output_vtk_shape(
 			&(sys->fe),
-			sys->rom.hlpod_vals.sol_vec,
 			filename,
-			sys->cond.directory);
+			sys->cond.directory,
+			t);
+	HROM_add_output_vtk_pressure(
+			&(sys->fe),
+			sys->vals.p,
+			sys->vals_rom.p,
+            sys->vals_hrom.p,
+			filename,
+			sys->cond.directory,
+			t);
+	HROM_add_output_vtk_velocity(
+			&(sys->fe),
+			sys->vals.v,
+			sys->vals_rom.v,
+            sys->vals_hrom.v,
+			filename,
+			sys->cond.directory,
+			t);
 
-	double L2_error_fem_hr;
-	double L2_error_pod_hr;
-	if(monolis_mpi_get_global_comm_size() == 1){
-		if(sys->rom.hlpod_vals.num_2nd_subdomains==1){
-			L2_error_fem_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
-					&(sys->fe),
-					&(sys->basis),
-					&(sys->mono_com),
-					t,
-					sys->hrom.hr_vals.sol_vec,
-					sys->vals.T);
-					
-			L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
-					&(sys->fe),
-					&(sys->basis),
-					&(sys->mono_com),
-					t,
-					sys->rom.hlpod_vals.sol_vec,
-					sys->hrom.hr_vals.sol_vec);
-		}
-		else{
-			L2_error_fem_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
-					&(sys->fe),
-					&(sys->basis),
-					&(sys->mono_com),
-					t,
-					sys->vals.T,
-					sys->hrom.hr_vals.sol_vec);
-					
-			L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
-					&(sys->fe),
-					&(sys->basis),
-					&(sys->mono_com),
-					t,
-					sys->rom.hlpod_vals.sol_vec,
-					sys->hrom.hr_vals.sol_vec);
-		}
-	}
-	else{
-		L2_error_fem_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
-				&(sys->fe),
-				&(sys->basis),
-				&(sys->mono_com),
-				t,
-				sys->vals.T,
-				sys->hrom.hr_vals.sol_vec);
-				
-		L2_error_pod_hr = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
-				&(sys->fe),
-				&(sys->basis),
-				&(sys->mono_com),
-				t,
-				sys->rom.hlpod_vals.sol_vec,
-				sys->hrom.hr_vals.sol_vec);
-	}
+	double L2_error_p = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
+			&(sys->fe),
+			&(sys->basis),
+			&(sys->mono_com),
+			t,
+			(const double*)sys->vals.p,
+			(const double*)sys->vals_rom.p);
 
-	printf("%s L2 error fem-hrom: %e\n", CODENAME, L2_error_fem_hr);
+	printf("%s L2 error pressure FEM-ROM: %e\n", CODENAME, L2_error_p);
 
 	if(monolis_mpi_get_global_my_rank() == 0){
 		FILE* fp;
-		fp = ROM_BB_write_add_fopen(fp, "l2_error_fem_hrom.txt", sys->cond.directory);
-		fprintf(fp, "%e %e\n", t, L2_error_fem_hr);
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_pressure_fem-rom.txt", sys->cond.directory);
+		fprintf(fp, "%e %e\n", t, L2_error_p);
 		fclose(fp);
 	}
 
-	printf("%s L2 error rom-hrom: %e\n", CODENAME, L2_error_pod_hr);
+	double L2_error_v = ROM_sys_hlpod_fe_equivval_relative_L2_error_vector(
+			&(sys->fe),
+			&(sys->basis),
+			&(sys->mono_com),
+			t,
+			(const double**)sys->vals.v,
+			(const double**)sys->vals_rom.v);
+
+	printf("%s L2 error velocity FEM-HROM: %e\n", CODENAME, L2_error_v);
 
 	if(monolis_mpi_get_global_my_rank() == 0){
 		FILE* fp;
-		fp = ROM_BB_write_add_fopen(fp, "l2_error_rom_hrom.txt", sys->cond.directory);
-		fprintf(fp, "%e %e\n", t, L2_error_pod_hr);
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_velocity_fem-rom.txt", sys->cond.directory);
+		fprintf(fp, "%e %e\n", t, L2_error_v);
 		fclose(fp);
 	}
-*/
 
+    L2_error_p = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
+			&(sys->fe),
+			&(sys->basis),
+			&(sys->mono_com),
+			t,
+			(const double*)sys->vals.p,
+			(const double*)sys->vals_hrom.p);
+
+	printf("%s L2 error pressure FEM-HROM: %e\n", CODENAME, L2_error_p);
+
+	if(monolis_mpi_get_global_my_rank() == 0){
+		FILE* fp;
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_pressure_fem-hrom.txt", sys->cond.directory);
+		fprintf(fp, "%e %e\n", t, L2_error_p);
+		fclose(fp);
+	}
+
+	L2_error_v = ROM_sys_hlpod_fe_equivval_relative_L2_error_vector(
+			&(sys->fe),
+			&(sys->basis),
+			&(sys->mono_com),
+			t,
+			(const double**)sys->vals.v,
+			(const double**)sys->vals_hrom.v);
+
+	printf("%s L2 error velocity FEM-HROM: %e\n", CODENAME, L2_error_v);
+
+	if(monolis_mpi_get_global_my_rank() == 0){
+		FILE* fp;
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_velocity_fem-hrom.txt", sys->cond.directory);
+		fprintf(fp, "%e %e\n", t, L2_error_v);
+		fclose(fp);
+	}
+
+    L2_error_p = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
+			&(sys->fe),
+			&(sys->basis),
+			&(sys->mono_com),
+			t,
+			(const double*)sys->vals_rom.p,
+			(const double*)sys->vals_hrom.p);
+
+	printf("%s L2 error pressure ROM-HROM: %e\n", CODENAME, L2_error_p);
+
+	if(monolis_mpi_get_global_my_rank() == 0){
+		FILE* fp;
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_pressure_rom-hrom.txt", sys->cond.directory);
+		fprintf(fp, "%e %e\n", t, L2_error_p);
+		fclose(fp);
+	}
+
+	L2_error_v = ROM_sys_hlpod_fe_equivval_relative_L2_error_vector(
+			&(sys->fe),
+			&(sys->basis),
+			&(sys->mono_com),
+			t,
+			(const double**)sys->vals_rom.v,
+			(const double**)sys->vals_hrom.v);
+
+	printf("%s L2 error velocity ROM-HROM: %e\n", CODENAME, L2_error_v);
+
+	if(monolis_mpi_get_global_my_rank() == 0){
+		FILE* fp;
+		fp = ROM_BB_write_add_fopen(fp, "l2_error_velocity_rom-hrom.txt", sys->cond.directory);
+		fprintf(fp, "%e %e\n", t, L2_error_v);
+		fclose(fp);
+	}
 }
-/********/
-
 
 
 void HROM_pre_offline(
@@ -398,7 +424,6 @@ void HROM_pre_online(
             rom->hlpod_vals.num_modes_pre,
             rom->hlpod_vals.num_2nd_subdomains,
             sys->cond.directory);
-    
 	
 }
 
@@ -410,28 +435,31 @@ void HROM_hierarchical_parallel(
     const int   step_POD,
     const double t)
 {
-    double t1 = monolis_get_time();
+	monolis_clear_mat_value_R(&(sys.monolis_hr));
 
-	monolis_copy_mat_value_matrix_R(&(sys.monolis_hr0), &(sys.monolis_hr));
-	monolis_clear_mat_value_rhs_R(&(sys.monolis_hr));
-
-	double set_bc1 = monolis_get_time();
-	/*
-    hlpod_hr_sys_manusol_set_bc(
+    ddhr_lb_set_reduced_mat_para_save_memory(
+        &(sys.monolis_hr),
         &(sys.fe),
+        &(sys.vals),
+        &(sys.basis),
         &(sys.bc),
-        BLOCK_SIZE,
-        t,
-        manusol_get_sol,
-        &(rom->hlpod_mat));
-    BBFE_sys_monowrap_set_Dirichlet_bc(
-        &(sys->monolis),
-        sys->fe.total_num_nodes,
-        4,
-        &(sys->bc),
-        sys->monolis.mat.R.B);
-        */
-	double set_bc2 = monolis_get_time();
+        &(rom->hlpod_vals),
+        &(rom->hlpod_mat),
+        &(hrom->hlpod_ddhr),
+        rom->hlpod_vals.num_modes_pre,
+        rom->hlpod_vals.num_2nd_subdomains,
+        sys.vals.dt);
+
+    ddhr_hlpod_calc_block_mat_bcsr_pad(
+        &(sys.monolis_hr),
+        &(sys.mono_com_rom_solv),
+        &(rom->hlpod_vals),
+        &(rom->hlpod_mat),
+        &(hrom->hlpod_ddhr),
+        &(rom->hlpod_meta),
+        rom->hlpod_vals.num_modes_pre,
+        rom->hlpod_vals.num_2nd_subdomains,
+        sys.cond.directory);
 	
     ddhr_lb_set_reduced_vec_para(
         &(sys.monolis_hr),
@@ -466,16 +494,6 @@ void HROM_hierarchical_parallel(
 		rom->hlpod_vals.num_2nd_subdomains,
         rom->hlpod_vals.num_modes_pre);
 
-    double t2 = monolis_get_time();
-
-    if(monolis_mpi_get_global_my_rank() == 0){
-        FILE* fp;
-        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_mat.txt", sys.cond.directory);
-        fprintf(fp, "%e %e\n", t, t2-t1);
-        fclose(fp);
-    }
-
-
     BBFE_sys_monowrap_solve(
         &(sys.monolis_hr),
         &(sys.mono_com_rom_solv),
@@ -484,8 +502,6 @@ void HROM_hierarchical_parallel(
         MONOLIS_PREC_DIAG,
         sys.vals.mat_max_iter,
         sys.vals.mat_epsilon);
-
-    t1 = monolis_get_time();
 
     lpod_pad_calc_block_solution_local_para_pad(
         &(sys.mono_com),
@@ -504,25 +520,14 @@ void HROM_hierarchical_parallel(
 	monolis_mpi_update_R(&(sys.mono_com), sys.fe.total_num_nodes, 4, sys.rom_sups.hlpod_vals.sol_vec);
 
     BBFE_fluid_sups_renew_velocity(
-        sys.vals_rom.v, 
+        sys.vals_hrom.v, 
         sys.rom_sups.hlpod_vals.sol_vec,
         sys.fe.total_num_nodes);
 
     BBFE_fluid_sups_renew_pressure(
-        sys.vals_rom.p, 
+        sys.vals_hrom.p, 
         sys.rom_sups.hlpod_vals.sol_vec,
         sys.fe.total_num_nodes);
-        
-    //output_files(sys, step, t);
-
-    t2 = monolis_get_time();
-
-    if(monolis_mpi_get_global_my_rank() == 0){
-        FILE* fp;
-        fp = ROM_BB_write_add_fopen(fp, "calctime/hr_time_calc_sol.txt", sys.cond.directory);
-        fprintf(fp, "%e %e\n", t, t2-t1);
-        fclose(fp);
-    }
 
 	output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);
 
