@@ -686,8 +686,8 @@ void ddhr_lb_write_selected_elements_para_1line(
 	printf("\n\nnum_elems1 = %d\n\n", hlpod_ddhr->num_elems[0]);
 double t1 = monolis_get_time_global_sync();
 
-	const int max_ITER = 400;
-	const double TOL = 1.0e-7;
+	const int max_ITER = 1000;
+	const double TOL = 1.0e-9;
 
 	double residual;
 
