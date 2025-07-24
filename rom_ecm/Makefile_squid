@@ -6,7 +6,7 @@ INCLUDES = -I/usr/local/include -I../../../test_thermal/include -I../../../test_
 LIBS = -L/usr/local/lib -lm -L../../../test_thermal/lib/BB -lBB -lBBFE_std -lBBFE_sys -lBBFE_elemmat
 
 TARGET_LIB = libHROM.a
-OBJS = HR.o DDHR.o DDHR2.o DDHR_para.o DDHR_para_lb.o
+OBJS = HR.o DDHR.o DDHR_para.o DDHR_para_lb.o
 
 $(TARGET_LIB): $(OBJS)
 		ar rcs $@ $?

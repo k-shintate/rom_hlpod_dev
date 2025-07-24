@@ -27,25 +27,6 @@ void ddhr_memory_allocation_para(
         const int       total_num_modes,
 		const int		num_subdomains);
 
-void ddhr_get_selected_elements_para(
-        BBFE_DATA*     	fe,
-        BBFE_BC*     	bc,
-        HLPOD_VALUES*   hlpod_vals,
-	    HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*      hlpod_mat,
-        const int       total_num_elem,
-        const int       total_num_snapshot,
-        const int       total_num_modes,
-		const int 		num_subdomains,
-        const int       max_iter, //NNLS
-        const double    tol,      //NNLS
-		const char*		directory);
-
-void ddhr_get_selected_elements_para_add(
-	    HLPOD_DDHR*     hlpod_ddhr,
-		const int		num_parallel_subdomains,
-		const char*		directory);
-
 /*for visualization*/
 void ddhr_set_selected_elems_para(
 		BBFE_DATA*     	fe,
@@ -54,19 +35,8 @@ void ddhr_set_selected_elems_para(
 		const int		num_subdomains,
 		const char*     directory);
 
-void ddhr_monolis_set_matrix_para(
-        MONOLIS*     	monolis,
-        HLPOD_VALUES*   hlpod_vals,
-        HLPOD_DDHR*     hlpod_ddhr,
-        HLPOD_MAT*      hlpod_mat,
-//        LPOD_COM*    	lpod_com,
-        const int 		max_num_basis,
-        const int		num_subdomains);
-
-
 void ddhr_to_monollis_rhs_para(
 		MONOLIS*		monolis,
-	//	MONOLIS_COM*	monolis_com,
 		HLPOD_DDHR*     hlpod_ddrh,
 		HLPOD_MAT*      hlpod_mat,
 		const int 		k);
@@ -77,18 +47,6 @@ void ddhr_to_monollis_rhs_para_pad(
 		HLPOD_MAT*      hlpod_mat,
 		const int		num_2nddd,
 		const int		max_num_bases);
-/*
-void lpod_pad_calc_block_solution_local_para_pad(
-		MONOLIS_COM*	monolis_com,
-		BBFE_DATA* 		fe,
-        HR_VALUES*      hr_vals,
-		HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*      hlpod_mat,
-		BBFE_BC*      	bc,
-		const int		num_2nddd,
-		const int		max_num_bases);
-//		LPOD_PRM*		lpod_prm);
-*/
 
 void lpod_pad_calc_block_solution_local_para_pad(
 	MONOLIS_COM*	monolis_com,

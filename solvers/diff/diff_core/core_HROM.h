@@ -12,7 +12,6 @@
 
 #include "HR.h"
 #include "DDHR.h"
-#include "DDHR2.h"
 #include "DDHR_para.h"
 #include "DDHR_para_lb.h"
 #include "set_matvec.h"

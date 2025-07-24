@@ -139,8 +139,6 @@ void hr_memory_allocation(
         const int       total_num_modes,
         HLPOD_HR*       hlpod_hr)
 {
-    //hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
-
     hlpod_hr->matrix = BB_std_calloc_2d_double(hlpod_hr->matrix, total_num_snapshot * total_num_modes, total_num_elem);
     hlpod_hr->RH = BB_std_calloc_1d_double(hlpod_hr->RH, total_num_snapshot * total_num_modes);
 
@@ -156,8 +154,6 @@ void hr_memory_allocation_online(
         const int       total_num_modes,
         HLPOD_HR*       hlpod_hr)
 {
-    //hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes);
-
     hlpod_hr->reduced_mat = BB_std_calloc_2d_double(hlpod_hr->reduced_mat, total_num_modes, total_num_modes);
     hlpod_hr->reduced_RH = BB_std_calloc_1d_double(hlpod_hr->reduced_RH, total_num_modes);
 }
@@ -185,11 +181,6 @@ void hr_get_selected_elements(
     double residual;
 
     int NNLS_row = total_num_snapshot * total_num_modes;
-
-    for(int i = 0; i < NNLS_row; i++){
-        //printf("matrix[%d][0] = %lf\n", i, hlpod_hr->matrix[i][0]);
-        //printf("RH[%d][0] = %lf\n", i, hlpod_hr->RH[i]);
-    }
 
     monolis_optimize_nnls_R_with_sparse_solution(
         hlpod_hr->matrix, 
@@ -465,7 +456,6 @@ void hr_to_monollis_rhs(
 	const int 		k)
 {
 	for(int i = 0; i < k; i++){
-        //monolis->mat.R.B[i] = 0.0;
 		monolis->mat.R.B[i] = hlpod_rh->reduced_RH[i];
 	}
 }
@@ -563,12 +553,6 @@ void hr_lb_read_selected_elements(
 	char fname3[BUFFER_SIZE];
 	char fname4[BUFFER_SIZE];
 
-//	snprintf(fname3, BUFFER_SIZE, "DDECM/selected_elem_D_bc.%d.txt", monolis_mpi_get_global_my_rank());
-//	snprintf(fname4, BUFFER_SIZE, "DDECM/selected_elem.%d.txt", monolis_mpi_get_global_my_rank());
-
-//	fp3 = BBFE_sys_write_fopen(fp3, fname3, directory);
-//	fp4 = BBFE_sys_write_fopen(fp4, fname4, directory);
-
 	int Index1 = 0;
 	int Index2 = 0;
 	int tmp;
@@ -594,11 +578,8 @@ void hr_lb_read_selected_elements(
 		fclose(fp2);
 	}
 
-//    hlpod_hr->elem_weight = BB_std_calloc_1d_double(f_ip, np);
     hlpod_hr->num_selected_elems = Index1;
     hlpod_hr->num_selected_elems_D_bc  = Index2;
-
-    printf("Index1 = %d, Index2 = %d\n", Index1, Index2);
 
     hlpod_hr->elem_weight = BB_std_calloc_1d_double(hlpod_hr->elem_weight, Index1);
     hlpod_hr->id_selected_elems = BB_std_calloc_1d_int(hlpod_hr->id_selected_elems, Index1);

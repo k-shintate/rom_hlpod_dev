@@ -101,22 +101,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 
 				int index = fe->conn[e][i];
 
-				/*
-				for(int k = 0; k < hlpod_vals->n_neib_vec; k++){
-					//hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k][m][n] += integ_val * hlpod_mat->neib_vec[index][k];
-					//hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k][n] += integ_val * hlpod_mat->neib_vec[index][k];
-
-					//hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k + num_snapshot*(hlpod_vals->n_neib_vec)][m][n] -= integ_val * hlpod_mat->neib_vec[index][k];
-					//hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k + num_snapshot*(hlpod_vals->n_neib_vec)][n] -= integ_val * hlpod_mat->neib_vec[index][k]; 
-
-					hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k][m][n] -= integ_val * hlpod_mat->neib_vec[index][k];
-					hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val * hlpod_mat->neib_vec[index][k]; 
-				}
-				*/
-
 				int subdomain_id = hlpod_mat->subdomain_id_in_nodes[index];
-                //printf("\n\nsubdomain_id = %d, index = %d, ns = %d, m = %d, n = %d\n\n", subdomain_id, index, ns, m, n);
-                //hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + index][m][n] += integ_val * hlpod_mat->neib_vec[index][k];
 				int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id];
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
 
@@ -240,9 +225,9 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 					int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_i];
 					int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_i + 1];
 
-					int subdomain_id_j = hlpod_mat->subdomain_id_in_nodes[index_j];         //
-					int JS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_j];          //
-					int JE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_j + 1];      //
+					int subdomain_id_j = hlpod_mat->subdomain_id_in_nodes[index_j];
+					int JS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_j];
+					int JE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id_j + 1];
 
 					if( bc->D_bc_exists[index_j]) {
 						for(int k1 = IS; k1 < IE; k1++){
@@ -256,7 +241,7 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 					else{
 
 						for(int k1 = IS; k1 < IE; k1++) {
-							double A = hlpod_mat->neib_vec[index_i][k1] * integ_val;        //
+							double A = hlpod_mat->neib_vec[index_i][k1] * integ_val;
 							local_vec[k1] = 0.0;
 
 							int index1 = 0;
@@ -264,9 +249,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 
 							for(int ki = 0; ki < num_neib; ki++) {
 								for(int kj = 0; kj < hlpod_mat->num_modes_1stdd_neib[ki]; kj++) {							
-									double B = hlpod_mat->neib_vec[index_j][index2];            //
+									double B = hlpod_mat->neib_vec[index_j][index2];
 									double C = hlpod_mat->pod_coordinates_all[index1 + kj];
-                                    //double C = hlpod_mat->mode_coef[index1 + kj];
 
 									local_vec[k1] += A * B * C;
 									index2++;
@@ -398,7 +382,6 @@ void ddhr_set_matvec_only_residuals_for_NNLS3(
 					//Dirichlet境界条件を含むかを判別    
 					if( bc->D_bc_exists[index_j]) {
                         for(int m = 0; m < num_subdomains; m++){
-                            //for(int k1 = 0; k1 < num_modes*num_subdomains; k1++){
                             for(int k1 = 0; k1 < hlpod_mat->num_modes_internal[m]; k1++){
                                 double val = hlpod_mat->pod_modes[index_i][k1 + index_modes] * integ_val * bc->imposed_D_val[index_j];
                                 
@@ -585,12 +568,6 @@ void ddhr_set_matvec_RH_for_NNLS2_only_residuals(
 
 				int index = fe->conn[e][i];
 				for(int k = 0; k < num_modes*num_subdomains; k++){
-					//hlpod_ddhr->matrix[ns*num_modes*num_subdomains + k][m][n] += integ_val * hlpod_mat->pod_modes[index][k];
-					//hlpod_ddhr->RH[ns*num_modes*num_subdomains + k][n] += integ_val * hlpod_mat->pod_modes[index][k];
-
-					//hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][m][n] -= integ_val * hlpod_mat->pod_modes[index][k];
-					//hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k + num_snapshot*(num_modes*num_subdomains)][n] -= integ_val * hlpod_mat->pod_modes[index][k]; 
-
 					hlpod_ddhr->matrix[ns*(num_modes*num_subdomains) + k][m][n] -= integ_val * hlpod_mat->pod_modes[index][k];
 					hlpod_ddhr->RH[ns*(num_modes*num_subdomains) + k][n] -= integ_val * hlpod_mat->pod_modes[index][k]; 
 				}
@@ -933,9 +910,6 @@ void hr_set_matvec_RH_for_NNLS(
 
             int index = fe->conn[e][i];
             for(int k = 0; k < num_modes; k++){
-                //hlpod_hr->matrix[ ns * num_modes + k][e] += integ_val * hlpod_mat->pod_modes[index][k];
-                //hlpod_hr->RH[ns * num_modes + k] += integ_val * hlpod_mat->pod_modes[index][k];
-
                 hlpod_hr->matrix[ ns * num_modes + k][e] -= integ_val * hlpod_mat->pod_modes[index][k];
                 hlpod_hr->RH[ns * num_modes + k] -= integ_val * hlpod_mat->pod_modes[index][k];
             }
@@ -1047,9 +1021,6 @@ void hr_set_matvec_residuals_for_NNLS(
                 if( bc->D_bc_exists[index_j]) {
                     for(int k1 = 0; k1 < num_modes; k1++){
                         double val = hlpod_mat->pod_modes[index_i][k1] * integ_val * bc->imposed_D_val[index_j];
-                        //hlpod_hr->matrix[ ns * num_modes + k1][e] += -val;
-                        //hlpod_hr->RH[ns * num_modes + k1] += -val;
-
                         hlpod_hr->matrix[ ns * num_modes + k1][e] += val;
                         hlpod_hr->RH[ns * num_modes + k1] += val;
                     }
