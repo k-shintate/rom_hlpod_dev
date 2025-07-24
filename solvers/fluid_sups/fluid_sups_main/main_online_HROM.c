@@ -229,7 +229,6 @@ int main (
             sys.cond.directory);
         
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
-
     /********************/
 
     /*for Hyper-reduction*/
@@ -245,6 +244,8 @@ int main (
         &(sys.rom_sups.hlpod_mat));
     
     memory_allocation_hr_sol_vec(&(sys.hrom_sups.hr_vals), sys.fe.total_num_nodes, 1);
+   	monolis_initialize(&(sys.monolis_hr));
+    monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
     /************************/
 
 
