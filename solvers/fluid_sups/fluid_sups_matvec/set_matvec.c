@@ -37,7 +37,6 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 
 	double A[4][4];
 
-// /	for(int e=0; e<(fe->total_num_elems); e++) {
 	for(int m=0; m < hlpod_ddhr->ovl_num_selected_elems; m++) {
 		int e = hlpod_ddhr->ovl_id_selected_elems[m];
 		BBFE_elemmat_set_Jacobian_array(Jacobian_ip, np, e, fe);
@@ -106,7 +105,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
                             if(subdomain_id_j >= num_subdomains){
                                 for(int k1 = IS; k1 < IE; k1++){
                                     for(int k2 = JS - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2 < JE - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2++){
-                                        double val = hlpod_mat->pod_basis_hr[index_i+a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j+b][k2] ;
+                                        double val = hlpod_mat->pod_basis_hr[index_i*4+a][k1] * integ_val * hlpod_mat->pod_basis_hr[index_j*4+b][k2] ;
                                         hlpod_ddhr->reduced_mat[k1][k2 + hlpod_mat->num_neib_modes_sum[subdomain_id-1]] += hlpod_ddhr->ovl_elem_weight[m] *  val;
                                     }
                                 }
@@ -118,8 +117,8 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 		}
 	}
 
-	for(int m=0; m < hlpod_ddhr->ovl_num_selected_elems; m++) {
-		int e = hlpod_ddhr->ovl_id_selected_elems[m];
+	for(int m=0; m < hlpod_ddhr->ovl_num_selected_elems_D_bc; m++) {
+		int e = hlpod_ddhr->ovl_id_selected_elems_D_bc[m];
 		BBFE_elemmat_set_Jacobian_array(Jacobian_ip, np, e, fe);
 
 		double vol = BBFE_std_integ_calc_volume(np, basis->integ_weight, Jacobian_ip);
@@ -234,7 +233,6 @@ void ddhr_lb_set_D_bc_para(
 
 	double A[4][4];
 
-//	for(int e=0; e<(fe->total_num_elems); e++) {
     for(int m=0; m < hlpod_ddhr->ovl_num_selected_elems_D_bc; m++) {
         int e = hlpod_ddhr->ovl_id_selected_elems_D_bc[m];
 		BBFE_elemmat_set_Jacobian_array(Jacobian_ip, np, e, fe);
@@ -279,13 +277,15 @@ void ddhr_lb_set_D_bc_para(
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
 
                 for(int a = 0; a < 4; a++){
-                    for(int b = 0; b < 4; b++){
-            			double integ_val = BBFE_std_integ_calc(
-		    					np, val_ip[a][b], basis->integ_weight, Jacobian_ip);
+                    for(int b = 0; b < 4; b++){			
+            			if( bc->D_bc_exists[index_j*4 + b]) {
+                            double integ_val = BBFE_std_integ_calc(
+                                    np, val_ip[a][b], basis->integ_weight, Jacobian_ip);
 
-                        for(int k1 = IS; k1 < IE; k1++){
-                            double val = hlpod_mat->pod_modes[index_i*4+a][k1] * integ_val * bc->imposed_D_val[index_j*4+b];
-                            hlpod_ddhr->reduced_RH[k1] += - hlpod_ddhr->ovl_elem_weight_D_bc[m] * val;
+                            for(int k1 = IS; k1 < IE; k1++){
+                                double val = hlpod_mat->pod_modes[index_i*4+a][k1] * integ_val * bc->imposed_D_val[index_j*4+b];
+                                hlpod_ddhr->reduced_RH[k1] += - hlpod_ddhr->ovl_elem_weight_D_bc[m] * val;
+                            }
                         }
                     }
                 }
@@ -331,7 +331,10 @@ void ddhr_lb_set_reduced_vec_para(
 	double** v_ip; 
 	v_ip = BB_std_calloc_2d_double(v_ip, np, 3);
 
-	//for(int e=0; e<(fe->total_num_elems); e++) {
+    for(int k = 0; k < hlpod_vals->n_neib_vec; k++){
+        hlpod_ddhr->reduced_RH[ k ] = 0.0;
+    }
+	
     for(int m = 0; m < hlpod_ddhr->ovl_num_selected_elems; m++) {
         int e = hlpod_ddhr->ovl_id_selected_elems[m];
 		BBFE_elemmat_set_Jacobian_array(Jacobian_ip, np, e, fe);

@@ -243,7 +243,7 @@ int main (
         4,
         &(sys.rom_sups.hlpod_mat));
     
-    memory_allocation_hr_sol_vec(&(sys.hrom_sups.hr_vals), sys.fe.total_num_nodes, 1);
+    memory_allocation_hr_sol_vec(&(sys.hrom_sups.hr_vals), sys.fe.total_num_nodes, 4);
    	monolis_initialize(&(sys.monolis_hr));
     monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
     /************************/

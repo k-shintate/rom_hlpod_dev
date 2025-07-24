@@ -268,21 +268,12 @@ void HROM_pre_offline(
 	monolis_initialize(&(sys->monolis_hr));
 
 	double t = monolis_get_time_global_sync();
-/*  
-	monolis_com_initialize_by_parted_files(
-		&(sys->mono_com0),
-		monolis_mpi_get_global_comm(),
-		MONOLIS_DEFAULT_TOP_DIR,
-		MONOLIS_DEFAULT_PART_DIR,
-		"node.dat");
-*/
+
 	//for arbit dof ddecm
 	get_neib_subdomain_id(
 		&(sys->mono_com),
 		&(rom->hlpod_mat),
 		rom->hlpod_vals.num_2nd_subdomains);		//num_2nd_subdomains
-
-    printf("get_neib_subdomain_id done\n");
 
     double t1 = monolis_get_time_global_sync();
 
@@ -292,7 +283,6 @@ void HROM_pre_offline(
         &(rom->hlpod_mat),
         1 + sys->mono_com.recv_n_neib,
         rom->hlpod_vals.num_modes);
-
 
     get_neib_coordinates_pre(
         &(rom->hlpod_vals),
@@ -394,38 +384,13 @@ void HROM_pre_online(
             &(rom->hlpod_mat),
             sys->fe.total_num_nodes,
             4);
-/*
-        ddhr_lb_set_reduced_mat_para_save_memory(
-            &(sys->monolis_hr0),
-            &(sys->fe),
-            &(sys->vals),
-            &(sys->basis),
-            &(sys->bc),
-            &(rom->hlpod_vals),
-            &(rom->hlpod_mat),
-            &(hrom->hlpod_ddhr),
-            rom->hlpod_vals.num_modes_pre,
-            num_2nd_subdomains,
-            sys->vals.dt);
-*/
+
         monolis_get_nonzero_pattern_by_nodal_graph_V_R(
             &(sys->monolis_hr0),
             rom->hlpod_meta.num_meta_nodes,
             rom->hlpod_meta.n_dof_list,
             rom->hlpod_meta.index,
             rom->hlpod_meta.item);
-/*
-        ddhr_hlpod_calc_block_mat_bcsr_pad(
-            &(sys->monolis_hr0),
-            &(sys->mono_com_rom_solv),
-            &(rom->hlpod_vals),
-            &(rom->hlpod_mat),
-            &(hrom->hlpod_ddhr),
-            &(rom->hlpod_meta),
-            rom->hlpod_vals.num_modes_pre,
-            rom->hlpod_vals.num_2nd_subdomains,
-            sys->cond.directory);
-*/	
 }
 
 void HROM_hierarchical_parallel(
@@ -443,7 +408,7 @@ void HROM_hierarchical_parallel(
     ddhr_lb_set_reduced_mat_para_save_memory(
         &(sys.monolis_hr),
         &(sys.fe),
-        &(sys.vals),
+        &(sys.vals_hrom),
         &(sys.basis),
         &(sys.bc),
         &(rom->hlpod_vals),
@@ -467,7 +432,7 @@ void HROM_hierarchical_parallel(
     ddhr_lb_set_reduced_vec_para(
         &(sys.monolis_hr),
         &(sys.fe),
-        &(sys.vals),
+        &(sys.vals_hrom),
         &(sys.basis),
         &(hrom->hr_vals),
         &(rom->hlpod_vals),
@@ -481,7 +446,7 @@ void HROM_hierarchical_parallel(
     ddhr_lb_set_D_bc_para(
         &(sys.monolis_hr),
         &(sys.fe),
-        &(sys.vals),
+        &(sys.vals_hrom),
         &(sys.basis),
         &(sys.bc),
         &(rom->hlpod_mat),
@@ -497,11 +462,13 @@ void HROM_hierarchical_parallel(
 		rom->hlpod_vals.num_2nd_subdomains,
         rom->hlpod_vals.num_modes_pre);
 
+    monolis_show_iterlog (&(sys.monolis_hr), false);
+
     BBFE_sys_monowrap_solve(
         &(sys.monolis_hr),
         &(sys.mono_com_rom_solv),
         rom->hlpod_mat.mode_coef,
-        MONOLIS_ITER_BICGSTAB,
+        MONOLIS_ITER_BICGSTAB_N128,
         MONOLIS_PREC_DIAG,
         sys.vals.mat_max_iter,
         sys.vals.mat_epsilon);
@@ -563,7 +530,6 @@ void HROM_memory_allocation(
                 rom->hlpod_vals.num_2nd_subdomains,
                 sys->cond.directory);
 
-        //基底本数の分布が決定されてからメモリ割り当て
         ddhr_memory_allocation_para(
                 &(rom->hlpod_vals),
                 &(hrom->hlpod_ddhr),
@@ -573,7 +539,6 @@ void HROM_memory_allocation(
                 rom->hlpod_vals.num_snapshot,
                 rom->hlpod_vals.num_modes_pre,
                 rom->hlpod_vals.num_2nd_subdomains);
-
 }
 
 

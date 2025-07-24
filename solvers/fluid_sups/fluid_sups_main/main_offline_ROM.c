@@ -251,8 +251,6 @@ int main (
         &(sys.hrom_sups.hlpod_ddhr),
         4,
         &(sys.rom_sups.hlpod_mat));
-    
-    memory_allocation_hr_sol_vec(&(sys.hrom_sups.hr_vals), sys.fe.total_num_nodes, 1);
     /************************/
 
 

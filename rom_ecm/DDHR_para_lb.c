@@ -23,7 +23,6 @@ static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 //内部要素とオーバーラップ要素の出力
 void ddhr_lb_get_selected_elements_internal_overlap(
 	HLPOD_DDHR*     hlpod_ddhr,
-	//const int       num_subdomains,
 	const char*     directory)
 {
 	double t = monolis_get_time_global_sync();
@@ -261,7 +260,7 @@ void ddhr_lb_get_selected_elements_internal_overlap(
 			}
 		}
 
-fclose(fp1);
+        fclose(fp1);
 
 		//内部要素の選定
 		int local_dof;
@@ -293,14 +292,11 @@ fclose(fp1);
 		const int nl = 8; //六面体一次要素限定 今後引数にする
 
 		int num_selected_nodes = 0;
-		//for(int m=0; m < hlpod_ddhr->ovl_num_selected_elems; m++) {
-		//int e = hlpod_ddhr->ovl_id_selected_elems[m];
 		for (int i = 0; i < num_selected_elems; i++) {
 			if (bool_ovl_selected_elems[i]) {	
 				int index = ovl_elem_local_id[index1];
 
 				for(int i=0; i<nl; i++) {       //六面体一次要素は8
-					//int index_i = conn[e][i];
 					if (conn[index][i] < n_internal ) {
 						num_selected_nodes++;
 					}
@@ -309,15 +305,11 @@ fclose(fp1);
 			}
 		}
 
-		//for(int m=0; m < hlpod_ddhr->ovl_num_selected_elems; m++) {
-		//	int e = hlpod_ddhr->ovl_id_selected_elems[m];
-		
 		for (int i = 0; i < num_selected_elems_D_bc; i++) {
 			if (bool_ovl_selected_elems_D_bc[i]) {
 				int index = ovl_elem_local_id_D_bc[index2];
 
 				for(int i=0; i<nl; i++) {       //六面体一次要素は8
-					//int index_i = conn[e][i];
 					if (conn[index][i] < n_internal ) {
 						num_selected_nodes++;
 					}
@@ -397,7 +389,7 @@ fclose(fp1);
 			}
 		}
 
-fclose(fp1);
+        fclose(fp1);
 
 		BB_std_free_1d_int(ovl_elem_global_id, total_num_elems);
 
@@ -414,7 +406,6 @@ fclose(fp1);
 		BB_std_free_1d_int(ovl_elem_local_id_D_bc, num_selected_elems_D_bc);
 
 		BB_std_free_1d_int(meta_list_neib, meta_n_neib);
-		//double t_tmp = monolis_get_time_global_sync();
 	}
     double t_tmp = monolis_get_time_global_sync();
 }
@@ -1791,9 +1782,6 @@ void ddhr_lb_get_selected_elements_para_add(
 		}
 	}
 
-	//BB_std_free_2d_int(hlpod_ddhr->ovl_elem_global_id, hlpod_ddhr->total_num_elems[0], 1);
-
-
 	BB_std_free_1d_int(ovl_selected_elems, num_selected_elems);
 	BB_std_free_1d_double(ovl_selected_elems_weight, num_selected_elems);
 	BB_std_free_1d_int(ovl_selected_elems_D_bc, num_selected_elems_D_bc);
@@ -1809,10 +1797,8 @@ void ddhr_lb_get_selected_elements_para_add(
 void ddhr_hlpod_calc_block_mat_bcsr_pad(
 	MONOLIS*     	monolis,
 	MONOLIS_COM*  	monolis_com,
-	//LPOD_COM* 		lpod_com,
     HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_MAT* 	hlpod_mat,
-	//LPOD_PRM*		lpod_prm,
 	HLPOD_DDHR*     hlpod_ddhr,
 	HLPOD_META*		hlpod_meta,
 	const int 		max_num_bases,
@@ -1822,13 +1808,8 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 	const int M = max_num_bases;
 	const int total_num_bases = hlpod_vals->num_modes;		//自領域
 
-	//const int n_neib_vec = hlpod_vals->n_neib_vec;			//自領域+隣接領域
-	const int M_all = M * hlpod_mat->num_metagraph_nodes;
-
 	const int n_neib = hlpod_vals->n_neib_vec;
 
-	double t1 = monolis_get_time();
-	/*add_matrix*/
 	double** L_in;
 	L_in = BB_std_calloc_2d_double(L_in, M , M );
 
@@ -1845,7 +1826,6 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 		for(int m = iS; m < iE; m++){
 			index2 = 0;
 			for(int n = iS; n < iE; n++){
-				//L_in[m][n] = hlpod_mat->L[k * M + m][k * M + n];
 				L_in[index1][index2] = hlpod_ddhr->reduced_mat[m][n];
 			
 				monolis_add_scalar_to_sparse_matrix_R(
@@ -1859,18 +1839,6 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 			}
 			index1++;
 		}
-//arbit dof の際にはここを除く
-/*
-		for(int i = num_modes; i < max_num_bases; i++){
-			monolis_add_scalar_to_sparse_matrix_R(
-				monolis,
-				k,
-				k,
-				i,
-				i,
-				1.0);
-		}
-*/
 	}
 	
 
@@ -1920,16 +1888,6 @@ void ddhr_hlpod_calc_block_mat_bcsr_pad(
 
 	}
 
-
-	double t2 = monolis_get_time();
-	//lpod_prm->time_add_matrix = t2-t1;
-
-	/*線形の場合*/
-	//hlpod_mat->mode_coef = BB_std_calloc_1d_double(hlpod_mat->mode_coef, M_all);
-	//hlpod_mat->WTf = BB_std_calloc_1d_double(hlpod_mat->WTf, M_all);
-	/***********/
-
-	//BB_std_free_2d_double(hlpod_mat->L, total_num_bases , n_neib_vec);
 	BB_std_free_2d_double(L_in, M, M);
 }
 
