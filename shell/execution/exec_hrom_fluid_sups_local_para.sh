@@ -7,7 +7,7 @@ e=20
 ep=5
 
 #podモード数
-num_modes=(5)
+num_modes=(10)
 #POD計算領域数
 num_1stdd=(6)
 #並列計算領域数 (=並列数)

@@ -199,6 +199,10 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
                             if( bc->D_bc_exists[index_j*4+b]) {
                                 for(int k1 = IS; k1 < IE; k1++){
                                     double val = hlpod_mat->neib_vec[index_i*4+a][k1] * integ_val * bc->imposed_D_val[index_j*4+b];
+                                    //if(val != 0.0) {
+                                    //    printf("index_i = %d, index_j = %d, a = %d, b = %d, k1 = %d, integ_val = %e, val = %e\n", 
+                                    //            index_i, index_j, a, b, k1, integ_val, val);
+                                    //}
 
                                     hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1][m][n] += val;
                                     hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1][n] += val;
@@ -292,8 +296,8 @@ void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
             double vol = BBFE_std_integ_calc_volume(
                     np, basis->integ_weight, Jacobian_ip);
             
-            printf("\n\nvol = %f\n", vol);
-            printf("hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] = %f\n", hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n]);
+            //printf("\n\nvol = %f\n", vol);
+            //printf("hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] = %f\n", hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n]);
             hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] += vol;
             hlpod_ddhr->RH[2*(hlpod_vals->n_neib_vec)*num_snapshot][n] += vol; 
         }
