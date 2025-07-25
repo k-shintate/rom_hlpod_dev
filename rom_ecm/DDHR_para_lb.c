@@ -729,7 +729,7 @@ double t1 = monolis_get_time_global_sync();
 
 	for (int m = 0; m < num_subdomains; m++) {
 		printf("\n\nnum_elems = %d\n\n", hlpod_ddhr->num_elems[m]);
-		int NNLS_row = hlpod_ddhr->num_modes_1stdd[m] * total_num_snapshot; //2は残差ベクトル＋右辺ベクトルを採用しているため
+		int NNLS_row = 2 * hlpod_ddhr->num_modes_1stdd[m] * total_num_snapshot + 1; //2は残差ベクトル＋右辺ベクトルを採用しているため
 		printf("\n\nNNLS_row = %d\n\n", NNLS_row);
 
 		ans_vec = BB_std_calloc_1d_double(ans_vec, hlpod_ddhr->num_elems[m]);

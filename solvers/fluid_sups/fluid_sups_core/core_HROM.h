@@ -85,7 +85,7 @@ void HROM_set_matvec(
         int step,
         double t);
 
-void HROM_pre_offline2(
+void HROM_pre_offline3(
         FE_SYSTEM* sys,
         ROM*        rom,
         HROM*       hrom);

@@ -57,8 +57,8 @@ void ddhr_memory_allocation_para(
 	}
 
 //for NNLS
-    hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, total_num_snapshot*hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
-    hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, total_num_snapshot*hlpod_vals->n_neib_vec, num_subdomains);
+    hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, 2*total_num_snapshot*hlpod_vals->n_neib_vec +1, max_num_elem, num_subdomains);
+    hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, 2*total_num_snapshot*hlpod_vals->n_neib_vec +1, num_subdomains);
 
     hlpod_ddhr->reduced_mat = BB_std_calloc_2d_double(hlpod_ddhr->reduced_mat, hlpod_vals->n_neib_vec, hlpod_vals->n_neib_vec);
     hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_vals->n_neib_vec);

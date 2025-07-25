@@ -87,7 +87,10 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
                             
                     for(int k = IS; k < IE; k++){
                         hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k][m][n] -= integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k];
-                        hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k]; 
+                        hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k];
+
+                        hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k + (hlpod_vals->n_neib_vec)*num_snapshot][m][n] += integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k];
+                        hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k + (hlpod_vals->n_neib_vec)*num_snapshot][n] += integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k]; 
                     }
                 }
 
@@ -238,6 +241,61 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 	BB_std_free_3d_double(val_ip     , 4 , 4, np);
 	BB_std_free_1d_double(Jacobian_ip, np);
 
+	BB_std_free_2d_double(local_v, nl, 3);
+	BB_std_free_2d_double(v_ip, np, 3);
+}
+
+
+//残差ベクトルのみをNNLSに使う
+void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
+		BBFE_DATA*     	fe,
+		VALUES*         vals,
+		BBFE_BASIS*	 	basis,
+        HLPOD_MAT*     hlpod_mat,
+        HLPOD_VALUES*     hlpod_vals,
+        HLPOD_DDHR*     hlpod_ddhr,
+		const int		num_subdomains,
+        const int       index_snap,
+        const int       num_snapshot,
+        const int       num_modes,
+        const double    dt,
+		double       	t)
+{
+    printf("\n\nindex_snap = %d, num_modes = %d, num_subdomains = %d\n\n", index_snap, hlpod_vals->n_neib_vec, num_subdomains);
+
+    int ns = index_snap;
+    int nm = num_modes;
+
+	int nl = fe->local_num_nodes;
+	int np = basis->num_integ_points;
+
+	double** val_ip;
+	double*  Jacobian_ip;
+	val_ip      = BB_std_calloc_2d_double(val_ip, 4, np);
+	Jacobian_ip = BB_std_calloc_1d_double(Jacobian_ip, np);
+
+	double** local_v;
+	local_v = BB_std_calloc_2d_double(local_v, nl, 3);
+
+	double** v_ip; 
+	v_ip = BB_std_calloc_2d_double(v_ip, np, 3);
+
+	for(int n=0; n < num_subdomains; n++) {
+		for(int m=0; m < hlpod_ddhr->num_elems[n]; m++) {
+            int e = hlpod_ddhr->elem_id_local[m][n];
+
+            BBFE_elemmat_set_Jacobian_array(Jacobian_ip, np, e, fe);
+
+            double vol = BBFE_std_integ_calc_volume(
+                    np, basis->integ_weight, Jacobian_ip);
+            
+            hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] += vol;
+            hlpod_ddhr->RH[2*(hlpod_vals->n_neib_vec)*num_snapshot][n] += vol; 
+        }
+    }
+    
+	BB_std_free_2d_double(val_ip, 4, np);
+	BB_std_free_1d_double(Jacobian_ip, np);
 	BB_std_free_2d_double(local_v, nl, 3);
 	BB_std_free_2d_double(v_ip, np, 3);
 }
