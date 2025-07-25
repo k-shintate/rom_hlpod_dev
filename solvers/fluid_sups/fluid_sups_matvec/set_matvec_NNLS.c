@@ -202,6 +202,9 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 
                                     hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1][m][n] += val;
                                     hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1][n] += val;
+
+                                    hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1 + (hlpod_vals->n_neib_vec)*num_snapshot][m][n] -= val;
+                                    hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1 + (hlpod_vals->n_neib_vec)*num_snapshot][n] -= val;
                                 }
                             }
                             else{
