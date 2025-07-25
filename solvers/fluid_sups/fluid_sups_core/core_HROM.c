@@ -454,7 +454,7 @@ void HROM_hierarchical_parallel(
         sys.vals.dt,
         t);
     
-    ddhr_lb_set_D_bc_para_debug(
+    ddhr_lb_set_D_bc_para(
         &(sys.monolis_hr),
         &(sys.fe),
         &(sys.vals_hrom),
