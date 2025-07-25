@@ -102,6 +102,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
                                 }
                             }
 
+                            //printf("subdomain_id_j = %d num_neib_modes_sum = %d JS = %d JE = %d\n", subdomain_id, hlpod_mat->num_neib_modes_sum[subdomain_id-1], JS, JE);
                             if(subdomain_id_j >= num_subdomains){
                                 for(int k1 = IS; k1 < IE; k1++){
                                     for(int k2 = JS - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2 < JE - hlpod_mat->num_neib_modes_sum[subdomain_id-1]; k2++){
@@ -332,7 +333,7 @@ void ddhr_lb_set_reduced_vec_para(
 	v_ip = BB_std_calloc_2d_double(v_ip, np, 3);
 
     for(int k = 0; k < hlpod_vals->n_neib_vec; k++){
-        hlpod_ddhr->reduced_RH[ k ] = 0.0;
+        //hlpod_ddhr->reduced_RH[ k ] = 0.0;
     }
 	
     for(int m = 0; m < hlpod_ddhr->ovl_num_selected_elems; m++) {

@@ -375,33 +375,33 @@ void HROM_pre_online(
 
 	double t = monolis_get_time_global_sync();
 
-        get_neib_subdomain_id_2nddd(
-            &(sys->mono_com),
-            &(rom->hlpod_mat),
-            rom->hlpod_vals.num_2nd_subdomains);
+    get_neib_subdomain_id_2nddd(
+        &(sys->mono_com),
+        &(rom->hlpod_mat),
+        rom->hlpod_vals.num_2nd_subdomains);
 
-        ddhr_lb_read_selected_elements_para(
-            num_2nd_subdomains,
-            sys->cond.directory);
+    ddhr_lb_read_selected_elements_para(
+        num_2nd_subdomains,
+        sys->cond.directory);
 
-        ddhr_lb_get_selected_elements_para_add(
-            &(hrom->hlpod_ddhr),
-            monolis_mpi_get_global_comm_size(),
-            sys->cond.directory);
+    ddhr_lb_get_selected_elements_para_add(
+        &(hrom->hlpod_ddhr),
+        monolis_mpi_get_global_comm_size(),
+        sys->cond.directory);
 
-        lpod_hdd_lb_set_hr_podbasis(
-            &(sys->mono_com),
-            &(rom->hlpod_vals),
-            &(rom->hlpod_mat),
-            sys->fe.total_num_nodes,
-            4);
+    lpod_hdd_lb_set_hr_podbasis(
+        &(sys->mono_com),
+        &(rom->hlpod_vals),
+        &(rom->hlpod_mat),
+        sys->fe.total_num_nodes,
+        4);
 
-        monolis_get_nonzero_pattern_by_nodal_graph_V_R(
-            &(sys->monolis_hr0),
-            rom->hlpod_meta.num_meta_nodes,
-            rom->hlpod_meta.n_dof_list,
-            rom->hlpod_meta.index,
-            rom->hlpod_meta.item);
+    monolis_get_nonzero_pattern_by_nodal_graph_V_R(
+        &(sys->monolis_hr0),
+        rom->hlpod_meta.num_meta_nodes,
+        rom->hlpod_meta.n_dof_list,
+        rom->hlpod_meta.index,
+        rom->hlpod_meta.item);
 }
 
 void HROM_hierarchical_parallel(
@@ -560,43 +560,48 @@ void HROM_set_matvec(
         int step,
         double t)
 {
-        get_neib_coordinates_pad(
-                &(sys->mono_com_rom),
-                &(rom->hlpod_vals),
-                &(rom->hlpod_mat),
-                1 + sys->mono_com_rom_solv.recv_n_neib,
-                rom->hlpod_vals.num_modes_max,
-                rom->hlpod_vals.num_2nd_subdomains,
-                rom->hlpod_vals.num_modes_pre);
+    printf("num_modes_pre: %d\n", rom->hlpod_vals.num_modes_pre);
+    printf("num_2nd_subdomains: %d\n", rom->hlpod_vals.num_2nd_subdomains);
+    printf("num_modes_max: %d\n", rom->hlpod_vals.num_modes_max);
+    printf("num_snapshot: %d\n", rom->hlpod_vals.num_snapshot);
+    //exit(1);
+    get_neib_coordinates_pad(
+            &(sys->mono_com_rom),
+            &(rom->hlpod_vals),
+            &(rom->hlpod_mat),
+            1 + sys->mono_com_rom_solv.recv_n_neib,
+            rom->hlpod_vals.num_modes_max,
+            rom->hlpod_vals.num_2nd_subdomains,
+            rom->hlpod_vals.num_modes_pre);
 
-        ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
-                &(sys->fe),
-                &(sys->vals),
-                &(sys->basis),
-                &(rom->hlpod_mat),
-                &(rom->hlpod_vals),
-                &(hrom->hlpod_ddhr),
-                rom->hlpod_vals.num_2nd_subdomains,
-                step -1 ,   //index 0 start
-                rom->hlpod_vals.num_snapshot,
-                rom->hlpod_vals.num_modes_pre,
-                sys->vals.dt,
-                t);
+    ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
+            &(sys->fe),
+            &(sys->vals),
+            &(sys->basis),
+            &(rom->hlpod_mat),
+            &(rom->hlpod_vals),
+            &(hrom->hlpod_ddhr),
+            rom->hlpod_vals.num_2nd_subdomains,
+            step -1 ,   //index 0 start
+            rom->hlpod_vals.num_snapshot,
+            rom->hlpod_vals.num_modes_pre,
+            sys->vals.dt,
+            t);
 
-        ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
-                &(sys->fe),
-                &(sys->vals),
-                &(sys->basis),
-                &(sys->bc),
-                &(rom->hlpod_mat),
-                &(rom->hlpod_vals),
-                &(hrom->hlpod_ddhr),
-                rom->hlpod_vals.num_2nd_subdomains,
-                step -1 ,   //index 0 start
-                rom->hlpod_vals.num_snapshot,
-                1 + sys->mono_com.recv_n_neib,
-                sys->vals.dt,
-                t);
+    ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
+            &(sys->fe),
+            &(sys->vals),
+            &(sys->basis),
+            &(sys->bc),
+            &(rom->hlpod_mat),
+            &(rom->hlpod_vals),
+            &(hrom->hlpod_ddhr),
+            rom->hlpod_vals.num_2nd_subdomains,
+            step -1 ,   //index 0 start
+            rom->hlpod_vals.num_snapshot,
+            1 + sys->mono_com.recv_n_neib,
+            sys->vals.dt,
+            t);
 
 }
 

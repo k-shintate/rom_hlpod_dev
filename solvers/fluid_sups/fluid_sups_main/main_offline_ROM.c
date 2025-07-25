@@ -283,10 +283,6 @@ int main (
 		/***************FEM***************/
 		
 		printf("----------------- normal-FEM ----------------\n");
-		double calctime_fem_t2 = monolis_get_time();
-		solver_fom(sys, t, step_rom);	
-		double calctime_fem_t1 = monolis_get_time();
-
         /**********************************/
 		
 		/****************ROM***************/
@@ -313,6 +309,10 @@ int main (
 		double calctime_hr_t2 = monolis_get_time();
         HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_rom,t);
 		double calctime_hr_t1 = monolis_get_time();
+
+		double calctime_fem_t2 = monolis_get_time();
+		solver_fom(sys, t, step_rom);	
+		double calctime_fem_t1 = monolis_get_time();
 
 		if(step_rom%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);

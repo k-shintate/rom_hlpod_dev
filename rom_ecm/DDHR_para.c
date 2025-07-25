@@ -183,8 +183,8 @@ void ddhr_to_monollis_rhs_para_pad(
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
 			monolis->mat.R.B[index + i] = hlpod_ddrh->reduced_RH[index + i];
 
-            if(monolis_mpi_get_global_my_rank() == 1){
-                printf("k = %d, index = %d, num_modes_internal[k] = %d, reduced_RH[index_column + i] = %lf\n",
+            if(monolis_mpi_get_global_my_rank() == 0){
+                printf("k = %d, index = %d, num_modes_internal[k] = %d, reduced_RH[index_column + i] = %e\n",
                        k, index, hlpod_mat->num_modes_internal[k], hlpod_ddrh->reduced_RH[index + i]);
             }
 		}

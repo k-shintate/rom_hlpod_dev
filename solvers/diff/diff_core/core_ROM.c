@@ -293,21 +293,7 @@ void ROM_output_files(
 
 
 void solver_rom(
-    FE_SYSTEM* sy	ROM_std_hlpod_offline_set_num_snapmat(
-			&(sys.rom),
-			sys.fe.total_num_nodes,
-            sys.monolis_com.n_internal_vertex,
-            sys.vals.finish_time,
-            sys.vals.dt,
-            sys.vals.snapshot_interval,
-            1);	ROM_std_hlpod_offline_set_num_snapmat(
-			&(sys.rom),
-			sys.fe.total_num_nodes,
-            sys.monolis_com.n_internal_vertex,
-            sys.vals.finish_time,
-            sys.vals.dt,
-            sys.vals.snapshot_interval,
-            1);s,
+    FE_SYSTEM* sys,
     const int step,
     const double t)
 {

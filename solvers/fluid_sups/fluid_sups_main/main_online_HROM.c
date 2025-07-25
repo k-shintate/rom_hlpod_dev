@@ -256,7 +256,6 @@ int main (
     memory_allocation_nodal_values(&(sys.vals_rom), sys.fe.total_num_nodes);        //set vals
 
 	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
-	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
 
     ROM_std_hlpod_online_memory_allocation_ansvec(&(sys.rom_sups.hlpod_vals), sys.fe.total_num_nodes, 4);
 
@@ -268,7 +267,6 @@ int main (
     read_calc_conditions(&(sys.vals_hrom), sys.cond.directory);                      //set vals
     memory_allocation_nodal_values(&(sys.vals_hrom), sys.fe.total_num_nodes);        //set vals
 
-	initialize_velocity_pressure(sys.vals_hrom.v, sys.vals_hrom.p, sys.fe.total_num_nodes);
 	initialize_velocity_pressure(sys.vals_hrom.v, sys.vals_hrom.p, sys.fe.total_num_nodes);
 
     //ROM_std_hlpod_online_memory_allocation_ansvec(&(sys.rom_sups.hlpod_vals), sys.fe.total_num_nodes, 4);

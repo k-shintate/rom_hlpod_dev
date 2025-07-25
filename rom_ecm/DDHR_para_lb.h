@@ -14,22 +14,6 @@ void ddhr_lb_read_selected_elements_para(
 		const int 		num_subdomains,
 		const char*		directory);
 
-void ddhr_lb_write_selected_elements_para(
-		MONOLIS_COM*  	monolis_com,
-        BBFE_DATA*     	fe,
-        BBFE_BC*     	bc,
-        HLPOD_VALUES* 	hlpod_vals,
-	    HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*    hlpod_mat,
-		HLPOD_META*		hlpod_meta,
-        const int       total_num_elem,
-        const int       total_num_snapshot,
-        const int       total_num_modes,
-		const int 		num_subdomains,
-        const int       max_iter, //NNLS
-        const double    tol,      //NNLS
-		const char*		directory);
-
 //1列のみ(残差に関する項のみ：任意列数に拡張する必要あり)
 void ddhr_lb_write_selected_elements_para_1line(
 		MONOLIS_COM*  	monolis_com,
@@ -37,7 +21,7 @@ void ddhr_lb_write_selected_elements_para_1line(
         BBFE_BC*     	bc,
         HLPOD_VALUES* 	hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*    hlpod_mat,
+		HLPOD_MAT*      hlpod_mat,
 		HLPOD_META*		hlpod_meta,
         const int       total_num_elem,
         const int       total_num_snapshot,

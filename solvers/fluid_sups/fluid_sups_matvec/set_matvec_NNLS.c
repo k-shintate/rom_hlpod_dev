@@ -22,7 +22,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 {
     printf("\n\nindex_snap = %d, num_modes = %d, num_subdomains = %d\n\n", index_snap, hlpod_vals->n_neib_vec, num_subdomains);
 
-    int ns = index_snap;
+    int ns = index_snap*2;
     int nm = num_modes;
 
 
@@ -89,8 +89,8 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
                         hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k][m][n] -= integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k];
                         hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k][n] -= integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k];
 
-                        hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k + (hlpod_vals->n_neib_vec)*num_snapshot][m][n] += integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k];
-                        hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k + (hlpod_vals->n_neib_vec)*num_snapshot][n] += integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k]; 
+                        hlpod_ddhr->matrix[ns*(hlpod_vals->n_neib_vec) + k + +1][m][n] += integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k];
+                        hlpod_ddhr->RH[ns*(hlpod_vals->n_neib_vec) + k + +1][n] += integ_val[d] * hlpod_mat->neib_vec[index*4 + d][k]; 
                     }
                 }
 
@@ -121,7 +121,7 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
         const double    dt,
 		double       	t)
 {
-    int ns = index_snap;
+    int ns = index_snap*2;
 
 	double** local_matrix;  double* local_vec;
 	local_matrix   = BB_std_calloc_2d_double(local_matrix, hlpod_vals->n_neib_vec, hlpod_vals->n_neib_vec);
@@ -203,8 +203,8 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
                                     hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1][m][n] += val;
                                     hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1][n] += val;
 
-                                    hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1 + (hlpod_vals->n_neib_vec)*num_snapshot][m][n] -= val;
-                                    hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1 + (hlpod_vals->n_neib_vec)*num_snapshot][n] -= val;
+                                    hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1 + +1][m][n] -= val;
+                                    hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1 + +1][n] -= val;
                                 }
                             }
                             else{
@@ -266,7 +266,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
 {
     printf("\n\nindex_snap = %d, num_modes = %d, num_subdomains = %d\n\n", index_snap, hlpod_vals->n_neib_vec, num_subdomains);
 
-    int ns = index_snap;
+    int ns = index_snap*2;
     int nm = num_modes;
 
 	int nl = fe->local_num_nodes;
@@ -292,6 +292,8 @@ void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
             double vol = BBFE_std_integ_calc_volume(
                     np, basis->integ_weight, Jacobian_ip);
             
+            printf("\n\nvol = %f\n", vol);
+            printf("hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] = %f\n", hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n]);
             hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] += vol;
             hlpod_ddhr->RH[2*(hlpod_vals->n_neib_vec)*num_snapshot][n] += vol; 
         }
