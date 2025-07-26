@@ -5,33 +5,9 @@
 #include <stdio.h>
 
 #include "DDHR_para_lb.h"   /* 依存型や関数がここに実装されている想定 */
+#include "monolis_wrapper_scalapack_c.h"
+
 #include "inc_svd.h"
-
-/* ============================================================
- * 外部ライブラリ関数（Monolis / BB）のプロトタイプ宣言
- * 実体はリンク時に解決されます
- * ============================================================ */
-extern int monolis_mpi_get_self_comm(void);
-extern void monolis_scalapack_comm_initialize(int comm, int *scalapack_comm);
-
-/* A = U * Σ * (V^T) を返す（monolis 提供） */
-extern void monolis_scalapack_gesvd_R(
-    int K, int N,
-    double **A,       /* in: row-major [K][N] */
-    double **U,       /* out: [K][min(K,N)] */
-    double **V,       /* out: 返却仕様により V or V^T */
-    double **D,       /* out: Σ を対角成分として格納（2D） */
-    int comm, int scalapack_comm);
-
-/* NNLS ソルバ（monolis 提供）: G (r×N), b (r) を与えて w (N) を解く */
-extern void monolis_optimize_nnls_R_with_sparse_solution(
-    double **G, double *b, double *w,
-    int r, int N, int max_iter, double tol, double *residual);
-
-/* BB 配列ユーティリティ（既存プロジェクト依存） */
-extern double **BB_std_calloc_2d_double(double **dummy, int rows, int cols);
-extern void    BB_std_free_2d_double(double **ptr, int rows, int cols);
-extern double *BB_std_calloc_1d_double(double *dummy, int n);
 
 /* ============================================================
  *  このファイル内で使うユーティリティ（CMat）
@@ -388,23 +364,26 @@ static void init_with_first_block_by_monolis(
     int comm, int scalapack_comm)
 {
     /* A0 を切り出し（row-major） */
-    double **A0 = BB_std_calloc_2d_double(NULL, K, N0);
+    double **A0 = BB_std_calloc_2d_double(A0, K, N0);
     for (int j=0;j<K;++j){
-        for (int i=0;i<N0;++i) A0[j][i] = matrixRM[j][i];
+        for (int i=0;i<N0;++i){
+            A0[j][i] = matrixRM[j][i];
+        }
     }
 
     /* monolis で SVD:  A0 = U * Σ * (V^T) */
-    double **U = BB_std_calloc_2d_double(NULL, K, N0);
-    double **V_or_Vt = BB_std_calloc_2d_double(NULL, N0, N0); /* 返却仕様に依存 */
-    double **D = BB_std_calloc_2d_double(NULL, N0, N0);       /* Σ を対角に格納 */
+    double **U = BB_std_calloc_2d_double(U, K, N0);
+    double **V_or_Vt = BB_std_calloc_2d_double(V_or_Vt, N0, N0); /* 返却仕様に依存 */
+    double *D = BB_std_calloc_1d_double(D, N0);       /* Σ を対角に格納 */
 
-    monolis_scalapack_gesvd_R(K, N0, A0, U, V_or_Vt, D, comm, scalapack_comm);
+    monolis_scalapack_gesvd_R(K, N0, A0, U, D, V_or_Vt, comm, scalapack_comm);
+
 
     /* ランク決定：特異値に基づく */
     int r_full = (K<N0?K:N0);
-    int r = 0; double s0 = D[0][0];
+    int r = 0; double s0 = D[0];
     for (int i=0;i<r_full && i<r_max; ++i){
-        if (D[i][i] >= tol*s0) ++r; else break;
+        if (D[i] >= tol*s0) ++r; else break;
     }
     if (r==0 && r_full>0) r=1;
 
@@ -415,25 +394,19 @@ static void init_with_first_block_by_monolis(
     S->sigma = (double*)malloc((size_t)r*sizeof(double));
 
     for (int j=0;j<r;++j){
-        S->sigma[j] = D[j][j];
+        S->sigma[j] = D[j];
         for (int i=0;i<K;++i) S->U[i + (size_t)j*K] = U[i][j];
     }
 
-#ifdef MONOLIS_RETURNS_VT   /* monolis が V^T を返す（r×N0）場合 */
-    for (int j=0;j<r;++j)
-      for (int i=0;i<N0;++i)
-        S->V[i + (size_t)j*N0] = V_or_Vt[j][i];   /* V(i,j) = (V^T)(j,i) */
-#else                       /* monolis が V（N0×N0）を返す場合 */
     for (int j=0;j<r;++j)
       for (int i=0;i<N0;++i)
         S->V[i + (size_t)j*N0] = V_or_Vt[i][j];   /* V(i,j) */
-#endif
 
     /* 後片付け */
     BB_std_free_2d_double(A0, K, N0);
     BB_std_free_2d_double(U,  K, N0);
     BB_std_free_2d_double(V_or_Vt, N0, N0);
-    BB_std_free_2d_double(D,  N0, N0);
+    BB_std_free_1d_double(D,  N0);
 }
 
 /* Row-major(double**) → column-major(CMat) へのブロックコピー */
@@ -483,9 +456,124 @@ static void build_compressed_system_from_incsvd(
   *b_k_out = b_k;
 }
 
-/* ============================================================
- *  ユーザ関数：Incremental SVD + 圧縮 NNLS
- * ============================================================ */
+/* ---- モジュール内グローバル（サブドメインごとの SVD 状態） ---- */
+static IncSVD *g_svd = NULL;      /* 長さ = g_svd_count */
+static int     g_svd_count = 0;   /* = num_subdomains を保持 */
+static int     g_block_cols = 512;/* BLOCK 幅（初期化と更新で共通に使う） */
+
+static void ensure_svd_states(int num_subdomains){
+    if (g_svd && g_svd_count == num_subdomains) return;
+    /* 既存を破棄 */
+    if (g_svd){
+        for (int i=0;i<g_svd_count;++i){
+            free(g_svd[i].U); free(g_svd[i].V); free(g_svd[i].sigma);
+        }
+        free(g_svd);
+    }
+    g_svd = (IncSVD*)calloc((size_t)num_subdomains, sizeof(IncSVD));
+    g_svd_count = num_subdomains;
+}
+
+void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
+    MONOLIS_COM*   monolis_com,
+    BBFE_DATA*     fe,
+    BBFE_BC*       bc,
+    HLPOD_VALUES*  hlpod_vals,
+    HLPOD_DDHR*    hlpod_ddhr,
+    HLPOD_MAT*     hlpod_mat,
+    HLPOD_META*    hlpod_meta,
+    const int      total_num_elem,
+    const int      total_num_snapshot,
+    const int      total_num_modes,
+    const int      num_subdomains,
+    const int      max_iter,   /* NNLS: 未使用 */
+    const double   tol,        /* NNLS: 未使用 */
+    const int      dof,
+    const char*    directory)
+{
+    ensure_svd_states(num_subdomains);
+
+    const int r_max   = total_num_modes; /* ランク上限 */
+    const double svd_tol = 1.0e-15;
+
+    const int comm = monolis_mpi_get_self_comm();
+    int scalapack_comm; monolis_scalapack_comm_initialize(comm, &scalapack_comm);
+
+    for (int m = 0; m < num_subdomains; ++m) {
+
+        const int K = hlpod_ddhr->num_modes_1stdd[m] * total_num_snapshot + 1;
+        const int N = hlpod_ddhr->num_elems[m];
+
+        /* A 全体を row-major で作る（最小限：初期ブロック分だけ使う） */
+        double **matrix = BB_std_calloc_2d_double(matrix, K, N);
+        for (int j=0; j<K; ++j){
+            for (int i=0; i<N; ++i)
+                matrix[j][i] = hlpod_ddhr->matrix[j][i][m];
+        }
+
+        /* 初期ブロック SVD → g_svd[m] に保存 */
+        init_with_first_block_by_monolis(&g_svd[m], matrix, K, N, r_max, svd_tol, comm, scalapack_comm);
+
+        /* 行列はここでは不要になったので開放 */
+        BB_std_free_2d_double(matrix, K, N);
+    }
+}
+
+
+void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
+    MONOLIS_COM*   monolis_com,
+    BBFE_DATA*     fe,
+    BBFE_BC*       bc,
+    HLPOD_VALUES*  hlpod_vals,
+    HLPOD_DDHR*    hlpod_ddhr,
+    HLPOD_MAT*     hlpod_mat,
+    HLPOD_META*    hlpod_meta,
+    const int      total_num_elem,
+    const int      total_num_snapshot,
+    const int      total_num_modes,
+    const int      num_subdomains,
+    const int      max_iter,   /* NNLS: 未使用 */
+    const double   tol,        /* NNLS: 未使用 */
+    const int      dof,
+    const char*    directory)
+{
+    /* 初期化がまだなら安全のため作る（U,V=NULL のままでも incsvd_update は呼ばない） */
+    ensure_svd_states(num_subdomains);
+
+    const int r_max   = total_num_modes;
+    const double svd_tol = 1.0e-15;
+
+    for (int m = 0; m < num_subdomains; ++m) {
+
+        const int K = hlpod_ddhr->num_modes_1stdd[m] * total_num_snapshot + 1;
+        const int N = hlpod_ddhr->num_elems[m];
+        //const int N0 = (N < g_block_cols ? N : g_block_cols);
+
+        /* g_svd[m] が未初期化ならスキップ（先に init を呼んでください） */
+        if (g_svd[m].U == NULL || g_svd[m].V == NULL || g_svd[m].sigma == NULL){
+            fprintf(stderr, "[incsvd_update] subdomain %d: SVD state not initialized. Call init first.\n", m);
+            continue;
+        }
+
+        /* A を row-major で作成（更新では全体のうち N0 以降の列だけ使う） */
+        double **matrix = BB_std_calloc_2d_double(matrix, K, N);
+        for (int j=0; j<K; ++j){
+            for (int i=0; i<N; ++i)
+                matrix[j][i] = hlpod_ddhr->matrix[j][i][m];
+        }
+
+        /* 残り列を BLOCK ごとに追加 */
+        for (int j0 = N; j0 < N; j0 += g_block_cols){
+            int Delta = (j0 + g_block_cols <= N ? g_block_cols : (N - j0));
+            CMat B = copy_block_colmajor_from_rowmajor(matrix, K, N, j0, Delta);
+            incsvd_update(&g_svd[m], &B, r_max, svd_tol);
+            cm_free(&B);
+        }
+
+        BB_std_free_2d_double(matrix, K, N);
+    }
+}
+
 void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
     MONOLIS_COM*   monolis_com,
     BBFE_DATA*     fe,
@@ -503,62 +591,38 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
     const int      dof,
     const char*    directory)
 {
-    (void)monolis_com; (void)fe; (void)bc; (void)hlpod_vals; (void)hlpod_mat;
-    (void)hlpod_meta; (void)total_num_elem; (void)max_iter; (void)dof; (void)directory;
+    const int max_ITER = (max_iter>0 ? max_iter : 1000);
+    const double TOL = (tol>0 ? tol : 1.0e-10);
 
-    const int max_ITER = 1000;
-    const double TOL = 1.0e-10;
-
+    /* ここでは g_svd[m] が「全列取り込み済み」である前提（init→update を済ませる） */
     for (int m = 0; m < num_subdomains; ++m) {
 
-        const int K = 2 * hlpod_ddhr->num_modes_1stdd[m] * total_num_snapshot + 1;
-        const int N = hlpod_ddhr->num_elems[m];
-
-        double *ans_vec = BB_std_calloc_1d_double(NULL, N);
-        double **matrix = BB_std_calloc_2d_double(NULL, K, N);
-        double *RH = BB_std_calloc_1d_double(NULL, K);
-
-        for (int j=0; j<K; ++j){
-            for (int i=0; i<N; ++i) matrix[j][i] = hlpod_ddhr->matrix[j][i][m];
-            RH[j] = hlpod_ddhr->RH[j][m];
+        if (g_svd[m].U == NULL || g_svd[m].V == NULL || g_svd[m].sigma == NULL){
+            fprintf(stderr, "[finalize] subdomain %d: SVD state not ready.\n", m);
+            continue;
         }
 
-        const int comm = monolis_mpi_get_self_comm();
-        int scalapack_comm; monolis_scalapack_comm_initialize(comm, &scalapack_comm);
+        const int K = g_svd[m].K;
+        const int N = g_svd[m].N;
 
-        /* === Incremental SVD 開始 === */
-        const int BLOCK = 512;             /* 列ブロック幅（環境に合わせ調整） */
-        const int r_max = total_num_modes; /* ランク上限 */
-        const double svd_tol = 1.0e-10;    /* SVD 相対しきい値 */
+        /* 右辺 b を構築 */
+        double *RH = BB_std_calloc_1d_double(RH, K);
+        for (int j=0; j<K; ++j) RH[j] = hlpod_ddhr->RH[j][m];
 
-        /* ① 初期ブロック（monolis で SVD） */
-        int N0 = (N < BLOCK ? N : BLOCK);
-        IncSVD Sstate = {0};
-        init_with_first_block_by_monolis(&Sstate, matrix, K, N0, r_max, svd_tol, comm, scalapack_comm);
-
-        /* ② 残りの列を増分追加 */
-        for (int j0 = N0; j0 < N; j0 += BLOCK){
-            int Delta = (j0 + BLOCK <= N ? BLOCK : (N - j0));
-            CMat B = copy_block_colmajor_from_rowmajor(matrix, K, N, j0, Delta);
-            incsvd_update(&Sstate, &B, r_max, svd_tol);
-            cm_free(&B);
-        }
-
-        /* ③ 圧縮系を構築（G_k=ΣV^T, b_k=U^T RH） */
+        /* 圧縮系 G_k=ΣV^T, b_k=U^T b を作る */
         double **G_k = NULL; double *b_k = NULL;
-        build_compressed_system_from_incsvd(&Sstate, RH, &G_k, &b_k);
+        build_compressed_system_from_incsvd(&g_svd[m], RH, &G_k, &b_k);
 
-        /* ④ NNLS（圧縮サイズ r×N） */
+
+        /* NNLS を解く */
+        double *ans_vec = BB_std_calloc_1d_double(ans_vec, N);
         double residual = 0.0;
         monolis_optimize_nnls_R_with_sparse_solution(
-            G_k, b_k, ans_vec, Sstate.r, Sstate.N, max_ITER, TOL, &residual);
+            G_k, b_k, ans_vec, g_svd[m].r, hlpod_ddhr->num_elems[m], max_ITER, TOL, &residual);
 
-        /* 後片付け */
-        BB_std_free_2d_double(matrix, K, N);
-        free(RH);
-        BB_std_free_2d_double(G_k, Sstate.r, Sstate.N);
-        free(b_k);
-        free(Sstate.U); free(Sstate.V); free(Sstate.sigma);
-        free(ans_vec);
+        g_svd[m].K = g_svd[m].N = g_svd[m].r = 0;
     }
+
+    /* すべて終わったら配列も解放（再利用するなら解放しない） */
+    free(g_svd); g_svd=NULL; g_svd_count=0;
 }

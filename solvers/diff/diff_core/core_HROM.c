@@ -377,7 +377,6 @@ void HROM_pre_offline2(
 
 }
 
-
 void HROM_pre_online(
 		FE_SYSTEM* sys,
         ROM*            rom,

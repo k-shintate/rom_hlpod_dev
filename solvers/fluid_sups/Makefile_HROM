@@ -16,7 +16,7 @@ LIBS_ROM     = -L./../../lib -lrom_BB -lrom_std -lrom_sys -lrom_ecm
 SRC_DIR := ./fluid_sups_core ./fluid_sups_matvec
 SRC     := $(wildcard $(addsuffix /*.c,$(SRC_DIR)))
 OBJ1    := $(patsubst %.c,%.o,$(SRC)) ./fluid_sups_main/main_offline_FOM.o
-OBJ2    := $(patsubst %.c,%.o,$(SRC)) ./fluid_sups_main/main_offline_ROM.o
+OBJ2    := $(patsubst %.c,%.o,$(SRC)) ./fluid_sups_main/main_offline_ROM_incsvd.o
 OBJ3    := $(patsubst %.c,%.o,$(SRC)) ./fluid_sups_main/main_online_HROM.o
 
 TARGET1 := hlpod_fluid_sups_offline_FOM

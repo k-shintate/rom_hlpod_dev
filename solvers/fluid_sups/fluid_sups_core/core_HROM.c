@@ -753,3 +753,107 @@ void HROM_std_hlpod_online_pre(
     }
 }
 
+
+
+
+void HROM_pre_offline2_inc_svd1(
+		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
+		const int num_modes,
+		const int num_snapshot,
+		const int num_2nd_subdomains)
+{
+    ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
+        &(sys->mono_com_rom_solv),
+        &(sys->fe),
+        &(sys->bc),
+        &(rom->hlpod_vals),
+        &(hrom->hlpod_ddhr),
+        &(rom->hlpod_mat),
+        &(rom->hlpod_meta),
+        sys->fe.total_num_elems,
+        rom->hlpod_vals.num_snapshot,
+        rom->hlpod_vals.num_modes_pre,
+        num_2nd_subdomains,
+        10000,
+        1.0e-8,
+        1,
+        sys->cond.directory);
+
+}
+
+void HROM_pre_offline2_inc_svd2(
+		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
+		const int num_modes,
+		const int num_snapshot,
+		const int num_2nd_subdomains)
+{
+    ddhr_lb_write_selected_elements_para_1line_incsvd_update(
+        &(sys->mono_com_rom_solv),
+        &(sys->fe),
+        &(sys->bc),
+        &(rom->hlpod_vals),
+        &(hrom->hlpod_ddhr),
+        &(rom->hlpod_mat),
+        &(rom->hlpod_meta),
+        sys->fe.total_num_elems,
+        rom->hlpod_vals.num_snapshot,
+        rom->hlpod_vals.num_modes_pre,
+        num_2nd_subdomains,
+        10000,
+        1.0e-8,
+        1,
+        sys->cond.directory);
+
+}
+
+void HROM_pre_offline2_inc_svd3(
+		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
+		const int num_modes,
+		const int num_snapshot,
+		const int num_2nd_subdomains)
+{
+    ddhr_set_matvec_RH_for_NNLS_para_volume_const(
+        &(sys->fe),
+        &(sys->vals),
+        &(sys->basis),
+        &(rom->hlpod_mat),
+        &(rom->hlpod_vals),
+        &(hrom->hlpod_ddhr),
+        rom->hlpod_vals.num_2nd_subdomains,
+        0 ,   //index 0 start
+        rom->hlpod_vals.num_snapshot,
+        1 + sys->mono_com.recv_n_neib,
+        sys->vals.dt,
+        0);
+
+    ddhr_lb_write_selected_elements_para_1line_incremental_svd(
+        &(sys->mono_com_rom_solv),
+        &(sys->fe),
+        &(sys->bc),
+        &(rom->hlpod_vals),
+        &(hrom->hlpod_ddhr),
+        &(rom->hlpod_mat),
+        &(rom->hlpod_meta),
+        sys->fe.total_num_elems,
+        rom->hlpod_vals.num_snapshot,
+        rom->hlpod_vals.num_modes_pre,
+        num_2nd_subdomains,
+        10000,
+        1.0e-8,
+        1,
+        sys->cond.directory);
+
+    ddhr_lb_get_selected_elements_internal_overlap(
+            &(hrom->hlpod_ddhr),
+            sys->cond.directory);
+
+    double t_tmp = monolis_get_time_global_sync();
+}
+
+

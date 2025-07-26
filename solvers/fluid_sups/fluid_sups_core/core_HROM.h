@@ -7,6 +7,7 @@
 #include "BBFE/manusol/manusol.h"
 
 #include "ecm_write.h"
+#include "inc_svd.h"
 //#include "hlpod_dataset.h"
 //#include "diff_dataset.h"
 
@@ -120,3 +121,27 @@ void HROM_std_hlpod_online_pre(
         const int 	 dof,
         const char*  metagraph,
         const char*  directory);
+
+void HROM_pre_offline2_inc_svd1(
+		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
+		const int num_modes,
+		const int num_snapshot,
+		const int num_2nd_subdomains);
+
+void HROM_pre_offline2_inc_svd2(
+		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
+		const int num_modes,
+		const int num_snapshot,
+		const int num_2nd_subdomains);
+
+void HROM_pre_offline2_inc_svd3(
+		FE_SYSTEM* sys,
+        ROM*            rom,
+        HROM*           hrom,
+		const int num_modes,
+		const int num_snapshot,
+		const int num_2nd_subdomains);

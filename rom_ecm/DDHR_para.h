@@ -27,6 +27,16 @@ void ddhr_memory_allocation_para(
         const int       total_num_modes,
 		const int		num_subdomains);
 
+void ddhr_memory_free_para(
+        HLPOD_VALUES*   hlpod_vals,
+	    HLPOD_DDHR*     hlpod_ddhr,
+		HLPOD_MAT*      hlpod_mat,
+        const int       total_num_nodes,
+        const int       total_num_elem,
+        const int       total_num_snapshot,
+        const int       total_num_modes,
+		const int		num_subdomains);
+
 /*for visualization*/
 void ddhr_set_selected_elems_para(
 		BBFE_DATA*     	fe,
