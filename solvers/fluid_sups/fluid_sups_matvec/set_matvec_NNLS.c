@@ -232,7 +232,7 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
                                 }
 
                                 for(int k1 = IS; k1 < IE; k1++) {
-                                    int index = ns * hlpod_vals->n_neib_vec + k1;
+                                    int index = ns*hlpod_vals->n_neib_vec + k1;
 
                                     hlpod_ddhr->matrix[index][m][n] += local_vec[k1];
                                     hlpod_ddhr->RH[index][n] += local_vec[k1];
