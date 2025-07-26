@@ -26,6 +26,10 @@ typedef struct {
 /* 列ブロック B（K×Delta）を追加して U,Σ,V を更新（Brand 型） */
 void incsvd_update(IncSVD* S, const CMat *B, int r_max, double tol);
 
+/* 行ブロック（ΔK × N）を追加して S を更新 */
+void incsvd_update_rows(IncSVD* S, const CMat *Brow, int r_max, double tol);
+
+
 /* Incremental SVD + 圧縮 NNLS 本体（ユーザ関数） */
 void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
     MONOLIS_COM*   monolis_com,

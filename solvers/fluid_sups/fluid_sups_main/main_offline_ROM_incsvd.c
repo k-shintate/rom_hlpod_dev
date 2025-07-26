@@ -314,11 +314,11 @@ int main (
 		double calctime_hr_t1 = monolis_get_time();
 
         if(step_rom==50){
-            HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains);
-            step_inc_svd = 0;
+            //HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains);
+            //step_inc_svd = 0;
         }
         if(step_rom==100){
-            HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains);
+            //HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains);
         }
 
 
@@ -341,7 +341,7 @@ int main (
 		}
 	}
 
-    HROM_pre_offline2_inc_svd3(&sys, &(sys.rom_sups), &(sys.hrom_sups), sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains);
+    HROM_pre_offline2_inc_svd3(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
 
 	BBFE_fluid_finalize(&(sys.fe), &(sys.basis));
 	BBFE_sys_memory_free_Dirichlet_bc(&(sys.bc), sys.fe.total_num_nodes, 4);

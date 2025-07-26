@@ -779,7 +779,7 @@ void ddhr_lb_write_selected_elements_para_1line_svd(
         hlpod_ddhr->num_elems[m],
         10e-10);
 
-    k = 10;
+    k = 100;
 
     double** S_k = BB_std_calloc_2d_double(S_k, NNLS_row, k);
 
