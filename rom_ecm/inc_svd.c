@@ -541,7 +541,7 @@ void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
     const int comm = monolis_mpi_get_self_comm();
     int scalapack_comm; monolis_scalapack_comm_initialize(comm, &scalapack_comm);
 
-        const int K = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot + 1;
+        const int K = 2 * hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot + 1;
         const int N = hlpod_ddhr->num_elems[0];
         //if (N <= 0 || K <= 0){ g_svd[0].K=g_svd[0].N=g_svd[0].r=0; g_svd[0].U=g_svd[0].V=g_svd[0].sigma=NULL; continue; }
 
