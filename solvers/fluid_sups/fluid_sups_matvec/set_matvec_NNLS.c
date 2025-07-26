@@ -298,8 +298,8 @@ void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
             
             //printf("\n\nvol = %f\n", vol);
             //printf("hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] = %f\n", hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n]);
-            hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] += vol;
-            hlpod_ddhr->RH[2*(hlpod_vals->n_neib_vec)*num_snapshot][n] += vol; 
+            hlpod_ddhr->matrix[(hlpod_vals->n_neib_vec)*num_snapshot / 2][m][n] += vol;
+            hlpod_ddhr->RH[(hlpod_vals->n_neib_vec)*num_snapshot / 2][n] += vol; 
         }
     }
     

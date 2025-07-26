@@ -833,7 +833,7 @@ void HROM_pre_offline2_inc_svd3(
 		const int num_snapshot,
 		const int num_2nd_subdomains)
 {
-
+/*
     ddhr_set_matvec_RH_for_NNLS_para_volume_const(
         &(sys->fe),
         &(sys->vals),
@@ -847,9 +847,9 @@ void HROM_pre_offline2_inc_svd3(
         1 + sys->mono_com.recv_n_neib,
         sys->vals.dt,
         0);
-
-    //ddhr_lb_write_selected_elements_para_1line_incremental_svd(
-    ddhr_lb_write_selected_elements_para_1line_svd(
+*/
+    ddhr_lb_write_selected_elements_para_1line_incremental_svd(
+    //ddhr_lb_write_selected_elements_para_1line_svd(
         &(sys->mono_com_rom_solv),
         &(sys->fe),
         &(sys->bc),

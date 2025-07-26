@@ -314,13 +314,21 @@ int main (
 		double calctime_hr_t1 = monolis_get_time();
 
         if(step_rom==50){
-            //HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains);
-            //step_inc_svd = 0;
+            HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
+            step_inc_svd = 0;
         }
         if(step_rom==100){
-            //HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains,sys.rom_prm_v.num_subdomains);
+            HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
+            step_inc_svd = 0;
         }
-
+        if(step_rom==150){
+            HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
+            step_inc_svd = 0;
+        }
+        if(step_rom==200){
+            HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
+            step_inc_svd = 0;
+        }
 
 		double calctime_fem_t2 = monolis_get_time();
 		solver_fom(sys, t, step_rom);	

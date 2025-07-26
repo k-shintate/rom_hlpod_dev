@@ -541,7 +541,7 @@ void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
     const int comm = monolis_mpi_get_self_comm();
     int scalapack_comm; monolis_scalapack_comm_initialize(comm, &scalapack_comm);
 
-        const int K = 2 * hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot + 1;
+        const int K = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot / 2 + 1;
         const int N = hlpod_ddhr->num_elems[0];
         //if (N <= 0 || K <= 0){ g_svd[0].K=g_svd[0].N=g_svd[0].r=0; g_svd[0].U=g_svd[0].V=g_svd[0].sigma=NULL; continue; }
 
@@ -595,7 +595,7 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
         //    continue;
         //}
 
-    const int K_total = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot + 1; /* 目標の全行数 */
+    const int K_total = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot /2  + 1; /* 目標の全行数 */
     const int N       = hlpod_ddhr->num_elems[0];
 
     /* すでに取り込んだ行数（初期化で K0 行を取り込んだとして）*/
@@ -622,16 +622,17 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
         incsvd_update_rows(&g_svd[0], &Brow, r_max, svd_tol);  /* ← 行追加 */
         cm_free(&Brow);
     }
-
+/*
     g_block_cols =  1;
     for (int i0 = K_total-1; i0 < K_total; i0 += g_block_cols){
         int DeltaK = (i0 + g_block_cols <= K_total ? g_block_cols : (K_total - i0));
         CMat Brow = copy_rowblock_colmajor_from_rowmajor(matrix, K_total, N, i0, DeltaK);
-        incsvd_update_rows(&g_svd[0], &Brow, r_max, svd_tol);  /* ← 行追加 */
+        incsvd_update_rows(&g_svd[0], &Brow, r_max, svd_tol);
         cm_free(&Brow);
     }
 
     BB_std_free_2d_double(matrix, K_total, N);
+*/
 }
 
 /* ========= ③ 最終化（圧縮 NNLS） ========= */
