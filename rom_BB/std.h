@@ -9,15 +9,45 @@ double ROM_BB_sum(
     const int end,
     double* x);
 
+void ROM_BB_matvec(
+    double** A,
+    double* x,
+    double* y,
+    const int rows,
+    const int cols);
+
+void ROM_BB_matmat(
+    double** A,
+    double** B,
+    double** C,
+    const int m,
+    const int k,
+    const int n);
+
+void ROM_BB_transposemat_mat(
+    double** A,  // A: m x k
+    double** B,  // B: m x n
+    double** C,  // C: k x n
+    const int m,
+    const int k,
+    const int n);
+
+void ROM_BB_transposemat_vec(
+    double** A,  // A: m x n
+    double* b,   // b: m
+    double* y,   // y: n
+    const int m,
+    const int n);
+
 void ROM_BB_vec_copy(
-		double*  vec1,	//input
-		double*  vec2,	//output
-		const int num);
+    double*  vec1,	//input
+    double*  vec2,	//output
+    const int num);
 
 void ROM_BB_vec_copy_2d_to_1d(
-		double**  in,
-		double*   out,
-		const int num);
+    double**  in,
+    double*   out,
+    const int num);
 
 int ROM_BB_findMax(
     int array[],
@@ -45,7 +75,7 @@ int*** ROM_BB_calloc_3d_int(
 	const int  size3);
 
 int ROM_BB_gauss_elimination(
-        int n,
-        double **A,
-        double *b,
-        double *x);
+    int n,
+    double **A,
+    double *b,
+    double *x);

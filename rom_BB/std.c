@@ -12,6 +12,80 @@ double ROM_BB_sum(
     return sum;
 }
 
+
+void ROM_BB_matvec(
+    double** A,
+    double* x,
+    double* y,
+    const int rows,
+    const int cols)
+{
+    for (int i = 0; i < rows; i++) {
+        double sum = 0.0;
+        for (int j = 0; j < cols; j++) {
+            sum += A[i][j] * x[j];
+        }
+        y[i] = sum;
+    }
+}
+
+void ROM_BB_matmat(
+    double** A,
+    double** B,
+    double** C,
+    const int m,
+    const int k,
+    const int n)
+{
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            double sum = 0.0;
+            for (int p = 0; p < k; p++) {
+                sum += A[i][p] * B[p][j];
+            }
+            C[i][j] = sum;
+        }
+    }
+}
+
+void ROM_BB_transposemat_mat(
+    double** A,  // A: m x k
+    double** B,  // B: m x n
+    double** C,  // C: k x n
+    const int m,
+    const int k,
+    const int n)
+{
+    for (int i = 0; i < k; i++) {
+        for (int j = 0; j < n; j++) {
+            double sum = 0.0;
+            for (int p = 0; p < m; p++) {
+                sum += A[p][i] * B[p][j]; // (A^T * B)[i][j] = Σ_p A[p][i] * B[p][j]
+            }
+            C[i][j] = sum;
+        }
+    }
+}
+
+void ROM_BB_transposemat_vec(
+    double** A,  // A: m x n
+    double* b,   // b: m
+    double* y,   // y: n
+    const int m,
+    const int n)
+{
+    for (int i = 0; i < n; i++) {
+        double sum = 0.0;
+        for (int j = 0; j < m; j++) {
+            sum += A[j][i] * b[j]; // y[i] = Σ_j A[j][i] * b[j]
+        }
+        y[i] = sum;
+    }
+}
+
+
+
+
 void ROM_BB_vec_copy(
 		double*  in,	//input
 		double*  out,	//output

@@ -32,6 +32,23 @@ void ddhr_lb_write_selected_elements_para_1line(
         const int       dof,
 		const char*		directory);
 
+void ddhr_lb_write_selected_elements_para_1line_svd(
+	MONOLIS_COM*  	monolis_com,
+	BBFE_DATA*     	fe,
+	BBFE_BC*     	bc,
+    HLPOD_VALUES* 	hlpod_vals,
+	HLPOD_DDHR*     hlpod_ddhr,
+	HLPOD_MAT*      hlpod_mat,
+	HLPOD_META*		hlpod_meta,
+	const int       total_num_elem,
+	const int       total_num_snapshot,
+	const int       total_num_modes,
+	const int 		num_subdomains,
+	const int       max_iter, //NNLS
+	const double    tol,      //NNLS
+    const int       dof,
+	const char*		directory);
+
 void get_meta_neib(
 		MONOLIS_COM*  	monolis_com,
 		HLPOD_META*		hlpod_meta,

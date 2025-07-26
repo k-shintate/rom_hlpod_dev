@@ -339,7 +339,7 @@ void HROM_pre_offline2(
         sys->vals.dt,
         0);
 
-    ddhr_lb_write_selected_elements_para_1line(
+    ddhr_lb_write_selected_elements_para_1line_svd(
         &(sys->mono_com_rom_solv),
         &(sys->fe),
         &(sys->bc),
