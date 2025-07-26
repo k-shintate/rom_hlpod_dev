@@ -200,6 +200,7 @@ int main (
 	if(monolis_mpi_get_global_my_rank() == 0){
         ROM_std_hlpod_write_solver_prm_fopen("fem_solver_prm", sys.cond.directory);
 		ROM_std_hlpod_write_solver_prm_fopen("pod_solver_prm", sys.cond.directory);
+        ROM_std_hlpod_write_solver_prm_fopen("hr_solver_prm", sys.cond.directory);
 	}
 
     ROM_online_read_calc_conditions(&(sys.vals), sys.cond.directory);
@@ -317,7 +318,7 @@ int main (
 
 		/**********************************/
 
-		double calctime_hr_t2 = monolis_get_time();
+		double calctime_hrom_t2 = monolis_get_time();
 
 		if(monolis_mpi_get_global_comm_size() == 1){
 			//HROM_nonparallel(sys, &(sys.rom_sups), &(sys.hrom_sups), step_rom, 0, t);
@@ -326,18 +327,21 @@ int main (
 			HROM_hierarchical_parallel(sys, &(sys.rom_sups), &(sys.hrom_sups), step_rom, 0, t);
         }
 
-		double calctime_hr_t1 = monolis_get_time();
+		double calctime_hrom_t1 = monolis_get_time();
 
 		if(step_rom%sys.vals.output_interval == 0) {
 			HROM_output_files(&sys, file_num, t);
                         
             ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
 			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
+            ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "hr_solver_prm/", sys.cond.directory);
 
             ROM_std_hlpod_output_calc_time(calctime_fem_t2-calctime_fem_t1, t,
 					"calctime/time_fem.txt", sys.cond.directory);
             ROM_std_hlpod_output_calc_time(calctime_rom_t2-calctime_rom_t1, t,
 					"calctime/time_rom.txt", sys.cond.directory);
+            ROM_std_hlpod_output_calc_time(calctime_hrom_t2-calctime_hrom_t1, t,
+					"calctime/time_hrom.txt", sys.cond.directory);
 
 			file_num += 1;
 		}

@@ -34,10 +34,10 @@ mv cond.dat target_density.dat
 ./../../../test_thermal/bin/cmd2cond "#target_viscosity" double 1 1
 mv cond.dat target_viscosity.dat
 
-./../../../test_thermal/bin/cmd2cond "#snapshot_interval" int 1 1 "#rom_finish_time" double 1 1 "#rom_output_interval" int 1 1
+./../../../test_thermal/bin/cmd2cond "#snapshot_interval" int 1 1 "#rom_finish_time" double 1 0.5 "#rom_output_interval" int 1 1
 mv cond.dat rom_cond.dat
 
-./../../../test_thermal/bin/cmd2cond "#time_spacing" double 1 0.005 "#output_interval" int 1 1  "#finish_time" double 1 1
+./../../../test_thermal/bin/cmd2cond "#time_spacing" double 1 0.005 "#output_interval" int 1 1  "#finish_time" double 1 0.5
 
 ./../../../test_thermal/bin/meshgen_hex $e $e $e 1.0 1.0 1.0
 

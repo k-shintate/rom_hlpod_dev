@@ -655,6 +655,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 	const int 		num_subdomains,
 	const int       max_iter, //NNLS
 	const double    tol,      //NNLS
+    const int       dof,
 	const char*		directory)
 {
 	const int myrank = monolis_mpi_get_global_my_rank();
@@ -847,10 +848,12 @@ double t1 = monolis_get_time_global_sync();
 					int index_i = fe->conn[e][i];
 					int index_j = fe->conn[e][j];
 
-					if (bc->D_bc_exists[index_j]) {
-						bool_elem[h][m] = true;
-						hlpod_ddhr->D_bc_exists[index_j][m] = true;
-					}
+                    for(int k = 0; k < dof; k++) {
+					    if (bc->D_bc_exists[index_j*dof + k]) {
+						    bool_elem[h][m] = true;
+    						hlpod_ddhr->D_bc_exists[index_j][m] = true;
+	    				}
+                    }
 				}
 			}
 		}

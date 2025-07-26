@@ -29,6 +29,7 @@ void ddhr_lb_write_selected_elements_para_1line(
 		const int 		num_subdomains,
         const int       max_iter, //NNLS
         const double    tol,      //NNLS
+        const int       dof,
 		const char*		directory);
 
 void get_meta_neib(

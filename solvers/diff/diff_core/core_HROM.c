@@ -365,6 +365,7 @@ void HROM_pre_offline2(
             num_2nd_subdomains,
             10000,
             1.0e-8,
+            1,
             sys->cond.directory);
 
         ddhr_lb_get_selected_elements_internal_overlap(

@@ -217,13 +217,14 @@ int main (
 
     monolis_initialize(&(sys.monolis_rom0));
 
-    ROM_std_hlpod_online_pre(
+    HROM_std_hlpod_online_pre(
             &(sys.monolis_rom0),
             &(sys.mono_com),
             &(sys.mono_com_rom),
             &(sys.mono_com_rom_solv),
             &(sys.rom_sups),
             sys.fe.total_num_nodes,
+            4,
             metagraph_name,
             sys.cond.directory);
         
