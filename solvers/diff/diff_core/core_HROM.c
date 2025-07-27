@@ -651,7 +651,6 @@ void HROM_nonparallel(
         output_hr_monolis_solver_prm(&(sys.monolis_hr), sys.cond.directory, t);
     }
 }
-/******************************/
 
 void HROM_hierarchical_parallel(
     FE_SYSTEM   sys,
@@ -732,12 +731,9 @@ void HROM_hierarchical_parallel(
         &(sys.monolis_com),
         &(sys.fe),
         &(sys.hrom.hr_vals),
-        //&(sys.hrom.hlpod_ddhr),
         &(sys.rom.hlpod_mat),
-        //&(sys.bc),
         sys.rom.hlpod_vals.num_2nd_subdomains,
         1);
-//		sys.rom.hlpod_vals.num_modes_pre);
 
 	ROM_sys_hlpod_fe_add_Dbc(
         sys.hrom.hr_vals.sol_vec,
@@ -810,7 +806,6 @@ void HROM_memory_allocation(
                 rom->hlpod_vals.num_2nd_subdomains,
                 sys->cond.directory);
 
-        //基底本数の分布が決定されてからメモリ割り当て
         ddhr_memory_allocation_para(
                 &(rom->hlpod_vals),
                 &(hrom->hlpod_ddhr),

@@ -232,15 +232,32 @@ int main (
     ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
     /********************/
 
+
+    /*for ROM set vals***/
+    read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                      //set vals
+    memory_allocation_nodal_values(&(sys.vals_rom), sys.fe.total_num_nodes);        //set vals
+
+	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
+	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
+
+    ROM_std_hlpod_online_memory_allocation_ansvec(&(sys.rom_sups.hlpod_vals), sys.fe.total_num_nodes, 4);
+
+	set_target_parameter(&(sys.vals), sys.cond.directory);
+	set_target_parameter(&(sys.vals_rom), sys.cond.directory);
+    ROM_offline_set_reynolds_num_cases(&(sys.vals_rom), sys.cond.directory);
+    ROM_offline_set_reynolds_num_cases(&(sys.vals), sys.cond.directory);
+    /*********************/
+
     /*for Hyper-reduction*/
     HROM_offline_read_calc_conditions_inc_svd(&(sys.hrom_sups.hr_vals), sys.cond.directory);
 
-	ROM_std_hlpod_offline_set_num_snapmat(
+	HROM_std_hlpod_offline_set_num_snapmat_inc_svd(
 			&(sys.rom_sups),
             sys.vals.finish_time,
             sys.vals.dt,
             sys.vals.snapshot_interval,
-            1);
+            sys.vals_rom.num_cases,
+            sys.hrom_sups.hr_vals.incsvd_interval);
 
     HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
     HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
@@ -253,20 +270,6 @@ int main (
         &(sys.rom_sups.hlpod_mat));
     /************************/
 
-
-    /**************************************************/
-
-    read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                      //set vals
-    memory_allocation_nodal_values(&(sys.vals_rom), sys.fe.total_num_nodes);        //set vals
-
-	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
-	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
-
-    ROM_std_hlpod_online_memory_allocation_ansvec(&(sys.rom_sups.hlpod_vals), sys.fe.total_num_nodes, 4);
-
-	set_target_parameter(&(sys.vals), sys.cond.directory);
-	set_target_parameter(&(sys.vals_rom), sys.cond.directory);
-
 	double FOM_t2 = monolis_get_time();
 	double ROM_t1 = monolis_get_time();
 
@@ -275,73 +278,81 @@ int main (
 	int step_rom = 0;
     int step_inc_svd = 0;
     int num_inc_svd = 0;
+    int count = 0;
 
-	while (t < sys.vals.rom_finish_time) {
-		t += sys.vals.dt;
-		step_rom += 1;
-        step_inc_svd += 1;
+	for(int i = 0; i < sys.vals.num_cases; i++){
+		ROM_offline_set_reynolds_number(&(sys.vals), i);
+        ROM_offline_set_reynolds_number(&(sys.vals_rom), i);
+	
+		t = 0.0; step_rom = 0; step_inc_svd = 0; file_num = 0; count = 0;
+        
+        while (t < sys.vals.rom_finish_time) {
+            t += sys.vals.dt;
+            step_rom += 1;
+            step_inc_svd += 1;
 
-		printf("\n%s ----------------- step-ROM %d ----------------\n", CODENAME, step_rom);
+            printf("\n%s ----------------- step-ROM %d ----------------\n", CODENAME, step_rom);
 
-		/***************FEM***************/
-		
-		printf("----------------- normal-FEM ----------------\n");
-        /**********************************/
-		
-		/****************ROM***************/
-		printf("----------------- ROM ----------------\n");
+            /***************FEM***************/
+            
+            printf("----------------- normal-FEM ----------------\n");
+            /**********************************/
+            
+            /****************ROM***************/
+            printf("----------------- ROM ----------------\n");
 
-		double calctime_rom_t2 = monolis_get_time();
-		if(sys.rom_sups.hlpod_vals.bool_global_mode==false){
-			solver_rom(&(sys), step_rom, 0, t);
-		}
-		else{
-			solver_rom_global_para(
-						&(sys.monolis),
-						&(sys.mono_com),
-						&(sys.rom_sups),
-						&(sys),
-						step_rom,
-						0,
-						t);
-		}
-		double calctime_rom_t1 = monolis_get_time();
+            double calctime_rom_t2 = monolis_get_time();
+            if(sys.rom_sups.hlpod_vals.bool_global_mode==false){
+                solver_rom(&(sys), step_rom, 0, t);
+            }
+            else{
+                solver_rom_global_para(
+                            &(sys.monolis),
+                            &(sys.mono_com),
+                            &(sys.rom_sups),
+                            &(sys),
+                            step_rom,
+                            0,
+                            t);
+            }
+            double calctime_rom_t1 = monolis_get_time();
 
-		/**********************************/
+            /**********************************/
 
-		double calctime_hr_t2 = monolis_get_time();
-        HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_inc_svd,t);
-		double calctime_hr_t1 = monolis_get_time();
+            double calctime_hr_t2 = monolis_get_time();
+            HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_inc_svd,t);
+            double calctime_hr_t1 = monolis_get_time();
 
-        if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd==0){
-            HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
-            step_inc_svd = 0;
-            num_inc_svd ++;
+            if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd==0){
+                HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
+                step_inc_svd = 0;
+                num_inc_svd ++;
+            }
+            else if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd != 0){
+                HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
+                step_inc_svd = 0;
+                num_inc_svd ++;
+            }
+
+            double calctime_fem_t2 = monolis_get_time();
+            solver_fom(sys, t, step_rom);	
+            double calctime_fem_t1 = monolis_get_time();
+
+            if(step_rom%sys.vals.output_interval == 0) {
+                ROM_output_files(&sys, file_num, t);
+                            
+                ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
+                ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
+
+                ROM_std_hlpod_output_calc_time(calctime_fem_t2-calctime_fem_t1, t,
+                        "calctime/time_fem.txt", sys.cond.directory);
+                ROM_std_hlpod_output_calc_time(calctime_rom_t2-calctime_rom_t1, t,
+                        "calctime/time_rom.txt", sys.cond.directory);
+
+                file_num += 1;
+            }
         }
-        else if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd != 0){
-            HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
-            step_inc_svd = 0;
-            num_inc_svd ++;
-        }
-
-		double calctime_fem_t2 = monolis_get_time();
-		solver_fom(sys, t, step_rom);	
-		double calctime_fem_t1 = monolis_get_time();
-
-		if(step_rom%sys.vals.output_interval == 0) {
-			ROM_output_files(&sys, file_num, t);
-                        
-            ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
-			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
-
-            ROM_std_hlpod_output_calc_time(calctime_fem_t2-calctime_fem_t1, t,
-					"calctime/time_fem.txt", sys.cond.directory);
-            ROM_std_hlpod_output_calc_time(calctime_rom_t2-calctime_rom_t1, t,
-					"calctime/time_rom.txt", sys.cond.directory);
-
-			file_num += 1;
-		}
-	}
+    }
 
     HROM_pre_offline2_inc_svd3(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
 

@@ -25,7 +25,6 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
     int ns = index_snap*2;
     int nm = num_modes;
 
-
 	int nl = fe->local_num_nodes;
 	int np = basis->num_integ_points;
 
@@ -78,8 +77,6 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 				int subdomain_id = hlpod_mat->subdomain_id_in_nodes[index];
 				int IS = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id];
 				int IE = hlpod_ddhr->num_neib_modes_1stdd_sum[subdomain_id + 1];
-
-                //printf("\n\nns = %d, m = %d, n = %d, index = %d, IS = %d, IE = %d\n", ns, m, n, index, IS, IE);
 
                 for(int d=0; d<4; d++) {
                     integ_val[d] = BBFE_std_integ_calc(
@@ -142,7 +139,6 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 
 	double A[4][4];
 
-	//for(int e=0; e<(fe->total_num_elems); e++) {
 	for(int n=0; n < num_subdomains; n++) {
 		for(int m=0; m < hlpod_ddhr->num_elems[n]; m++) {
             int e = hlpod_ddhr->elem_id_local[m][n];
@@ -199,10 +195,6 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
                             if( bc->D_bc_exists[index_j*4+b]) {
                                 for(int k1 = IS; k1 < IE; k1++){
                                     double val = hlpod_mat->neib_vec[index_i*4+a][k1] * integ_val * bc->imposed_D_val[index_j*4+b];
-                                    //if(val != 0.0) {
-                                    //    printf("index_i = %d, index_j = %d, a = %d, b = %d, k1 = %d, integ_val = %e, val = %e\n", 
-                                    //            index_i, index_j, a, b, k1, integ_val, val);
-                                    //}
 
                                     hlpod_ddhr->matrix[ns*hlpod_vals->n_neib_vec + k1][m][n] += val;
                                     hlpod_ddhr->RH[ns*hlpod_vals->n_neib_vec + k1][n] += val;
@@ -298,8 +290,8 @@ void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
             
             //printf("\n\nvol = %f\n", vol);
             //printf("hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] = %f\n", hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n]);
-            hlpod_ddhr->matrix[(hlpod_vals->n_neib_vec)*num_snapshot / 2][m][n] += vol;
-            hlpod_ddhr->RH[(hlpod_vals->n_neib_vec)*num_snapshot / 2][n] += vol; 
+            hlpod_ddhr->matrix[(hlpod_vals->n_neib_vec)*num_snapshot][m][n] += vol;
+            hlpod_ddhr->RH[(hlpod_vals->n_neib_vec)*num_snapshot][n] += vol; 
         }
     }
     

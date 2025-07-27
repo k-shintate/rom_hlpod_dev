@@ -27,7 +27,7 @@ cp -r hlpod_diff_online_HROM ./../../$directory
 
 cd ./../../$directory
 
-mkdir -p {pod_modes_vtk,pod_modes,fem_solver_prm,hr_solver_prm,pod_solver_prm,calctime,DDECM,hr_param}
+mkdir -p {pod_modes_vtk,pod_modes,fem_solver_prm,hr_solver_prm,pod_solver_prm,calctime,DDECM,hr_prm}
 for ((i=0; i<nd; i++))
 do
     mkdir -p "pod_modes/subdomain${i}"

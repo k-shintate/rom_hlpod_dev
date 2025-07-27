@@ -1,10 +1,4 @@
 
-/*
-#include "hlpod_write.h"
-#include "hlpod_write_fe.h"
-#include "HR.h"
-*/
-
 #include "HR.h"
 
 static const int BUFFER_SIZE = 10000;

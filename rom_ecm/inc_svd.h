@@ -43,8 +43,6 @@ void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
     const int      total_num_snapshot,
     const int      total_num_modes,
     const int      num_subdomains,
-    const int      max_iter,   /* NNLS: 未使用 */
-    const double   tol,        /* NNLS: 未使用 */
     const int      dof,
     const char*    directory);
 
@@ -60,8 +58,6 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
     const int      total_num_snapshot,
     const int      total_num_modes,
     const int      num_subdomains,
-    const int      max_iter,   /* NNLS: 未使用 */
-    const double   tol,        /* NNLS: 未使用 */
     const int      dof,
     const char*    directory);
 

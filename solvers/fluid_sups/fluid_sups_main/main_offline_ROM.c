@@ -231,32 +231,7 @@ int main (
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
     /********************/
 
-    /*for Hyper-reduction*/
-    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
-
-	ROM_std_hlpod_offline_set_num_snapmat(
-			&(sys.rom_sups),
-            sys.vals.finish_time,
-            sys.vals.dt,
-            sys.vals.snapshot_interval,
-            1);
-
-    HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
-    HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
-    /*********************/
-
-    /*for Hyper-reduction*/
-    hlpod_hr_sys_set_bc_id(
-        &(sys.fe),
-        (&sys.bc),
-        &(sys.hrom_sups.hlpod_ddhr),
-        4,
-        &(sys.rom_sups.hlpod_mat));
-    /************************/
-
-
-    /**************************************************/
-
+    /*for ROM set vals***/
     read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                      //set vals
     memory_allocation_nodal_values(&(sys.vals_rom), sys.fe.total_num_nodes);        //set vals
 
@@ -267,6 +242,29 @@ int main (
 
 	set_target_parameter(&(sys.vals), sys.cond.directory);
 	set_target_parameter(&(sys.vals_rom), sys.cond.directory);
+    /*********************/
+
+    /*for Hyper-reduction*/
+    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
+
+	ROM_std_hlpod_offline_set_num_snapmat(
+			&(sys.rom_sups),
+            sys.vals.finish_time,
+            sys.vals.dt,
+            sys.vals.snapshot_interval,
+            sys.vals_rom.num_cases);
+
+    HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
+    HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
+
+    hlpod_hr_sys_set_bc_id(
+        &(sys.fe),
+        (&sys.bc),
+        &(sys.hrom_sups.hlpod_ddhr),
+        4,
+        &(sys.rom_sups.hlpod_mat));
+    /************************/
+
 
 	double FOM_t2 = monolis_get_time();
 	double ROM_t1 = monolis_get_time();

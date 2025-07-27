@@ -1,17 +1,3 @@
-//DDHROMに関して、オーバーラップ要素を含んで計算する方式
-//内部要素の総和が分割前の要素数の総和になることを利用
-
-/*
-#include "rom_dataset.h"
-#include "diff_dataset.h"
-#include "hlpod_write_fe.h"
-#include "hlpod_write.h"
-#include "std.h"
-#include "hlpod_read.h"
-
-#include "monolis_nnls_c.h"
-*/
-
 
 #include "DDHR_para.h"
 
@@ -26,7 +12,6 @@ void memory_allocation_hr_sol_vec(
 {
     hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes*dof);
 }
-
 
 void ddhr_memory_allocation_para_online(
         HLPOD_VALUES*   hlpod_vals,
@@ -56,9 +41,9 @@ void ddhr_memory_allocation_para(
 		max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 	}
 
-//for NNLS
-    hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, 2*total_num_snapshot*hlpod_vals->n_neib_vec / 4 +1, max_num_elem, num_subdomains);
-    hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, 2*total_num_snapshot*hlpod_vals->n_neib_vec / 4 +1, num_subdomains);
+    //for NNLS
+    hlpod_ddhr->matrix = BB_std_calloc_3d_double(hlpod_ddhr->matrix, 2*total_num_snapshot*hlpod_vals->n_neib_vec +1, max_num_elem, num_subdomains);
+    hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, 2*total_num_snapshot*hlpod_vals->n_neib_vec +1, num_subdomains);
 }
 
 void ddhr_memory_free_para(

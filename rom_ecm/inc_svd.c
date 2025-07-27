@@ -8,283 +8,319 @@
 #include "monolis_wrapper_scalapack_c.h"
 #include "inc_svd.h"
 
+static const char* OUTPUT_FILENAME_RANK_INC_SVD = "rank_inc_svd.txt";
+
 /* ========= CMat ユーティリティ ========= */
 static inline CMat cm_alloc(int rows, int cols){
-  CMat M = {rows, cols, (double*)calloc((size_t)rows*cols, sizeof(double))};
-  return M;
+    CMat M = {rows, cols, (double*)calloc((size_t)rows*cols, sizeof(double))};
+    return M;
 }
+
 static inline void cm_free(CMat *M){ free(M->a); M->a=NULL; M->rows=M->cols=0; }
 static inline double cm_get(const CMat *M, int i, int j){ return M->a[(size_t)i + (size_t)j*M->rows]; }
 static inline void   cm_set(CMat *M, int i, int j, double v){ M->a[(size_t)i + (size_t)j*M->rows] = v; }
 static inline void   cm_copy(const CMat *A, CMat *B){
-  assert(A->rows==B->rows && A->cols==B->cols);
-  memcpy(B->a, A->a, (size_t)A->rows*A->cols*sizeof(double));
+    assert(A->rows==B->rows && A->cols==B->cols);
+    memcpy(B->a, A->a, (size_t)A->rows*A->cols*sizeof(double));
 }
 
 /* C = A*B (col-major) */
 static CMat matmul_nn(const CMat *A, const CMat *B){
-  assert(A->cols == B->rows);
-  int m=A->rows, k=A->cols, n=B->cols;
-  CMat C = cm_alloc(m,n);
-  for(int j=0;j<n;++j){
-    for(int p=0;p<k;++p){
-      double bpj = cm_get(B,p,j);
-      const double *ai = &A->a[(size_t)p*A->rows];
-      double *ci = &C.a[(size_t)j*C.rows];
-      for(int i=0;i<m;++i) ci[i] += ai[i]*bpj;
+    assert(A->cols == B->rows);
+    int m=A->rows, k=A->cols, n=B->cols;
+    CMat C = cm_alloc(m,n);
+    for(int j=0;j<n;++j){
+        for(int p=0;p<k;++p){
+        double bpj = cm_get(B,p,j);
+        const double *ai = &A->a[(size_t)p*A->rows];
+        double *ci = &C.a[(size_t)j*C.rows];
+        for(int i=0;i<m;++i) ci[i] += ai[i]*bpj;
+        }
     }
-  }
-  return C;
+    return C;
 }
 
 /* C = A^T * B */
 static CMat matmul_tn(const CMat *A, const CMat *B){
-  assert(A->rows == B->rows);
-  int m=A->rows, k=A->cols, n=B->cols;
-  CMat C = cm_alloc(k,n);
-  for(int j=0;j<n;++j){
-    for(int p=0;p<k;++p){
-      double s=0.0;
-      for(int i=0;i<m;++i) s += cm_get(A,i,p)*cm_get(B,i,j);
-      cm_set(&C,p,j,s);
+    assert(A->rows == B->rows);
+    int m=A->rows, k=A->cols, n=B->cols;
+    CMat C = cm_alloc(k,n);
+    for(int j=0;j<n;++j){
+        for(int p=0;p<k;++p){
+            double s=0.0;
+            for(int i=0;i<m;++i) s += cm_get(A,i,p)*cm_get(B,i,j);
+            cm_set(&C,p,j,s);
+        }
     }
-  }
-  return C;
+    return C;
 }
 
 static CMat mat_sub(const CMat *A, const CMat *B){
-  assert(A->rows==B->rows && A->cols==B->cols);
-  CMat C = cm_alloc(A->rows, A->cols);
-  int n=A->rows*A->cols;
-  for(int t=0;t<n;++t) C.a[t] = A->a[t] - B->a[t];
-  return C;
+    assert(A->rows==B->rows && A->cols==B->cols);
+    CMat C = cm_alloc(A->rows, A->cols);
+    int n=A->rows*A->cols;
+    for(int t=0;t<n;++t) C.a[t] = A->a[t] - B->a[t];
+    return C;
 }
 
 static CMat concat_cols(const CMat *A, const CMat *B){
-  assert(A->rows == B->rows);
-  CMat C = cm_alloc(A->rows, A->cols + B->cols);
-  for(int j=0;j<A->cols;++j)
-    memcpy(&C.a[(size_t)j*C.rows], &A->a[(size_t)j*A->rows], (size_t)A->rows*sizeof(double));
-  for(int j=0;j<B->cols;++j)
-    memcpy(&C.a[(size_t)(j+A->cols)*C.rows], &B->a[(size_t)j*B->rows], (size_t)B->rows*sizeof(double));
-  return C;
+    assert(A->rows == B->rows);
+    CMat C = cm_alloc(A->rows, A->cols + B->cols);
+    for(int j=0;j<A->cols;++j)
+        memcpy(&C.a[(size_t)j*C.rows], &A->a[(size_t)j*A->rows], (size_t)A->rows*sizeof(double));
+    for(int j=0;j<B->cols;++j)
+        memcpy(&C.a[(size_t)(j+A->cols)*C.rows], &B->a[(size_t)j*B->rows], (size_t)B->rows*sizeof(double));
+    return C;
 }
 
 static CMat block_diag(const CMat *A, const CMat *B){
-  CMat C = cm_alloc(A->rows + B->rows, A->cols + B->cols);
-  for(int j=0;j<A->cols;++j) for(int i=0;i<A->rows;++i) cm_set(&C,i,j, cm_get(A,i,j));
-  for(int j=0;j<B->cols;++j) for(int i=0;i<B->rows;++i) cm_set(&C, A->rows+i, A->cols+j, cm_get(B,i,j));
-  return C;
+    CMat C = cm_alloc(A->rows + B->rows, A->cols + B->cols);
+    for(int j=0;j<A->cols;++j) for(int i=0;i<A->rows;++i) cm_set(&C,i,j, cm_get(A,i,j));
+    for(int j=0;j<B->cols;++j) for(int i=0;i<B->rows;++i) cm_set(&C, A->rows+i, A->cols+j, cm_get(B,i,j));
+    return C;
 }
 
 static CMat eye(int n){
-  CMat Imat = cm_alloc(n,n);              /* "I" は complex.h と衝突するので使わない */
-  for(int i=0;i<n;++i) cm_set(&Imat, i, i, 1.0);
-  return Imat;
+    CMat Imat = cm_alloc(n,n);              /* "I" は complex.h と衝突するので使わない */
+    for(int i=0;i<n;++i) cm_set(&Imat, i, i, 1.0);
+    return Imat;
 }
 static CMat zeros(int m, int n){ return cm_alloc(m,n); }
 
 static CMat diag_from_vector(const double *sigma, int r){
-  CMat S = cm_alloc(r,r);
-  for(int i=0;i<r;++i) cm_set(&S, i, i, sigma[i]);
-  return S;
+    CMat S = cm_alloc(r,r);
+    for(int i=0;i<r;++i) cm_set(&S, i, i, sigma[i]);
+    return S;
 }
 
 static CMat block_2x2(const CMat *A11, const CMat *A12, const CMat *A21, const CMat *A22){
-  assert(A11->rows==A12->rows && A21->rows==A22->rows);
-  assert(A11->cols==A21->cols && A12->cols==A22->cols);
-  int r1=A11->rows, c1=A11->cols, r2=A22->rows, c2=A22->cols;
-  CMat K = cm_alloc(r1+r2, c1+c2);
-  for(int j=0;j<c1;++j) for(int i=0;i<r1;++i) cm_set(&K,i,j, cm_get(A11,i,j));
-  for(int j=0;j<c2;++j) for(int i=0;i<r1;++i) cm_set(&K,i,c1+j, cm_get(A12,i,j));
-  for(int j=0;j<c1;++j) for(int i=0;i<r2;++i) cm_set(&K,r1+i,j, cm_get(A21,i,j));
-  for(int j=0;j<c2;++j) for(int i=0;i<r2;++i) cm_set(&K,r1+i,c1+j, cm_get(A22,i,j));
-  return K;
+    assert(A11->rows==A12->rows && A21->rows==A22->rows);
+    assert(A11->cols==A21->cols && A12->cols==A22->cols);
+    int r1=A11->rows, c1=A11->cols, r2=A22->rows, c2=A22->cols;
+    CMat K = cm_alloc(r1+r2, c1+c2);
+    for(int j=0;j<c1;++j) for(int i=0;i<r1;++i) cm_set(&K,i,j, cm_get(A11,i,j));
+    for(int j=0;j<c2;++j) for(int i=0;i<r1;++i) cm_set(&K,i,c1+j, cm_get(A12,i,j));
+    for(int j=0;j<c1;++j) for(int i=0;i<r2;++i) cm_set(&K,r1+i,j, cm_get(A21,i,j));
+    for(int j=0;j<c2;++j) for(int i=0;i<r2;++i) cm_set(&K,r1+i,c1+j, cm_get(A22,i,j));
+    return K;
 }
 
 /* ========= QR（MGS2） ========= */
 static void qr_mgs2(const CMat *E, CMat *Q, CMat *R, double tol){
-  int K=E->rows, D=E->cols;
-  *Q = cm_alloc(K, D);
-  *R = cm_alloc(D, D);
-  int q=0;
-  for(int j=0;j<D;++j){
-    for(int i=0;i<K;++i) cm_set(Q, i, q, cm_get(E,i,j));
-    for(int k=0;k<q;++k){
-      double r = 0.0;
-      for(int i=0;i<K;++i) r += cm_get(Q,i,k)*cm_get(Q,i,q);
-      cm_set(R,k,j, r);
-      for(int i=0;i<K;++i) cm_set(Q, i, q, cm_get(Q,i,q) - r*cm_get(Q,i,k));
+    int K=E->rows, D=E->cols;
+    *Q = cm_alloc(K, D);
+    *R = cm_alloc(D, D);
+    int q=0;
+    for(int j=0;j<D;++j){
+        for(int i=0;i<K;++i) cm_set(Q, i, q, cm_get(E,i,j));
+        for(int k=0;k<q;++k){
+        double r = 0.0;
+        for(int i=0;i<K;++i) r += cm_get(Q,i,k)*cm_get(Q,i,q);
+        cm_set(R,k,j, r);
+        for(int i=0;i<K;++i) cm_set(Q, i, q, cm_get(Q,i,q) - r*cm_get(Q,i,k));
+        }
+        for(int k=0;k<q;++k){
+        double r = 0.0;
+        for(int i=0;i<K;++i) r += cm_get(Q,i,k)*cm_get(Q,i,q);
+        cm_set(R,k,j, cm_get(R,k,j)+r);
+        for(int i=0;i<K;++i) cm_set(Q, i, q, cm_get(Q,i,q) - r*cm_get(Q,i,k));
+        }
+        double nrm=0.0; for(int i=0;i<K;++i){ double v=cm_get(Q,i,q); nrm += v*v; }
+        nrm = sqrt(nrm);
+        if(nrm > tol){
+        cm_set(R,q,j, nrm);
+        for(int i=0;i<K;++i) cm_set(Q,i,q, cm_get(Q,i,q)/nrm);
+        ++q;
+        }
     }
-    for(int k=0;k<q;++k){
-      double r = 0.0;
-      for(int i=0;i<K;++i) r += cm_get(Q,i,k)*cm_get(Q,i,q);
-      cm_set(R,k,j, cm_get(R,k,j)+r);
-      for(int i=0;i<K;++i) cm_set(Q, i, q, cm_get(Q,i,q) - r*cm_get(Q,i,k));
-    }
-    double nrm=0.0; for(int i=0;i<K;++i){ double v=cm_get(Q,i,q); nrm += v*v; }
-    nrm = sqrt(nrm);
-    if(nrm > tol){
-      cm_set(R,q,j, nrm);
-      for(int i=0;i<K;++i) cm_set(Q,i,q, cm_get(Q,i,q)/nrm);
-      ++q;
-    }
-  }
-  Q->cols = q; R->rows = q;
+    Q->cols = q; R->rows = q;
 }
 
 
 /* 対称固有分解（Jacobi）: Gin = Q Λ Q^T */
 static void jacobi_eigensymm(const CMat *Gin, double *lam, CMat *Q, int max_sweeps, double tol){
-  int n = Gin->rows; 
-  CMat G = cm_alloc(n,n); cm_copy(Gin,&G);
-  *Q = eye(n);
-  for(int sweep=0; sweep<max_sweeps; ++sweep){
-    double off=0.0;
-    for(int j=0;j<n;++j) for(int i=0;i<j;++i){ double g=cm_get(&G,i,j); off+=g*g; }
-    if(sqrt(off) < tol) break;
-    for(int p=0;p<n-1;++p){
-      for(int q=p+1;q<n;++q){
-        double gpq=cm_get(&G,p,q); if(fabs(gpq)<=0.0) continue;
-        double gpp=cm_get(&G,p,p), gqq=cm_get(&G,q,q);
-        double tau=(gqq-gpp)/(2.0*gpq);
-        double t = (tau>=0)? 1.0/(tau+sqrt(1.0+tau*tau)) : -1.0/(-tau+sqrt(1.0+tau*tau));
-        double c=1.0/sqrt(1.0+t*t), s=t*c;
-        for(int k=0;k<n;++k){
-          if(k==p||k==q) continue;
-          double gpk=cm_get(&G,p,k), gqk=cm_get(&G,q,k);
-          double npk=c*gpk - s*gqk, nqk=s*gpk + c*gqk;
-          cm_set(&G,p,k,npk); cm_set(&G,k,p,npk);
-          cm_set(&G,q,k,nqk); cm_set(&G,k,q,nqk);
+    int n = Gin->rows; 
+    CMat G = cm_alloc(n,n); cm_copy(Gin,&G);
+    *Q = eye(n);
+    for(int sweep=0; sweep<max_sweeps; ++sweep){
+        double off=0.0;
+        for(int j=0;j<n;++j) for(int i=0;i<j;++i){ double g=cm_get(&G,i,j); off+=g*g; }
+        if(sqrt(off) < tol) break;
+        for(int p=0;p<n-1;++p){
+        for(int q=p+1;q<n;++q){
+            double gpq=cm_get(&G,p,q); if(fabs(gpq)<=0.0) continue;
+            double gpp=cm_get(&G,p,p), gqq=cm_get(&G,q,q);
+            double tau=(gqq-gpp)/(2.0*gpq);
+            double t = (tau>=0)? 1.0/(tau+sqrt(1.0+tau*tau)) : -1.0/(-tau+sqrt(1.0+tau*tau));
+            double c=1.0/sqrt(1.0+t*t), s=t*c;
+            for(int k=0;k<n;++k){
+            if(k==p||k==q) continue;
+            double gpk=cm_get(&G,p,k), gqk=cm_get(&G,q,k);
+            double npk=c*gpk - s*gqk, nqk=s*gpk + c*gqk;
+            cm_set(&G,p,k,npk); cm_set(&G,k,p,npk);
+            cm_set(&G,q,k,nqk); cm_set(&G,k,q,nqk);
+            }
+            double gpp_new=c*c*gpp - 2*c*s*gpq + s*s*gqq;
+            double gqq_new=s*s*gpp + 2*c*s*gpq + c*c*gqq;
+            cm_set(&G,p,p,gpp_new); cm_set(&G,q,q,gqq_new);
+            cm_set(&G,p,q,0.0); cm_set(&G,q,p,0.0);
+            for(int i=0;i<n;++i){
+            double vip=cm_get(Q,i,p), viq=cm_get(Q,i,q);
+            cm_set(Q,i,p, c*vip - s*viq);
+            cm_set(Q,i,q, s*vip + c*viq);
+            }
         }
-        double gpp_new=c*c*gpp - 2*c*s*gpq + s*s*gqq;
-        double gqq_new=s*s*gpp + 2*c*s*gpq + c*c*gqq;
-        cm_set(&G,p,p,gpp_new); cm_set(&G,q,q,gqq_new);
-        cm_set(&G,p,q,0.0); cm_set(&G,q,p,0.0);
-        for(int i=0;i<n;++i){
-          double vip=cm_get(Q,i,p), viq=cm_get(Q,i,q);
-          cm_set(Q,i,p, c*vip - s*viq);
-          cm_set(Q,i,q, s*vip + c*viq);
         }
-      }
     }
-  }
-  for(int i=0;i<n;++i) lam[i]=cm_get(&G,i,i);
-  cm_free(&G);
+    for(int i=0;i<n;++i) lam[i]=cm_get(&G,i,i);
+    cm_free(&G);
 }
 
 /* 固有値降順ソート（Q の列も並べ替え） */
 static void sort_eigs_desc(double *lam, CMat *Q){
-  int n=Q->cols;
-  for(int i=0;i<n-1;++i){
-    int p=i; for(int j=i+1;j<n;++j) if(lam[j]>lam[p]) p=j;
-    if(p!=i){
-      double t=lam[i]; lam[i]=lam[p]; lam[p]=t;
-      for(int r=0;r<Q->rows;++r){
-        double tmp=cm_get(Q,r,i);
-        cm_set(Q,r,i, cm_get(Q,r,p));
-        cm_set(Q,r,p, tmp);
-      }
+    int n=Q->cols;
+    for(int i=0;i<n-1;++i){
+        int p=i; for(int j=i+1;j<n;++j) if(lam[j]>lam[p]) p=j;
+        if(p!=i){
+        double t=lam[i]; lam[i]=lam[p]; lam[p]=t;
+        for(int r=0;r<Q->rows;++r){
+            double tmp=cm_get(Q,r,i);
+            cm_set(Q,r,i, cm_get(Q,r,p));
+            cm_set(Q,r,p, tmp);
+        }
+        }
     }
-  }
 }
 
 
 static void svd_dense(const CMat *Ksmall, CMat *Uhat, double **sigma_out, CMat *Vhat){
-  int m=Ksmall->rows, n=Ksmall->cols, r=(m<n?m:n);
-#ifdef HAVE_LAPACK
-  CMat A = cm_alloc(m,n); cm_copy(Ksmall,&A);
-  *Uhat = cm_alloc(m,m);
-  *Vhat = cm_alloc(n,n);
-  double *S = (double*)calloc((size_t)r,sizeof(double));
-  int info = LAPACKE_dgesvd(LAPACK_COL_MAJOR,'A','A', m,n, A.a,m, S, Uhat->a,m, Vhat->a,n, NULL);
-  assert(info==0);
-  *sigma_out=S; cm_free(&A);
-#else
-  CMat G = matmul_tn(Ksmall, Ksmall);      /* n×n */
-  CMat Q; double *lam = (double*)calloc((size_t)n,sizeof(double));
-  jacobi_eigensymm(&G, lam, &Q, 50, 1e-12); cm_free(&G);
-  sort_eigs_desc(lam, &Q);
-  double *S = (double*)calloc((size_t)r,sizeof(double));
-  for(int i=0;i<r;++i) S[i] = lam[i]>0.0? sqrt(lam[i]) : 0.0;
-  *Vhat = Q;
-  CMat KV  = matmul_nn(Ksmall, Vhat);      /* m×n */
-  *Uhat = cm_alloc(m,m);
-  for(int j=0;j<m;++j){
-    double inv = (j<r && S[j]>1e-15)? 1.0/S[j] : 0.0;
-    for(int i=0;i<m;++i) cm_set(Uhat,i,j, cm_get(&KV,i,j)*inv);
-  }
-  cm_free(&KV); free(lam);
-  *sigma_out = S;
+    int m=Ksmall->rows, n=Ksmall->cols, r=(m<n?m:n);
+
+    CMat G = matmul_tn(Ksmall, Ksmall);      /* n×n */
+    CMat Q; double *lam = (double*)calloc((size_t)n,sizeof(double));
+    jacobi_eigensymm(&G, lam, &Q, 50, 1e-12); cm_free(&G);
+    sort_eigs_desc(lam, &Q);
+    double *S = (double*)calloc((size_t)r,sizeof(double));
+    for(int i=0;i<r;++i) S[i] = lam[i]>0.0? sqrt(lam[i]) : 0.0;
+    *Vhat = Q;
+    CMat KV  = matmul_nn(Ksmall, Vhat);      /* m×n */
+    *Uhat = cm_alloc(m,m);
+    for(int j=0;j<m;++j){
+        double inv = (j<r && S[j]>1e-15)? 1.0/S[j] : 0.0;
+        for(int i=0;i<m;++i) cm_set(Uhat,i,j, cm_get(&KV,i,j)*inv);
+    }
+    cm_free(&KV); free(lam);
+    *sigma_out = S;
   
-#endif
 }
 
 /* ========= ランク選択 & トリム ========= */
 static int select_rank(const double *sigma, int len, int r_max, double tol){
-  int r = 0; double s0 = (len>0? sigma[0]:0.0);
-  for(int i=0;i<len && i<r_max; ++i){ if(sigma[i] >= tol*s0) ++r; else break; }
-  if(r==0 && len>0) r=1;
-  return r;
+    int r = 0; double s0 = (len>0? sigma[0]:0.0);
+    for(int i=0;i<len && i<r_max; ++i){ if(sigma[i] >= tol*s0) ++r; else break; }
+    if(r==0 && len>0) r=1;
+    return r;
+
+    printf("select_k_by_cum_threshold: N0=%d, r_max=%d, tol=%.2e, r=%d\n", len, r_max, tol, r);
+
 }
+
 static void truncate_uv(CMat *U_new, double **sigma_new, CMat *V_new, int r_keep){
-  int m=U_new->rows, nV=V_new->rows;
-  CMat U2 = cm_alloc(m, r_keep);
-  for(int j=0;j<r_keep;++j)
-    memcpy(&U2.a[(size_t)j*U2.rows], &U_new->a[(size_t)j*U_new->rows], (size_t)m*sizeof(double));
-  cm_free(U_new); *U_new = U2;
-  double *s2 = (double*)calloc((size_t)r_keep,sizeof(double));
-  memcpy(s2, *sigma_new, (size_t)r_keep*sizeof(double));
-  free(*sigma_new); *sigma_new = s2;
-  CMat V2 = cm_alloc(nV, r_keep);
-  for(int j=0;j<r_keep;++j)
-    memcpy(&V2.a[(size_t)j*V2.rows], &V_new->a[(size_t)j*V_new->rows], (size_t)nV*sizeof(double));
-  cm_free(V_new); *V_new = V2;
+    int m=U_new->rows, nV=V_new->rows;
+    CMat U2 = cm_alloc(m, r_keep);
+    for(int j=0;j<r_keep;++j)
+        memcpy(&U2.a[(size_t)j*U2.rows], &U_new->a[(size_t)j*U_new->rows], (size_t)m*sizeof(double));
+    cm_free(U_new); *U_new = U2;
+    double *s2 = (double*)calloc((size_t)r_keep,sizeof(double));
+    memcpy(s2, *sigma_new, (size_t)r_keep*sizeof(double));
+    free(*sigma_new); *sigma_new = s2;
+    CMat V2 = cm_alloc(nV, r_keep);
+    for(int j=0;j<r_keep;++j)
+        memcpy(&V2.a[(size_t)j*V2.rows], &V_new->a[(size_t)j*V_new->rows], (size_t)nV*sizeof(double));
+    cm_free(V_new); *V_new = V2;
+}
+
+
+int select_k_by_cum_threshold(const double* Svals, int N0, int r_max, double tol) {
+    //const int r_full = N0;
+    const int upto   = N0;
+
+    // 分母：考慮範囲 [0, upto) の総和
+    double total = 0.0;
+    for (int i = 0; i < upto; ++i) total += Svals[i];
+
+    printf("select_k_by_cum_threshold: total = %lf\n", total);
+
+    int r = 0;
+    if (total > 0.0) {
+        // 分子：累積和が tol * total を超える（以上になる）最小の k を探す
+        double cum = 0.0;
+        for (int i = 0; i < upto; ++i) {
+            cum += Svals[i];
+            if (cum / total >= 1 - tol) {  // しきい値到達
+                r = i + 1;             // 要素数としての k
+                break;
+            }
+        }
+        // 到達しなかった場合の扱い（tol が大き過ぎる等）
+        if (r == 0) r = (tol <= 0.0 ? 1 : upto);
+    } else {
+        // すべて 0 等で総和が 0 の場合
+        r = 0;
+    }
+
+    // 元コード準拠の最低保証（必要なら残す）
+    if (r == 0 && upto > 0) r = 1;
+
+    printf("select_k_by_cum_threshold: N0=%d, r_max=%d, tol=%.2e, r=%d\n", N0, r_max, tol, r);
+
+    return r;
 }
 
 /* ========= 増分 SVD 更新 ========= */
 void incsvd_update(IncSVD* S, const CMat *B, int r_max, double tol){
-  const int K = S->K;
-  const int Delta = B->cols;
-  const int r = S->r;
-  if (Delta <= 0) return;
+    const int K = S->K;
+    const int Delta = B->cols;
+    const int r = S->r;
+    if (Delta <= 0) return;
 
-  CMat U = (CMat){K, r, S->U};
-  CMat C = (r>0) ? matmul_tn(&U, B) : cm_alloc(0, Delta); /* r×Δ */
+    CMat U = (CMat){K, r, S->U};
+    CMat C = (r>0) ? matmul_tn(&U, B) : cm_alloc(0, Delta); /* r×Δ */
 
-  CMat UC = (r>0) ? matmul_nn(&U, &C) : cm_alloc(K, Delta);
-  CMat E  = mat_sub(B, &UC); cm_free(&UC);
-  CMat Q,R; qr_mgs2(&E, &Q, &R, 1e-14); cm_free(&E);
-  int q = Q.cols;
+    CMat UC = (r>0) ? matmul_nn(&U, &C) : cm_alloc(K, Delta);
+    CMat E  = mat_sub(B, &UC); cm_free(&UC);
+    CMat Q,R; qr_mgs2(&E, &Q, &R, 1e-14); cm_free(&E);
+    int q = Q.cols;
 
-  CMat Sdiag = diag_from_vector(S->sigma, r);
-  CMat K11 = Sdiag, K12 = C, K21 = zeros(q,r), K22 = R;
-  CMat Ksmall = block_2x2(&K11,&K12,&K21,&K22);
+    CMat Sdiag = diag_from_vector(S->sigma, r);
+    CMat K11 = Sdiag, K12 = C, K21 = zeros(q,r), K22 = R;
+    CMat Ksmall = block_2x2(&K11,&K12,&K21,&K22);
 
-  CMat Uhat, Vhat; double *sigma_new=NULL;
-  svd_dense(&Ksmall, &Uhat, &sigma_new, &Vhat);
-  cm_free(&K11); cm_free(&K21); cm_free(&K22); cm_free(&Ksmall);
+    CMat Uhat, Vhat; double *sigma_new=NULL;
+    svd_dense(&Ksmall, &Uhat, &sigma_new, &Vhat);
+    cm_free(&K11); cm_free(&K21); cm_free(&K22); cm_free(&Ksmall);
 
-  CMat Ucm  = (CMat){K, r, S->U};
-  CMat U_aug = (q>0) ? concat_cols(&Ucm, &Q) : Ucm;
-  CMat U_new = matmul_nn(&U_aug, &Uhat);
+    CMat Ucm  = (CMat){K, r, S->U};
+    CMat U_aug = (q>0) ? concat_cols(&Ucm, &Q) : Ucm;
+    CMat U_new = matmul_nn(&U_aug, &Uhat);
 
-  CMat Vcm  = (CMat){S->N, r, S->V};
-  CMat I_delta = eye(Delta);
-  CMat V_aug = block_diag(&Vcm, &I_delta);
-  CMat V_new = matmul_nn(&V_aug, &Vhat);
+    CMat Vcm  = (CMat){S->N, r, S->V};
+    CMat I_delta = eye(Delta);
+    CMat V_aug = block_diag(&Vcm, &I_delta);
+    CMat V_new = matmul_nn(&V_aug, &Vhat);
 
-  int len_sigma = (Uhat.rows < Vhat.cols) ? Uhat.rows : Vhat.cols;
-  int r_keep = select_rank(sigma_new, len_sigma, r_max, tol);
-  truncate_uv(&U_new, &sigma_new, &V_new, r_keep);
+    int len_sigma = (Uhat.rows < Vhat.cols) ? Uhat.rows : Vhat.cols;
+    int r_keep = select_rank(sigma_new, len_sigma, r_max, tol);
+    truncate_uv(&U_new, &sigma_new, &V_new, r_keep);
 
-  free(S->U); free(S->V); free(S->sigma);
-  S->U = U_new.a; S->V = V_new.a; S->sigma = sigma_new;
-  S->r = r_keep; S->N += Delta;
+    free(S->U); free(S->V); free(S->sigma);
+    S->U = U_new.a; S->V = V_new.a; S->sigma = sigma_new;
+    S->r = r_keep; S->N += Delta;
 
-  if(q>0) cm_free(&Q);
-  cm_free(&C); cm_free(&Uhat); cm_free(&Vhat); cm_free(&I_delta); cm_free(&V_aug);
+    if(q>0) cm_free(&Q);
+    cm_free(&C); cm_free(&Uhat); cm_free(&Vhat); cm_free(&I_delta); cm_free(&V_aug);
 }
+
 
 /* ========= 初期ブロック（monolis で SVD） ========= */
 static void init_with_first_block_by_monolis(
@@ -304,14 +340,15 @@ static void init_with_first_block_by_monolis(
     double **V = BB_std_calloc_2d_double(V, N0, N0);
     double *Svals = BB_std_calloc_1d_double(Svals, N0);
 
-    /* 注意：環境により monolis_scalapack_gesvd_R の引数順が異なる場合があります */
     monolis_scalapack_gesvd_R(K, N0, A0, U, Svals, V, comm, scalapack_comm);
-
+/*
     int r_full = (K<N0?K:N0), r=0; double s0 = Svals[0];
     for (int i=0;i<r_full && i<r_max; ++i){ if (Svals[i] >= tol*s0) ++r; else break; }
     if (r==0 && r_full>0) r=1;
 
     r = 100;
+*/
+    int r = select_k_by_cum_threshold(Svals, N0, r_max, tol);
 
     //printf("Incremental SVD: K=%d, N0=%d, r=%d\n", K, N0, r);
 
@@ -327,9 +364,7 @@ static void init_with_first_block_by_monolis(
         }
         for (int i=0;i<N0;++i){ 
             S->V[i + (size_t)j*N0] = V[j][i]; /* V(i,j) */
-            //printf(" V[%d][%d] = %e\n", i, j, S->V[i + (size_t)j*N0]);
         }
-        //printf(" sigma[%d] = %e\n", j, S->sigma[j]);
     }
 
     BB_std_free_2d_double(A0, K, N0);
@@ -340,74 +375,47 @@ static void init_with_first_block_by_monolis(
 
 /* Row-major → col-major（ブロック列コピー） */
 static CMat copy_block_colmajor_from_rowmajor(double **matrixRM, int K, int N, int j0, int Delta){
-  CMat B = cm_alloc(K, Delta);
-  for(int j=0;j<Delta;++j){
-    int jj = j0 + j;
-    for(int i=0;i<K;++i) B.a[(size_t)i + (size_t)j*K] = matrixRM[i][jj];
-  }
-  return B;
+    CMat B = cm_alloc(K, Delta);
+    for(int j=0;j<Delta;++j){
+        int jj = j0 + j;
+        for(int i=0;i<K;++i) B.a[(size_t)i + (size_t)j*K] = matrixRM[i][jj];
+    }
+    return B;
 }
 
 /* row-major 2D alloc/free（NNLS 入力用） */
 static double** alloc2d_rowmajor(int rows, int cols){
-  double **M = (double**)malloc((size_t)rows*sizeof(double*));
-  for(int i=0;i<rows;++i) M[i] = (double*)calloc((size_t)cols,sizeof(double));
-  return M;
+    double **M = (double**)malloc((size_t)rows*sizeof(double*));
+    for(int i=0;i<rows;++i) M[i] = (double*)calloc((size_t)cols,sizeof(double));
+    return M;
 }
+
 static void free2d_rowmajor(double **M, int rows){
-  for(int i=0;i<rows;++i) free(M[i]);
-  free(M);
+    for(int i=0;i<rows;++i) free(M[i]);
+    free(M);
 }
-
-/* ===== 圧縮系（フル列）: G_k = Σ V^T (r×N), b_k = U^T b (r) ===== */
-/*
-static void build_compressed_system_from_incsvd(
-    const IncSVD* S, const double* b,
-    double*** G_k_out, double** b_k_out)
-{
-  int r=S->r, K=S->K, N=S->N;
-  double **G_k = alloc2d_rowmajor(r, N);
-  for(int i=0;i<r;++i){
-    double sii = S->sigma[i];
-    for(int j=0;j<N;++j){
-      double Vij = S->V[(size_t)j + (size_t)i*N];  /* V: N×r 
-      G_k[i][j] = sii * Vij;
-    }
-  }
-  double *b_k = (double*)calloc((size_t)r,sizeof(double));
-  for(int i=0;i<r;++i){
-    double ssum=0.0;
-    for(int p=0;p<K;++p) ssum += S->U[(size_t)p + (size_t)i*K] * b[p];
-    b_k[i] = ssum;
-  }
-  *G_k_out = G_k; *b_k_out = b_k;
-}
-*/
 
 static void build_compressed_system_from_incsvd(
-    const IncSVD* S, const double* b,
+    const IncSVD* S,
     double*** G_k_out, double** b_k_out)
 {
-  int r=S->r, K=S->K, N=S->N;
-  double **G_k = BB_std_calloc_2d_double(G_k, r, N);
-  double *b_k = (double*)calloc((size_t)r,sizeof(double));
-  for(int i=0;i<r;++i){
-    double sii = S->sigma[i];
-    for(int j=0;j<N;++j){
-      double Vij = S->V[(size_t)j + (size_t)i*N];  /* V: N×r */
-      G_k[i][j] = sii * Vij;
-      b_k[i] += G_k[i][j];
+    int r=S->r, K=S->K, N=S->N;
+    double **G_k = BB_std_calloc_2d_double(G_k, r, N);
+    double *b_k = (double*)calloc((size_t)r,sizeof(double));
+    for(int i=0;i<r;++i){
+        double sii = S->sigma[i];
+        for(int j=0;j<N;++j){
+        double Vij = S->V[(size_t)j + (size_t)i*N];  /* V: N×r */
+        G_k[i][j] = sii * Vij;
+        b_k[i] += G_k[i][j];
+        }
     }
-  }
 
-  *G_k_out = G_k;
-  *b_k_out = b_k;
+    *G_k_out = G_k;
+    *b_k_out = b_k;
 }
 
 
-
-
-/* ========= モジュール内状態 ========= */
 IncSVD* g_svd;
 int     g_svd_count = 0;
 
@@ -426,88 +434,87 @@ static void ensure_svd_states(int num_subdomains){
 
 /* N×ΔK の転置行列を作る */
 static CMat cm_transpose_new(const CMat *A){
-  CMat T = cm_alloc(A->cols, A->rows);
-  for(int j=0;j<A->cols;++j)
-    for(int i=0;i<A->rows;++i)
-      cm_set(&T, j, i, cm_get(A, i, j));
-  return T;
+    CMat T = cm_alloc(A->cols, A->rows);
+    for(int j=0;j<A->cols;++j)
+        for(int i=0;i<A->rows;++i)
+        cm_set(&T, j, i, cm_get(A, i, j));
+    return T;
 }
 
 /* 行ブロック（ΔK×N）を追加する */
 void incsvd_update_rows(IncSVD* S, const CMat *Brow, int r_max, double tol){
-  /* 事前条件チェック */
-  if (!S || !S->U || !S->V || !S->sigma) return;
-  if (Brow->cols != S->N || Brow->rows <= 0) return;
+    /* 事前条件チェック */
+    if (!S || !S->U || !S->V || !S->sigma) return;
+    if (Brow->cols != S->N || Brow->rows <= 0) return;
 
-  const int DeltaK = Brow->rows;
-  const int N      = S->N;
-  const int K      = S->K;
-  const int r      = S->r;
+    const int DeltaK = Brow->rows;
+    const int N      = S->N;
+    const int K      = S->K;
+    const int r      = S->r;
 
-  /* 1) Brow を転置（N×ΔK） */
-  CMat B_T = cm_transpose_new(Brow);
+    /* 1) Brow を転置（N×ΔK） */
+    CMat B_T = cm_transpose_new(Brow);
 
-  /* 2) 転置状態 St を構築（A^T の SVD 状態：V, U を入れ替え） */
-  IncSVD St = {0};
-  St.K = N;          /* 行数 ← 元の列数 */
-  St.N = K;          /* 列数 ← 元の行数 */
-  St.r = r;
+    /* 2) 転置状態 St を構築（A^T の SVD 状態：V, U を入れ替え） */
+    IncSVD St = {0};
+    St.K = N;          /* 行数 ← 元の列数 */
+    St.N = K;          /* 列数 ← 元の行数 */
+    St.r = r;
 
-  /* メモリは“コピー”を作る（所有権を St に渡す） */
-  St.U = (double*)malloc((size_t)St.K * r * sizeof(double));   /* ← V(N×r) をコピー */
-  St.V = (double*)malloc((size_t)St.N * r * sizeof(double));   /* ← U(K×r) をコピー */
-  St.sigma = (double*)malloc((size_t)r * sizeof(double));
+    /* メモリは“コピー”を作る（所有権を St に渡す） */
+    St.U = (double*)malloc((size_t)St.K * r * sizeof(double));   /* ← V(N×r) をコピー */
+    St.V = (double*)malloc((size_t)St.N * r * sizeof(double));   /* ← U(K×r) をコピー */
+    St.sigma = (double*)malloc((size_t)r * sizeof(double));
 
-  /* V → St.U */
-  for(int j=0;j<r;++j)
-    memcpy(&St.U[(size_t)j*St.K], &S->V[(size_t)j*N], (size_t)N*sizeof(double));
-  /* U → St.V */
-  for(int j=0;j<r;++j)
-    memcpy(&St.V[(size_t)j*St.N], &S->U[(size_t)j*K], (size_t)K*sizeof(double));
-  /* sigma */
-  memcpy(St.sigma, S->sigma, (size_t)r*sizeof(double));
+    /* V → St.U */
+    for(int j=0;j<r;++j)
+        memcpy(&St.U[(size_t)j*St.K], &S->V[(size_t)j*N], (size_t)N*sizeof(double));
+    /* U → St.V */
+    for(int j=0;j<r;++j)
+        memcpy(&St.V[(size_t)j*St.N], &S->U[(size_t)j*K], (size_t)K*sizeof(double));
+    /* sigma */
+    memcpy(St.sigma, S->sigma, (size_t)r*sizeof(double));
 
-  /* 3) 既存の列追加を利用（A^T に ΔK 列を追加） */
-  incsvd_update(&St, &B_T, r_max, tol);
+    /* 3) 既存の列追加を利用（A^T に ΔK 列を追加） */
+    incsvd_update(&St, &B_T, r_max, tol);
 
-  /* 4) St を元に S を更新（再転置：U↔V） */
-  /* 旧 S のメモリを退避してから置換 */
-  double *oldU = S->U, *oldV = S->V, *oldS = S->sigma;
+    /* 4) St を元に S を更新（再転置：U↔V） */
+    /* 旧 S のメモリを退避してから置換 */
+    double *oldU = S->U, *oldV = S->V, *oldS = S->sigma;
 
-  S->K = K + DeltaK;  /* 行数が増える */
-  S->N = N;           /* 列数は不変 */
-  S->r = St.r;
+    S->K = K + DeltaK;  /* 行数が増える */
+    S->N = N;           /* 列数は不変 */
+    S->r = St.r;
 
-  S->U = (double*)malloc((size_t)S->K * S->r * sizeof(double));
-  S->V = (double*)malloc((size_t)S->N * S->r * sizeof(double));
-  S->sigma = (double*)malloc((size_t)S->r * sizeof(double));
+    S->U = (double*)malloc((size_t)S->K * S->r * sizeof(double));
+    S->V = (double*)malloc((size_t)S->N * S->r * sizeof(double));
+    S->sigma = (double*)malloc((size_t)S->r * sizeof(double));
 
-  /* St.V（= 新しい U^T の“右特異ベクトル”） → S.U（(K+ΔK)×r） */
-  for(int j=0;j<S->r;++j)
-    memcpy(&S->U[(size_t)j*S->K], &St.V[(size_t)j*(K+DeltaK)], (size_t)(K+DeltaK)*sizeof(double));
-  /* St.U（= 新しい V^T の“左特異ベクトル”） → S.V（N×r） */
-  for(int j=0;j<S->r;++j)
-    memcpy(&S->V[(size_t)j*S->N], &St.U[(size_t)j*N], (size_t)N*sizeof(double));
-  memcpy(S->sigma, St.sigma, (size_t)S->r*sizeof(double));
+    /* St.V（= 新しい U^T の“右特異ベクトル”） → S.U（(K+ΔK)×r） */
+    for(int j=0;j<S->r;++j)
+        memcpy(&S->U[(size_t)j*S->K], &St.V[(size_t)j*(K+DeltaK)], (size_t)(K+DeltaK)*sizeof(double));
+    /* St.U（= 新しい V^T の“左特異ベクトル”） → S.V（N×r） */
+    for(int j=0;j<S->r;++j)
+        memcpy(&S->V[(size_t)j*S->N], &St.U[(size_t)j*N], (size_t)N*sizeof(double));
+    memcpy(S->sigma, St.sigma, (size_t)S->r*sizeof(double));
 
-  /* 5) 後片付け */
-  free(oldU); free(oldV); free(oldS);
-  free(St.U); free(St.V); free(St.sigma);
-  cm_free(&B_T);
+    free(oldU); free(oldV); free(oldS);
+    free(St.U); free(St.V); free(St.sigma);
+    cm_free(&B_T);
 }
 
 /* row-major(double**) → column-major(CMat) で
    行ブロック（i0..i0+DeltaK-1, 全列 N）をコピー：Brow(ΔK×N) */
 static CMat copy_rowblock_colmajor_from_rowmajor(double **matrixRM, int K, int N, int i0, int DeltaK){
-  if (DeltaK <= 0) return cm_alloc(0,0);
-  CMat B = cm_alloc(DeltaK, N);              /* rows=ΔK, cols=N（col-major）*/
-  for(int j=0;j<N;++j){                      /* 列ごとに */
-    for(int i=0;i<DeltaK;++i){
-      int src_i = i0 + i;                    /* 元の行番号 */
-      B.a[(size_t)i + (size_t)j*DeltaK] = matrixRM[src_i][j];
+    if (DeltaK <= 0) return cm_alloc(0,0);
+    CMat B = cm_alloc(DeltaK, N);              /* rows=ΔK, cols=N（col-major）*/
+    for(int j=0;j<N;++j){                      /* 列ごとに */
+        for(int i=0;i<DeltaK;++i){
+        int src_i = i0 + i;                    /* 元の行番号 */
+        B.a[(size_t)i + (size_t)j*DeltaK] = matrixRM[src_i][j];
+        }
     }
-  }
-  return B;
+    return B;
 }
 
 
@@ -524,28 +531,19 @@ void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
     const int      total_num_snapshot,
     const int      total_num_modes,
     const int      num_subdomains,
-    const int      max_iter,
-    const double   tol,
     const int      dof,
     const char*    directory)
 {
-    (void)monolis_com; (void)fe; (void)bc; (void)hlpod_vals;
-    (void)hlpod_mat; (void)hlpod_meta; (void)total_num_elem;
-    (void)max_iter; (void)tol; (void)dof; (void)directory;
-
     ensure_svd_states(num_subdomains);
 
-    const int r_max = 200;
-    const double svd_tol = 1.0e-15;
+    const int r_max = 1000;
+    const double svd_tol = 1.0e-12;
 
     const int comm = monolis_mpi_get_self_comm();
     int scalapack_comm; monolis_scalapack_comm_initialize(comm, &scalapack_comm);
 
-        const int K = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot / 2 + 1;
+        const int K = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot + 1;
         const int N = hlpod_ddhr->num_elems[0];
-        //if (N <= 0 || K <= 0){ g_svd[0].K=g_svd[0].N=g_svd[0].r=0; g_svd[0].U=g_svd[0].V=g_svd[0].sigma=NULL; continue; }
-
-        //const int N0 = (N < g_block_cols ? N : g_block_cols);
 
         double **matrix = BB_std_calloc_2d_double(matrix, K, N);
         for (int j=0; j<K; ++j){
@@ -561,7 +559,6 @@ void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
     int K0 = g_svd[0].K;
     printf("Incremental SVD: subdomain %d, K=%d",K0, g_svd[0].r);
 
-//    exit(1);
 }
 
 /* ========= ② 追加列の増分更新 ========= */
@@ -577,30 +574,17 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
     const int      total_num_snapshot,
     const int      total_num_modes,
     const int      num_subdomains,
-    const int      max_iter,
-    const double   tol,
     const int      dof,
     const char*    directory)
 {
-    (void)monolis_com; (void)fe; (void)bc; (void)hlpod_vals;
-    (void)hlpod_mat; (void)hlpod_meta; (void)total_num_elem;
-    (void)max_iter; (void)tol; (void)dof; (void)directory;
+    const int r_max = 300;
+    const double svd_tol = 1.0e-6;
 
-    const int r_max = 150;
-    const double svd_tol = 1.0e-15;
-
-
-        //if (!g_svd[0].U || !g_svd[0].V || !g_svd[0].sigma) {
-        //    fprintf(stderr,"[incsvd_update_K] subdomain %d: not initialized.\n", 0);
-        //    continue;
-        //}
-
-    const int K_total = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot /2  + 1; /* 目標の全行数 */
+    const int K_total = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot  + 1; /* 目標の全行数 */
     const int N       = hlpod_ddhr->num_elems[0];
 
     /* すでに取り込んだ行数（初期化で K0 行を取り込んだとして）*/
     int K0 = g_svd[0].K;
-    //if (K_total <= K0) continue; /* 追加なし */
 
     printf("Incremental SVD: subdomain %d, K_total=%d, N=%d, K0=%d, r=%d\n",
             0, K_total, N, K0, g_svd[0].r);
@@ -613,7 +597,7 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
         }
     }
     
-    int g_block_cols =  50;
+    int g_block_cols =  100;
 
     /* 列ブロックを一定幅ずつ追加（例：g_block_cols を行方向にも使う）*/
     for (int i0 = 0; i0 < K_total; i0 += g_block_cols){
@@ -622,17 +606,10 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
         incsvd_update_rows(&g_svd[0], &Brow, r_max, svd_tol);  /* ← 行追加 */
         cm_free(&Brow);
     }
-/*
-    g_block_cols =  1;
-    for (int i0 = K_total-1; i0 < K_total; i0 += g_block_cols){
-        int DeltaK = (i0 + g_block_cols <= K_total ? g_block_cols : (K_total - i0));
-        CMat Brow = copy_rowblock_colmajor_from_rowmajor(matrix, K_total, N, i0, DeltaK);
-        incsvd_update_rows(&g_svd[0], &Brow, r_max, svd_tol);
-        cm_free(&Brow);
-    }
+    g_svd[0].K = K0;
 
     BB_std_free_2d_double(matrix, K_total, N);
-*/
+
 }
 
 /* ========= ③ 最終化（圧縮 NNLS） ========= */
@@ -653,9 +630,6 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
     const int      dof,
     const char*    directory)
 {
-    (void)monolis_com; (void)fe; (void)bc; (void)hlpod_vals;
-    (void)hlpod_mat; (void)hlpod_meta; (void)total_num_elem;
-    (void)dof; (void)directory;
 
     int BUFFER_SIZE = 1024;
 	FILE* fp;
@@ -686,14 +660,8 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
 	printf("\n\nnum_elems1 = %d\n\n", hlpod_ddhr->num_elems[0]);
     double t1 = monolis_get_time_global_sync();
 
-	//const int max_ITER = 1000;
-	//const double TOL = 1.0e-10;
-
 	double residual;
 
-	//double* ans_vec;
-	//double** matrix;
-	//double* RH;
 	bool** bool_elem;
 	int* total_id_selected_elems;
 	double* total_elem_weight;
@@ -726,194 +694,165 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
 	int index_NNLS2 = 0;
 
 
-    //for (int 0 = 0; 0 < num_subdomains; 0++) {
+    const int K = g_svd[0].K;
+    const int N = g_svd[0].N;
+    printf("Finalizing subdomain %d: K=%d, N=%d, r=%d\n", 0, K, N, g_svd[0].r);
 
-        //if (!g_svd[0].U || !g_svd[0].V || !g_svd[0].sigma || g_svd[0].N<=0 || g_svd[0].K<=0){
-        //    fprintf(stderr, "[finalize] subdomain %d: SVD state not ready.\n", 0);
-        //    continue;
-        //}
+    
+	const char* filename;
+	//char fname[BUFFER_SIZE];
+	snprintf(fname, BUFFER_SIZE,"hr_prm/%s", OUTPUT_FILENAME_RANK_INC_SVD);
+	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname);
+	//FILE* fp;
+	fp = ROM_BB_write_fopen(fp, filename, directory);
+    fprintf(fp, "RANK_INC_SVD\n", fe->total_num_nodes);
+	fprintf(fp, "%d\n", g_svd[0].r);
+	fclose(fp);
 
-        const int K = g_svd[0].K;
-        const int N = g_svd[0].N;
-        printf("Finalizing subdomain %d: K=%d, N=%d, r=%d\n", 0, K, N, g_svd[0].r);
 
-        double *RH = BB_std_calloc_1d_double(RH, K);
-        //for (int j=0; j<K; ++j) RH[j] = hlpod_ddhr->RH[j][0];
+    double **G_k = NULL; double *b_k = NULL;
+    build_compressed_system_from_incsvd(&g_svd[0], &G_k, &b_k); /* r×N, r */
 
-        double **G_k = NULL; double *b_k = NULL;
-        build_compressed_system_from_incsvd(&g_svd[0], RH, &G_k, &b_k); /* r×N, r */
 
-/*
-        int r=S->r, K=S->K, N=S->N;
-        double **G_k = BB_std_calloc_2d_double(G_k, r, N);
-        double *b_k = (double*)calloc((size_t)r,sizeof(double));
-        
-        for(int i=0;i<r;++i){
-            double sii = S->sigma[i];
-            for(int j=0;j<N;++j){
-                double Vij = S->V[(size_t)j + (size_t)i*N];
-                G_k[i][j] = sii * Vij;
-                b_k[i] += G_k[i][j];
+    printf("\n\nmax_iter = %d, tol = %lf, residuals = %lf\n\n", max_ITER, TOL, residual);
+
+    double *ans_vec = BB_std_calloc_1d_double(ans_vec, N);
+    //double residual = 0.0;
+    monolis_optimize_nnls_R_with_sparse_solution(
+        G_k, b_k, ans_vec, g_svd[0].r, N, max_ITER, TOL, &residual);
+
+    printf("\n\nmax_iter = %d, tol = %lf, residuals = %lf\n\n", max_ITER, TOL, residual);
+
+    int index = 0;
+    for (int i = 0; i < hlpod_ddhr->num_elems[0]; i++) {
+        if (ans_vec[i] != 0.0) {
+            index++;
+        }
+    }
+
+    total_num_selected_elems[0] = index;
+
+    printf("\n\nnum_selected_elems = %d\n\n", index);
+
+    hr_write_NNLS_residual(residual, myrank, 0, directory);
+    hr_write_NNLS_num_elems(total_num_selected_elems[0], myrank, 0, directory);
+
+    total_id_selected_elems = BB_std_calloc_1d_int(total_id_selected_elems, total_num_selected_elems[0]);
+    total_elem_weight = BB_std_calloc_1d_double(total_elem_weight, total_num_selected_elems[0]);
+
+    index = 0;
+    for (int i = 0; i < hlpod_ddhr->num_elems[0]; i++) {
+        if (ans_vec[i] != 0.0) {
+            total_id_selected_elems[index] = hlpod_ddhr->elem_id_local[i][0];
+            total_elem_weight[index] = ans_vec[i];
+            index++;
+        }
+    }
+
+    for (int h = 0; h < (total_num_selected_elems[0]); h++) {
+        int e = total_id_selected_elems[h];
+
+        for (int i = 0; i < nl; i++) {       //六面体一次要素は8
+            for (int j = 0; j < nl; j++) {
+                int index_i = fe->conn[e][i];
+                int index_j = fe->conn[e][j];
+
+                for(int k = 0; k < dof; k++) {
+                    if (bc->D_bc_exists[index_j*dof + k]) {
+                        bool_elem[h][0] = true;
+                        hlpod_ddhr->D_bc_exists[index_j][0] = true;
+                    }
+                }
             }
         }
-        */
+    }
 
-        printf("\n\nmax_iter = %d, tol = %lf, residuals = %lf\n\n", max_ITER, TOL, residual);
+    printf("\n\n test_num_elem_D_bc = %d \n\n", index);
 
-        double *ans_vec = BB_std_calloc_1d_double(ans_vec, N);
-        //double residual = 0.0;
-        monolis_optimize_nnls_R_with_sparse_solution(
-            G_k, b_k, ans_vec, g_svd[0].r, N, max_ITER, TOL, &residual);
+    index = 0;
+    for (int h = 0; h < (total_num_selected_elems[0]); h++) {
+        if (bool_elem[h][0]) {
+            index++;
+        }
+    }
 
-		printf("\n\nmax_iter = %d, tol = %lf, residuals = %lf\n\n", max_ITER, TOL, residual);
+    printf("\n\n num_elem_D_bc = %d \n\n", index);
 
-		int index = 0;
-		for (int i = 0; i < hlpod_ddhr->num_elems[0]; i++) {
-			if (ans_vec[i] != 0.0) {
-				index++;
-			}
-		}
+    //index = D_bcが付与された要素数
+    hlpod_ddhr->num_selected_elems[0] = total_num_selected_elems[0] - index;
+    hlpod_ddhr->num_selected_elems_D_bc[0] = index;
 
-		total_num_selected_elems[0] = index;
+    int index1 = 0;
+    int index2 = 0;
+    for (int h = 0; h < (total_num_selected_elems[0]); h++) {
+        int e = total_id_selected_elems[h];
 
-		printf("\n\nnum_selected_elems = %d\n\n", index);
+        if (bool_elem[h][0]) {
+            hlpod_ddhr->id_selected_elems_D_bc[index1][0] = total_id_selected_elems[h];
+            hlpod_ddhr->elem_weight_D_bc[index1][0] = total_elem_weight[h];
 
-		hr_write_NNLS_residual(residual, myrank, 0, directory);
-		hr_write_NNLS_num_elems(total_num_selected_elems[0], myrank, 0, directory);
+            index1++;
+        }
+        else {
+            hlpod_ddhr->id_selected_elems[index2][0] = total_id_selected_elems[h];
+            hlpod_ddhr->elem_weight[index2][0] = total_elem_weight[h];
 
-		total_id_selected_elems = BB_std_calloc_1d_int(total_id_selected_elems, total_num_selected_elems[0]);
-		total_elem_weight = BB_std_calloc_1d_double(total_elem_weight, total_num_selected_elems[0]);
+            index2++;
+        }
+    }
 
-		index = 0;
-		for (int i = 0; i < hlpod_ddhr->num_elems[0]; i++) {
-			if (ans_vec[i] != 0.0) {
-				total_id_selected_elems[index] = hlpod_ddhr->elem_id_local[i][0];
-				total_elem_weight[index] = ans_vec[i];
-				index++;
-			}
-		}
+    Index1 += index1;
+    Index2 += index2;
 
-		for (int h = 0; h < (total_num_selected_elems[0]); h++) {
-			int e = total_id_selected_elems[h];
+    BB_std_free_1d_int(total_id_selected_elems, total_num_selected_elems[0]);
+    BB_std_free_1d_double(total_elem_weight, total_num_selected_elems[0]);
 
-			for (int i = 0; i < nl; i++) {       //六面体一次要素は8
-				for (int j = 0; j < nl; j++) {
-					int index_i = fe->conn[e][i];
-					int index_j = fe->conn[e][j];
+    double t = monolis_get_time_global_sync();
 
-                    for(int k = 0; k < dof; k++) {
-					    if (bc->D_bc_exists[index_j*dof + k]) {
-						    bool_elem[h][0] = true;
-    						hlpod_ddhr->D_bc_exists[index_j][0] = true;
-	    				}
-                    }
-				}
-			}
-		}
+    FILE* fp1;
+    FILE* fp2;
+    char fname1[BUFFER_SIZE];
+    char fname2[BUFFER_SIZE];
 
-		printf("\n\n test_num_elem_D_bc = %d \n\n", index);
+    snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[0]);
+    snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[0]);
 
-		index = 0;
-		for (int h = 0; h < (total_num_selected_elems[0]); h++) {
-			if (bool_elem[h][0]) {
-				index++;
-			}
-		}
+    fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
+    fp2 = ROM_BB_write_fopen(fp2, fname2, directory);
 
-		printf("\n\n num_elem_D_bc = %d \n\n", index);
+    fprintf(fp1, "%d\n", index1);
+    fprintf(fp2, "%d\n", index2);
 
-		//index = D_bcが付与された要素数
-		hlpod_ddhr->num_selected_elems[0] = total_num_selected_elems[0] - index;
-		hlpod_ddhr->num_selected_elems_D_bc[0] = index;
+    index_1 = 0;
+    index_2 = 0;
 
-		int index1 = 0;
-		int index2 = 0;
-		for (int h = 0; h < (total_num_selected_elems[0]); h++) {
-			int e = total_id_selected_elems[h];
+    for (int h = 0; h < (total_num_selected_elems[0]); h++) {
+        if (bool_elem[h][0]) {
+            fprintf(fp1, "%d %.30e\n", hlpod_ddhr->parallel_elems_id[hlpod_ddhr->id_selected_elems_D_bc[index_1][0]], hlpod_ddhr->elem_weight_D_bc[index_1][0]);
+            index_1++;
+        }
+        else {
+            fprintf(fp2, "%d %.30e\n", hlpod_ddhr->parallel_elems_id[hlpod_ddhr->id_selected_elems[index_2][0]], hlpod_ddhr->elem_weight[index_2][0]);
 
-			if (bool_elem[h][0]) {
-				hlpod_ddhr->id_selected_elems_D_bc[index1][0] = total_id_selected_elems[h];
-				hlpod_ddhr->elem_weight_D_bc[index1][0] = total_elem_weight[h];
+            index_2++;
+        }
+    }
 
-				index1++;
-			}
-			else {
-				hlpod_ddhr->id_selected_elems[index2][0] = total_id_selected_elems[h];
-				hlpod_ddhr->elem_weight[index2][0] = total_elem_weight[h];
+    fclose(fp1);
+    fclose(fp2);
 
-				index2++;
-			}
-		}
-
-		Index1 += index1;
-		Index2 += index2;
-
-		//BB_std_free_1d_double(ans_vec, hlpod_ddhr->num_elems[0]);
-		//BB_std_free_2d_double(matrix, NNLS_row, hlpod_ddhr->num_elems[0]);
-		//BB_std_free_1d_double(RH, NNLS_row);
-
-		BB_std_free_1d_int(total_id_selected_elems, total_num_selected_elems[0]);
-		BB_std_free_1d_double(total_elem_weight, total_num_selected_elems[0]);
-
-		double t = monolis_get_time_global_sync();
-
-		FILE* fp1;
-		FILE* fp2;
-		char fname1[BUFFER_SIZE];
-		char fname2[BUFFER_SIZE];
-
-		snprintf(fname1, BUFFER_SIZE, "DDECM/lb_selected_elem_D_bc.%d.txt", subdomain_id[0]);
-		snprintf(fname2, BUFFER_SIZE, "DDECM/lb_selected_elem.%d.txt", subdomain_id[0]);
-
-		fp1 = ROM_BB_write_fopen(fp1, fname1, directory);
-		fp2 = ROM_BB_write_fopen(fp2, fname2, directory);
-
-		fprintf(fp1, "%d\n", index1);
-		fprintf(fp2, "%d\n", index2);
-
-		index_1 = 0;
-		index_2 = 0;
-
-		for (int h = 0; h < (total_num_selected_elems[0]); h++) {
-			if (bool_elem[h][0]) {
-				fprintf(fp1, "%d %.30e\n", hlpod_ddhr->parallel_elems_id[hlpod_ddhr->id_selected_elems_D_bc[index_1][0]], hlpod_ddhr->elem_weight_D_bc[index_1][0]);
-				index_1++;
-			}
-			else {
-				fprintf(fp2, "%d %.30e\n", hlpod_ddhr->parallel_elems_id[hlpod_ddhr->id_selected_elems[index_2][0]], hlpod_ddhr->elem_weight[index_2][0]);
-
-				index_2++;
-			}
-		}
-
-		fclose(fp1);
-		fclose(fp2);
-
-
-	/*lbから追加*/
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);
-	/**/
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
-	//BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
-	//BB_std_free_2d_double(hlpod_ddhr->RH, total_num_snapshot * hlpod_vals->n_neib_vec, num_subdomains);
 
+    BB_std_free_2d_double(G_k, g_svd[0].r, N);
+    BB_std_free_1d_double(b_k, g_svd[0].r);
+    BB_std_free_1d_double(ans_vec, N);
 
-
-        /* TODO: 必要なら ans_vec を保存（構造体へ書き戻し等） */
-
-        /* 後片付け */
-        BB_std_free_2d_double(G_k, g_svd[0].r, N);
-        BB_std_free_1d_double(b_k, g_svd[0].r);
-        BB_std_free_1d_double(RH, K);
-        BB_std_free_1d_double(ans_vec, N);
-
-        /* SVD 状態も解放（以降使わない前提） */
-        free(g_svd[0].U); free(g_svd[0].V); free(g_svd[0].sigma);
-        g_svd[0].U=g_svd[0].V=g_svd[0].sigma=NULL;
-        g_svd[0].K = g_svd[0].N = g_svd[0].r = 0;
-
-	//}
+    /* SVD 状態も解放（以降使わない前提） */
+    free(g_svd[0].U); free(g_svd[0].V); free(g_svd[0].sigma);
+    g_svd[0].U=g_svd[0].V=g_svd[0].sigma=NULL;
+    g_svd[0].K = g_svd[0].N = g_svd[0].r = 0;
 
     free(g_svd); g_svd=NULL; g_svd_count=0;
 }

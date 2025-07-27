@@ -63,6 +63,31 @@ void HROM_offline_read_calc_conditions_inc_svd(
 	printf("\n");
 }
 
+void HROM_std_hlpod_offline_set_num_snapmat_inc_svd(
+        ROM*            rom,
+        const double    finish_time,
+        const double    dt,
+        const int       snapshot_interval,
+        const int       num_case,
+        const int       incsvd_interval)
+{
+    double quotient = finish_time / dt / snapshot_interval* num_case / incsvd_interval;
+    //int num_snapshot = finish_time / dt / snapshot_interval * num_case;
+    //int num_incsvd = num_snapshot / incsvd_interval;
+
+    printf("%s: finish_time = %f, dt = %f, snapshot_interval = %d, num_case = %d, incsvd_interval = %d\n",
+           CODENAME, finish_time, dt, snapshot_interval, num_case, incsvd_interval);
+    
+    if (fmod(quotient, 1.0) == 0.0) {
+    	rom->hlpod_vals.num_snapshot = incsvd_interval;
+    	printf("%s: num_snapshot = %d\n", CODENAME, rom->hlpod_vals.num_snapshot);
+    }
+    else{
+        printf("Error: num_snapshot = %d is not integer\n");
+        exit(1);
+    }
+}
+
 void HROM_output_vtk_shape(
 		BBFE_DATA*     fe,
 		const char*    filename,
@@ -325,7 +350,7 @@ void HROM_pre_offline(
 	get_neib_subdomain_id(
 		&(sys->mono_com),
 		&(rom->hlpod_mat),
-		rom->hlpod_vals.num_2nd_subdomains);		//num_2nd_subdomains
+		rom->hlpod_vals.num_2nd_subdomains);
 
     double t1 = monolis_get_time_global_sync();
 
@@ -614,7 +639,7 @@ void HROM_set_matvec(
     printf("num_2nd_subdomains: %d\n", rom->hlpod_vals.num_2nd_subdomains);
     printf("num_modes_max: %d\n", rom->hlpod_vals.num_modes_max);
     printf("num_snapshot: %d\n", rom->hlpod_vals.num_snapshot);
-    //exit(1);
+
     get_neib_coordinates_pad(
             &(sys->mono_com_rom),
             &(rom->hlpod_vals),
@@ -843,8 +868,6 @@ void HROM_pre_offline2_inc_svd1(
         rom->hlpod_vals.num_snapshot,
         rom->hlpod_vals.num_modes_pre,
         num_2nd_subdomains,
-        10000,
-        1.0e-8,
         4,
         sys->cond.directory);
 
@@ -870,8 +893,6 @@ void HROM_pre_offline2_inc_svd2(
         rom->hlpod_vals.num_snapshot,
         rom->hlpod_vals.num_modes_pre,
         num_2nd_subdomains,
-        10000,
-        1.0e-8,
         4,
         sys->cond.directory);
 
@@ -885,23 +906,7 @@ void HROM_pre_offline2_inc_svd3(
 		const int num_snapshot,
 		const int num_2nd_subdomains)
 {
-/*
-    ddhr_set_matvec_RH_for_NNLS_para_volume_const(
-        &(sys->fe),
-        &(sys->vals),
-        &(sys->basis),
-        &(rom->hlpod_mat),
-        &(rom->hlpod_vals),
-        &(hrom->hlpod_ddhr),
-        rom->hlpod_vals.num_2nd_subdomains,
-        0 ,   //index 0 start
-        rom->hlpod_vals.num_snapshot,
-        1 + sys->mono_com.recv_n_neib,
-        sys->vals.dt,
-        0);
-*/
     ddhr_lb_write_selected_elements_para_1line_incremental_svd(
-    //ddhr_lb_write_selected_elements_para_1line_svd(
         &(sys->mono_com_rom_solv),
         &(sys->fe),
         &(sys->bc),

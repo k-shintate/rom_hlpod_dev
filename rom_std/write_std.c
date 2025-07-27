@@ -105,7 +105,7 @@ void hr_write_NNLS_residual(
 {
     const char* filename;
     char fname[BUFFER_SIZE];
-    snprintf(fname, BUFFER_SIZE,"hr_param/%s.%d.%d", OUTPUT_FILENAME_NNLS_RESIDUALS, myrank, num);
+    snprintf(fname, BUFFER_SIZE,"hr_prm/%s.%d.%d", OUTPUT_FILENAME_NNLS_RESIDUALS, myrank, num);
 
     FILE* fp;
 
@@ -122,7 +122,7 @@ void hr_write_NNLS_num_elems(
 {
     const char* filename;
     char fname[BUFFER_SIZE];
-    snprintf(fname, BUFFER_SIZE,"hr_param/%s.%d.%d", OUTPUT_FILENAME_NNLS_NUM_ELEMS, myrank, num);
+    snprintf(fname, BUFFER_SIZE,"hr_prm/%s.%d.%d", OUTPUT_FILENAME_NNLS_NUM_ELEMS, myrank, num);
 
     FILE* fp;
 

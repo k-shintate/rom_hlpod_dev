@@ -26,6 +26,14 @@ void HROM_offline_read_calc_conditions_inc_svd(
 		HR_VALUES*      hr_vals,
 		const char* 	directory);
 
+void HROM_std_hlpod_offline_set_num_snapmat_inc_svd(
+        ROM*            rom,
+        const double    finish_time,
+        const double    dt,
+        const int       snapshot_interval,
+        const int       num_case,
+        const int       incsvd_interval);
+
 void HROM_output_files(
 		FE_SYSTEM*      sys,
 		int             file_num,

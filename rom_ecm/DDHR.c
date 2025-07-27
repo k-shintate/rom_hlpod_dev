@@ -30,7 +30,6 @@ void ddhr_memory_allocation(
 
 }
 
-
 void ddhr_set_element(
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
@@ -94,35 +93,24 @@ void ddhr_calc_solution(
 	int nl = fe->total_num_nodes;
 	int k = num_base * num_subdomains;
 
-	double t1 = monolis_get_time();
-
 	for(int j = 0; j < nl; j++){
 		hr_vals->sol_vec[j] = 0.0;
 	}
-/*
-	for(int i = 0; i < k; i++){
-		for(int j = 0; j < nl; j++){
-			hr_vals->sol_vec[j] += hlpod_mat->pod_modes[j][i] * hlpod_mat->mode_coef[i];
-		}
-	}
-*/
+
 	int index_row = 0;
 	int index_column1 = 0;
 	int index_column2 = 0;
 	int sum = 0;
 	for(int k = 0; k < num_subdomains; k++){
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
-		//for(int i = 0; i < 20; i++){
 			for(int j = 0; j < hlpod_mat->n_internal_vertex_subd[k]; j++){
 				for(int l = 0; l < dof; l++){
-					//index_row = hlpod_mat->node_id[j]*dof + l + sum;
 					index_row = hlpod_mat->node_id[j+sum]*dof + l;
 					hr_vals->sol_vec[index_row] += hlpod_mat->pod_modes[index_row][index_column1 + i] * hlpod_mat->mode_coef[index_column1 + i];
 				}
 			}
 		}
 		index_column1 += hlpod_mat->num_modes_internal[k];
-		//index_column += 20;
 		index_column2 += num_base;
 		sum += hlpod_mat->n_internal_vertex_subd[k] * dof;
 	}
@@ -133,8 +121,6 @@ void ddhr_calc_solution(
 		}
 	}
 
-	double t2 = monolis_get_time();
-	//lpod_prm->time_calc_sol = t2-t1;
 }
 
 
@@ -505,7 +491,6 @@ void ddhr_get_selected_elements2(
     */
 
 }
-/********/
 
 
 void ddhr_set_selected_elems(
