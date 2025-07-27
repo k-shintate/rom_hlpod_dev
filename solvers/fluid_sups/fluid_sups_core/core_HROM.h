@@ -8,8 +8,6 @@
 
 #include "ecm_write.h"
 #include "inc_svd.h"
-//#include "hlpod_dataset.h"
-//#include "diff_dataset.h"
 
 #include "HR.h"
 #include "DDHR.h"
@@ -23,7 +21,11 @@
 #include "core_FOM.h"
 #include "core_ROM.h"
 
-/*for Hyper-reduction*/
+
+void HROM_offline_read_calc_conditions_inc_svd(
+		HR_VALUES*      hr_vals,
+		const char* 	directory);
+
 void HROM_output_files(
 		FE_SYSTEM*      sys,
 		int             file_num,

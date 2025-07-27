@@ -229,10 +229,11 @@ int main (
             sys.cond.directory);
         
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
+    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
     /********************/
 
     /*for Hyper-reduction*/
-    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
+    HROM_offline_read_calc_conditions_inc_svd(&(sys.hrom_sups.hr_vals), sys.cond.directory);
 
 	ROM_std_hlpod_offline_set_num_snapmat(
 			&(sys.rom_sups),
@@ -243,9 +244,7 @@ int main (
 
     HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
     HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
-    /*********************/
 
-    /*for Hyper-reduction*/
     hlpod_hr_sys_set_bc_id(
         &(sys.fe),
         (&sys.bc),
@@ -275,6 +274,7 @@ int main (
 	int file_num = 0;
 	int step_rom = 0;
     int step_inc_svd = 0;
+    int num_inc_svd = 0;
 
 	while (t < sys.vals.rom_finish_time) {
 		t += sys.vals.dt;
@@ -313,21 +313,15 @@ int main (
         HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_inc_svd,t);
 		double calctime_hr_t1 = monolis_get_time();
 
-        if(step_rom==50){
+        if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd==0){
             HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
             step_inc_svd = 0;
+            num_inc_svd ++;
         }
-        if(step_rom==100){
+        else if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd != 0){
             HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
             step_inc_svd = 0;
-        }
-        if(step_rom==150){
-            HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
-            step_inc_svd = 0;
-        }
-        if(step_rom==200){
-            HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
-            step_inc_svd = 0;
+            num_inc_svd ++;
         }
 
 		double calctime_fem_t2 = monolis_get_time();
@@ -360,6 +354,7 @@ int main (
 
 	if(myrank == 0) {
 		printf("** Total time: %f\n", t2 - t1);
+        printf("** Number of Incremental SVD : %d\n", num_inc_svd);
 	}
 
 	monolis_global_finalize();

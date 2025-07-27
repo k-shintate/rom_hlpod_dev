@@ -15,6 +15,8 @@ typedef struct
 {
 	double* sol_vec;
 
+    int    incsvd_interval;
+
 } HR_VALUES;
 
 

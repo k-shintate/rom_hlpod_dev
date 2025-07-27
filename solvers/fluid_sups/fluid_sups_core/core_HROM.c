@@ -3,13 +3,65 @@
 
 const int BUFFER_SIZE = 10000;
 
-static const char* INPUT_FILENAME_COND          = "cond.dat";
+const char*     HROM_ID_INC_SVD_INTERVAL    = "#inc_svd_interval";
+const int       INC_SVD_INTERVAL            = 10;
+
+static const char* HROM_INPUT_FILENAME_COND          = "hrom_cond.dat";
 static const char* OUTPUT_FILENAME_VTK          = "result_%06d.vtk";
 static const char* OUTPUT_FILENAME_ASCII_TEMP   = "temparature_%06d.dat";
 static const char* OUTPUT_FILENAME_ASCII_SOURCE = "source_%06d.dat";
 
 static const char* ROM_OUTPUT_FILENAME_VTK          = "rom_result_%06d.vtk";
 
+
+void HROM_offline_assign_default_values_inc_svd(
+		HR_VALUES*      hr_vals)
+{
+	hr_vals->incsvd_interval  = INC_SVD_INTERVAL;
+}
+
+void HROM_offline_print_all_values_inc_svd(
+		HR_VALUES*     hr_vals)
+{
+	printf("\n%s ---------- Calculation condition POD----------\n", CODENAME);
+
+	printf("%s %s: %d\n", CODENAME, HROM_ID_INC_SVD_INTERVAL,  hr_vals->incsvd_interval);
+
+	printf("%s -------------------------------------------\n\n", CODENAME);
+}
+
+void HROM_offline_read_calc_conditions_inc_svd(
+		HR_VALUES*      hr_vals,
+		const char* 	directory)
+{
+	printf("\n");
+
+	HROM_offline_assign_default_values_inc_svd(hr_vals);
+
+	char filename[BUFFER_SIZE];
+	snprintf(filename, BUFFER_SIZE, "%s/%s", directory, HROM_INPUT_FILENAME_COND);
+
+	FILE* fp;
+	fp = fopen(filename, "r");
+	if( fp == NULL ) {
+		printf("%s Calc condition file \"%s\" is not found.\n", CODENAME, filename);
+		printf("%s Default values are used in this calculation.\n", CODENAME);
+	}
+	else {
+		printf("%s Reading HROM conditon file \"%s\".\n", CODENAME, filename);
+		int num;
+
+		num = BB_std_read_file_get_val_int_p(
+				&(hr_vals->incsvd_interval), filename, HROM_ID_INC_SVD_INTERVAL, BUFFER_SIZE, CODENAME);
+
+
+		fclose(fp);
+	}
+
+	HROM_offline_print_all_values_inc_svd(hr_vals);
+
+	printf("\n");
+}
 
 void HROM_output_vtk_shape(
 		BBFE_DATA*     fe,

@@ -37,6 +37,9 @@ mv cond.dat target_viscosity.dat
 ./../../../test_thermal/bin/cmd2cond "#snapshot_interval" int 1 1 "#rom_finish_time" double 1 1.0 "#rom_output_interval" int 1 1
 mv cond.dat rom_cond.dat
 
+./../../../test_thermal/bin/cmd2cond "#inc_svd_interval" int 1 50
+mv cond.dat hrom_cond.dat
+
 ./../../../test_thermal/bin/cmd2cond "#time_spacing" double 1 0.005 "#output_interval" int 1 1  "#finish_time" double 1 1.0
 
 ./../../../test_thermal/bin/meshgen_hex $e $e $e 1.0 1.0 1.0
