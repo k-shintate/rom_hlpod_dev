@@ -24,12 +24,12 @@ cd $directory
 
 # for parameteric study
 rm -r cond.dat
-./../../../test_thermal/bin/cmd2cond "#density_array" double 1 100.0
+./../../../test_thermal/bin/cmd2cond "#density_array" double 3 90.0 100.0 110.0
 mv cond.dat density.dat
-./../../../test_thermal/bin/cmd2cond "#viscosity_array" double 1 1
+./../../../test_thermal/bin/cmd2cond "#viscosity_array" double 3 1 1 1
 mv cond.dat viscosity.dat
 
-./../../../test_thermal/bin/cmd2cond "#target_density" double 1 100.0
+./../../../test_thermal/bin/cmd2cond "#target_density" double 1 95.0
 mv cond.dat target_density.dat
 ./../../../test_thermal/bin/cmd2cond "#target_viscosity" double 1 1
 mv cond.dat target_viscosity.dat
