@@ -23,7 +23,7 @@
 #include "core_ROM.h"
 
 /*for Hyper-reduction*/
-void HR_output_files(
+void HROM_output_files(
 		FE_SYSTEM*      sys,
 		int             file_num,
 		double          t);

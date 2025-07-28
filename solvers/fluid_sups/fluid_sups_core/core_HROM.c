@@ -347,21 +347,21 @@ void HROM_pre_offline(
 	double t = monolis_get_time_global_sync();
 
 	//for arbit dof ddecm
-	get_neib_subdomain_id(
+	HROM_ddecm_get_neib_subdomain_id(
 		&(sys->mono_com),
 		&(rom->hlpod_mat),
 		rom->hlpod_vals.num_2nd_subdomains);
 
     double t1 = monolis_get_time_global_sync();
 
-    get_neib_num_modes_pad(
+    HROM_ddecm_get_neib_num_modes(
         &(sys->mono_com_rom),
         &(rom->hlpod_vals),
         &(rom->hlpod_mat),
         1 + sys->mono_com.recv_n_neib,
         rom->hlpod_vals.num_modes);
 
-    get_neib_coordinates_pre(
+    HROM_ddecm_get_neib_coordinates_pre(
         &(rom->hlpod_vals),
         &(rom->hlpod_mat),
         1 + sys->mono_com.recv_n_neib,
@@ -370,19 +370,19 @@ void HROM_pre_offline(
     printf("%d %d\n", rom->hlpod_vals.num_modes_max, rom->hlpod_vals.num_modes_pre);
 
 	//level2領域の最大基底本数の共有
-    get_neib_max_num_modes_pad(
+    HROM_ddecm_get_neib_max_num_modes(
 		&(sys->mono_com_rom),
         &(rom->hlpod_vals),
 		&(rom->hlpod_mat),
         1 + sys->mono_com.recv_n_neib,
 		rom->hlpod_vals.num_modes_max);
 
-	get_meta_neib(
+	HROM_ecm_get_meta_neib(
 		&(sys->mono_com_rom_solv),
 		&(rom->hlpod_meta),
 		sys->cond.directory);
 
-	ddhr_lb_set_neib(
+	HROM_ddecm_set_neib(
 		&(sys->mono_com_rom_solv),
 		&(rom->hlpod_mat),
 		&(hrom->hlpod_ddhr),
@@ -416,7 +416,7 @@ void HROM_pre_offline2(
         sys->vals.dt,
         0);
 
-    ddhr_lb_write_selected_elements_para_1line_svd(
+    HROM_ddecm_write_selected_elems_svd(
         &(sys->mono_com_rom_solv),
         &(sys->fe),
         &(sys->bc),
@@ -433,7 +433,7 @@ void HROM_pre_offline2(
         4,
         sys->cond.directory);
 
-    ddhr_lb_get_selected_elements_internal_overlap(
+    HROM_ddecm_get_selected_elems_int_ovl(
             &(hrom->hlpod_ddhr),
             sys->cond.directory);
 
@@ -453,21 +453,21 @@ void HROM_pre_online(
 
 	double t = monolis_get_time_global_sync();
 
-    get_neib_subdomain_id_2nddd(
+    HROM_ddecm_get_neib_subdomain_id_2nddd(
         &(sys->mono_com),
         &(rom->hlpod_mat),
         rom->hlpod_vals.num_2nd_subdomains);
 
-    ddhr_lb_read_selected_elements_para(
+    HROM_ddecm_read_selected_elems_para(
         num_2nd_subdomains,
         sys->cond.directory);
 
-    ddhr_lb_get_selected_elements_para_add(
+    HROM_ddecm_get_selected_elema_add(
         &(hrom->hlpod_ddhr),
         monolis_mpi_get_global_comm_size(),
         sys->cond.directory);
 
-    lpod_hdd_lb_set_hr_podbasis(
+    HROM_ddecm_set_podbasis_ovl(
         &(sys->mono_com),
         &(rom->hlpod_vals),
         &(rom->hlpod_mat),
@@ -493,7 +493,7 @@ void HROM_hierarchical_parallel(
     monolis_initialize(&(sys.monolis_hr));
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_hr0), &(sys.monolis_hr));
 
-    ddhr_lb_set_reduced_mat_para_save_memory(
+    HROM_ddecm_set_reduced_mat_para_save_memory(
         &(sys.monolis_hr),
         &(sys.fe),
         &(sys.vals_hrom),
@@ -506,7 +506,7 @@ void HROM_hierarchical_parallel(
         rom->hlpod_vals.num_2nd_subdomains,
         sys.vals.dt);
 
-    ddhr_hlpod_calc_block_mat_bcsr_pad(
+    HROM_ddecm_calc_block_mat_bcsr(
         &(sys.monolis_hr),
         &(sys.mono_com_rom_solv),
         &(rom->hlpod_vals),
@@ -517,7 +517,7 @@ void HROM_hierarchical_parallel(
         rom->hlpod_vals.num_2nd_subdomains,
         sys.cond.directory);
 	
-    ddhr_lb_set_reduced_vec_para(
+    HROM_ddecm_set_reduced_vec_para(
         &(sys.monolis_hr),
         &(sys.fe),
         &(sys.vals_hrom),
@@ -531,7 +531,7 @@ void HROM_hierarchical_parallel(
         sys.vals.dt,
         t);
     
-    ddhr_lb_set_D_bc_para(
+    HROM_ddecm_set_D_bc_para(
         &(sys.monolis_hr),
         &(sys.fe),
         &(sys.vals_hrom),
@@ -543,7 +543,7 @@ void HROM_hierarchical_parallel(
         rom->hlpod_vals.num_2nd_subdomains,
         sys.vals.dt);
 
-    ddhr_to_monollis_rhs_para_pad(
+    HROM_ddecm_to_monollis_rhs_para(
         &(sys.monolis_hr),
         &(hrom->hlpod_ddhr),
         &(rom->hlpod_mat),
@@ -561,7 +561,7 @@ void HROM_hierarchical_parallel(
         sys.vals.mat_max_iter,
         sys.vals.mat_epsilon);
 
-    lpod_pad_calc_block_solution_local_para_pad(
+    HROM_ddecm_calc_block_solution(
         &(sys.mono_com),
         &(sys.fe),
         &(hrom->hr_vals),
@@ -610,13 +610,13 @@ void HROM_memory_allocation(
         ROM*        rom,
         HROM*       hrom)
 {
-        ddhr_lb_set_element_para2(
+        HROM_ddecm_set_element_para(
                 &(sys->fe),
                 &(hrom->hlpod_ddhr),
                 rom->hlpod_vals.num_2nd_subdomains,
                 sys->cond.directory);
 
-        ddhr_memory_allocation_para(
+        HROM_ddecm_memory_allocation_para(
                 &(rom->hlpod_vals),
                 &(hrom->hlpod_ddhr),
                 &(rom->hlpod_mat),
@@ -640,7 +640,7 @@ void HROM_set_matvec(
     printf("num_modes_max: %d\n", rom->hlpod_vals.num_modes_max);
     printf("num_snapshot: %d\n", rom->hlpod_vals.num_snapshot);
 
-    get_neib_coordinates_pad(
+    HROM_get_neib_coordinates(
             &(sys->mono_com_rom),
             &(rom->hlpod_vals),
             &(rom->hlpod_mat),
@@ -649,7 +649,7 @@ void HROM_set_matvec(
             rom->hlpod_vals.num_2nd_subdomains,
             rom->hlpod_vals.num_modes_pre);
 
-    ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
+    HROM_ddecm_set_RH_for_NNLS_para(
             &(sys->fe),
             &(sys->vals),
             &(sys->basis),
@@ -663,7 +663,7 @@ void HROM_set_matvec(
             sys->vals.dt,
             t);
 
-    ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
+    HROM_ddecm_set_residuals_for_NNLS_para(
             &(sys->fe),
             &(sys->vals),
             &(sys->basis),
@@ -700,13 +700,13 @@ void HROM_memory_allocation_online(
         ROM*        rom,
         HROM*       hrom)
 {
-    ddhr_lb_set_element_para2(
+    HROM_ddecm_set_element_para(
         &(sys->fe),
         &(hrom->hlpod_ddhr),
         rom->hlpod_vals.num_2nd_subdomains,
         sys->cond.directory);
 
-    ddhr_memory_allocation_para_online(
+    HROM_ddecm_memory_allocation_para_online(
         &(rom->hlpod_vals),
         &(hrom->hlpod_ddhr),
         &(rom->hlpod_mat),
@@ -923,7 +923,7 @@ void HROM_pre_offline2_inc_svd3(
         4,
         sys->cond.directory);
 
-    ddhr_lb_get_selected_elements_internal_overlap(
+    HROM_ddecm_get_selected_elems_int_ovl(
             &(hrom->hlpod_ddhr),
             sys->cond.directory);
 

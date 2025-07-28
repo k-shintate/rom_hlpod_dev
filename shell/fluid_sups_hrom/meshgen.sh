@@ -24,23 +24,23 @@ cd $directory
 
 # for parameteric study
 rm -r cond.dat
-./../../../test_thermal/bin/cmd2cond "#density_array" double 3 90.0 100.0 110.0
+./../../../test_thermal/bin/cmd2cond "#density_array" double 1 100.0
 mv cond.dat density.dat
-./../../../test_thermal/bin/cmd2cond "#viscosity_array" double 3 1 1 1
+./../../../test_thermal/bin/cmd2cond "#viscosity_array" double 1 1
 mv cond.dat viscosity.dat
 
-./../../../test_thermal/bin/cmd2cond "#target_density" double 1 95.0
+./../../../test_thermal/bin/cmd2cond "#target_density" double 1 100.0
 mv cond.dat target_density.dat
 ./../../../test_thermal/bin/cmd2cond "#target_viscosity" double 1 1
 mv cond.dat target_viscosity.dat
 
-./../../../test_thermal/bin/cmd2cond "#snapshot_interval" int 1 1 "#rom_finish_time" double 1 1.0 "#rom_output_interval" int 1 1
+./../../../test_thermal/bin/cmd2cond "#snapshot_interval" int 1 1 "#rom_finish_time" double 1 0.5 "#rom_output_interval" int 1 1
 mv cond.dat rom_cond.dat
 
 ./../../../test_thermal/bin/cmd2cond "#inc_svd_interval" int 1 50
 mv cond.dat hrom_cond.dat
 
-./../../../test_thermal/bin/cmd2cond "#time_spacing" double 1 0.005 "#output_interval" int 1 1  "#finish_time" double 1 1.0
+./../../../test_thermal/bin/cmd2cond "#time_spacing" double 1 0.005 "#output_interval" int 1 1  "#finish_time" double 1 0.5
 
 ./../../../test_thermal/bin/meshgen_hex $e $e $e 1.0 1.0 1.0
 

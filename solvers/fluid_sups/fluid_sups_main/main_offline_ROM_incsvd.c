@@ -262,7 +262,7 @@ int main (
     HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
     HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
 
-    hlpod_hr_sys_set_bc_id(
+    HROM_set_bc_id(
         &(sys.fe),
         (&sys.bc),
         &(sys.hrom_sups.hlpod_ddhr),

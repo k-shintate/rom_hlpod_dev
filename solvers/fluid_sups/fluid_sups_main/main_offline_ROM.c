@@ -242,6 +242,9 @@ int main (
 
 	set_target_parameter(&(sys.vals), sys.cond.directory);
 	set_target_parameter(&(sys.vals_rom), sys.cond.directory);
+
+    ROM_offline_set_reynolds_num_cases(&(sys.vals), sys.cond.directory);
+    ROM_offline_set_reynolds_num_cases(&(sys.vals_rom), sys.cond.directory);
     /*********************/
 
     /*for Hyper-reduction*/
@@ -257,7 +260,7 @@ int main (
     HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
     HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
 
-    hlpod_hr_sys_set_bc_id(
+    HROM_set_bc_id(
         &(sys.fe),
         (&sys.bc),
         &(sys.hrom_sups.hlpod_ddhr),
@@ -273,60 +276,66 @@ int main (
 	int file_num = 0;
 	int step_rom = 0;
 
-	while (t < sys.vals.rom_finish_time) {
-		t += sys.vals.dt;
-		step_rom += 1;
+	for(int i = 0; i < sys.vals.num_cases; i++){
+		ROM_offline_set_reynolds_number(&(sys.vals), i);
+        ROM_offline_set_reynolds_number(&(sys.vals_rom), i);
+	
+		t = 0.0; file_num = 0;
+        while (t < sys.vals.rom_finish_time) {
+            t += sys.vals.dt;
+            step_rom += 1;
 
-		printf("\n%s ----------------- step-ROM %d ----------------\n", CODENAME, step_rom);
+            printf("\n%s ----------------- step-ROM %d ----------------\n", CODENAME, step_rom);
 
-		/***************FEM***************/
-		
-		printf("----------------- normal-FEM ----------------\n");
-        /**********************************/
-		
-		/****************ROM***************/
-		printf("----------------- ROM ----------------\n");
+            /***************FEM***************/
+            
+            printf("----------------- normal-FEM ----------------\n");
+            /**********************************/
+            
+            /****************ROM***************/
+            printf("----------------- ROM ----------------\n");
 
-		double calctime_rom_t2 = monolis_get_time();
-		if(sys.rom_sups.hlpod_vals.bool_global_mode==false){
-			solver_rom(&(sys), step_rom, 0, t);
-		}
-		else{
-			solver_rom_global_para(
-						&(sys.monolis),
-						&(sys.mono_com),
-						&(sys.rom_sups),
-						&(sys),
-						step_rom,
-						0,
-						t);
-		}
-		double calctime_rom_t1 = monolis_get_time();
+            double calctime_rom_t2 = monolis_get_time();
+            if(sys.rom_sups.hlpod_vals.bool_global_mode==false){
+                solver_rom(&(sys), step_rom, 0, t);
+            }
+            else{
+                solver_rom_global_para(
+                            &(sys.monolis),
+                            &(sys.mono_com),
+                            &(sys.rom_sups),
+                            &(sys),
+                            step_rom,
+                            0,
+                            t);
+            }
+            double calctime_rom_t1 = monolis_get_time();
 
-		/**********************************/
+            /**********************************/
 
-		double calctime_hr_t2 = monolis_get_time();
-        HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_rom,t);
-		double calctime_hr_t1 = monolis_get_time();
+            double calctime_hr_t2 = monolis_get_time();
+            HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_rom,t);
+            double calctime_hr_t1 = monolis_get_time();
 
-		double calctime_fem_t2 = monolis_get_time();
-		solver_fom(sys, t, step_rom);	
-		double calctime_fem_t1 = monolis_get_time();
+            double calctime_fem_t2 = monolis_get_time();
+            solver_fom(sys, t, step_rom);	
+            double calctime_fem_t1 = monolis_get_time();
 
-		if(step_rom%sys.vals.output_interval == 0) {
-			ROM_output_files(&sys, file_num, t);
-                        
-            ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
-			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
+            if(step_rom%sys.vals.output_interval == 0) {
+                ROM_output_files(&sys, file_num, t);
+                            
+                ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
+                ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
 
-            ROM_std_hlpod_output_calc_time(calctime_fem_t2-calctime_fem_t1, t,
-					"calctime/time_fem.txt", sys.cond.directory);
-            ROM_std_hlpod_output_calc_time(calctime_rom_t2-calctime_rom_t1, t,
-					"calctime/time_rom.txt", sys.cond.directory);
+                ROM_std_hlpod_output_calc_time(calctime_fem_t2-calctime_fem_t1, t,
+                        "calctime/time_fem.txt", sys.cond.directory);
+                ROM_std_hlpod_output_calc_time(calctime_rom_t2-calctime_rom_t1, t,
+                        "calctime/time_rom.txt", sys.cond.directory);
 
-			file_num += 1;
-		}
-	}
+                file_num += 1;
+            }
+        }
+    }
 
     HROM_pre_offline3(&sys, &(sys.rom_sups), &(sys.hrom_sups));
 

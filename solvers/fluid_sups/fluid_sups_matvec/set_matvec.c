@@ -322,7 +322,7 @@ void ddhr_lb_set_reduced_vec_para_debug(
 
 }
 
-void ddhr_lb_set_reduced_mat_para_save_memory(
+void HROM_ddecm_set_reduced_mat_para_save_memory(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		VALUES*         vals,
@@ -527,7 +527,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 
 }
 
-void ddhr_lb_set_D_bc_para(
+void HROM_ddecm_set_D_bc_para(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		VALUES*         vals,
@@ -558,7 +558,7 @@ void ddhr_lb_set_D_bc_para(
         int e = hlpod_ddhr->ovl_id_selected_elems_D_bc[m];
 //    for(int e = 0; e < fe->total_num_elems; e++) {
         if(monolis_mpi_get_global_my_rank()==0){
-//            printf("ddhr_lb_set_D_bc_para: e = %d\n", e);
+//            printf("HROM_ddecm_set_D_bc_para: e = %d\n", e);
         }
 
 		BBFE_elemmat_set_Jacobian_array(Jacobian_ip, np, e, fe);
@@ -609,7 +609,7 @@ void ddhr_lb_set_D_bc_para(
                                 np, val_ip[a][b], basis->integ_weight, Jacobian_ip);
 
                             if(monolis_mpi_get_global_my_rank()==0){
-                                //printf("ddhr_lb_set_D_bc_para: index_i = %d, index_j = %d, a = %d, b = %d, integ_val = %f\n", index_i, index_j, a, b, integ_val);
+                                //printf("HROM_ddecm_set_D_bc_para: index_i = %d, index_j = %d, a = %d, b = %d, integ_val = %f\n", index_i, index_j, a, b, integ_val);
                             }
                             for(int k1 = IS; k1 < IE; k1++){
                                 double val = hlpod_mat->pod_basis_hr[index_i*4+a][k1] * integ_val * bc->imposed_D_val[index_j*4+b];
@@ -633,7 +633,7 @@ void ddhr_lb_set_D_bc_para(
 }
 
 
-void ddhr_lb_set_reduced_vec_para(
+void HROM_ddecm_set_reduced_vec_para(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		VALUES*         vals,

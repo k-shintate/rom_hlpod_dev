@@ -1,7 +1,7 @@
 #pragma once
 
 //残差ベクトルのみをNNLSに使う
-void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
+void HROM_ddecm_set_RH_for_NNLS_para(
 		BBFE_DATA*     	fe,
 		VALUES*         vals,
 		BBFE_BASIS*	 	basis,
@@ -16,7 +16,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 		double       	t);
 
 //残差ベクトルのみをNNLSに使う
-void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
+void HROM_ddecm_set_residuals_for_NNLS_para(
 		BBFE_DATA*     	fe,
 		VALUES*         vals,
 		BBFE_BASIS*	 	basis,

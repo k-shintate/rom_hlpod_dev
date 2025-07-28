@@ -824,7 +824,7 @@ void ROM_std_hlpod_set_podmodes_global_para_diag(
 }
 
 /*for hyper-reduction*/
-void lpod_hdd_lb_set_hr_podbasis(
+void HROM_ddecm_set_podbasis_ovl(
     MONOLIS_COM*  	monolis_com,
 	HLPOD_VALUES*		hlpod_vals,
     HLPOD_MAT*    hlpod_mat,

@@ -24,109 +24,7 @@ void hr_manusol_set_bc(
     }
 }
 
-void qr_decomposition(double **A, int m, int n, double **Q, double **R) {
-    int i, j, k;
-    double *u = (double *)malloc(m * sizeof(double));
-    double **V = (double **)malloc(m * sizeof(double *));
-    for (i = 0; i < m; ++i) {
-        V[i] = (double *)malloc(m * sizeof(double));
-    }
-
-    // Initialize Q as identity matrix
-    for (i = 0; i < m; ++i) {
-        for (j = 0; j < m; ++j) {
-            Q[i][j] = (i == j) ? 1.0 : 0.0;
-        }
-    }
-
-    // Perform QR decomposition
-    for (k = 0; k < n; ++k) {
-        // Construct u vector
-        for (i = 0; i < m; ++i) {
-            u[i] = A[i][k];
-        }
-        for (j = 0; j < k; ++j) {
-            double dot_product = 0.0;
-            for (i = 0; i < m; ++i) {
-                dot_product += Q[i][j] * A[i][k];
-            }
-            for (i = 0; i < m; ++i) {
-                u[i] -= dot_product * Q[i][j];
-            }
-        }
-
-        // Normalize u vector
-        double norm_u = 0.0;
-        for (i = 0; i < m; ++i) {
-            norm_u += u[i] * u[i];
-        }
-        norm_u = sqrt(norm_u);
-        for (i = 0; i < m; ++i) {
-            u[i] /= norm_u;
-        }
-
-        // Update R matrix
-        for (i = 0; i < m; ++i) {
-            R[i][k] = u[i];
-        }
-
-        // Update Q matrix
-        for (j = k; j < m; ++j) {
-            double dot_product = 0.0;
-            for (i = 0; i < m; ++i) {
-                dot_product += Q[i][j] * u[i];
-            }
-            for (i = 0; i < m; ++i) {
-                Q[i][j] -= 2.0 * dot_product * u[i];
-            }
-        }
-    }
-
-    // Free dynamically allocated memory
-    free(u);
-    for (i = 0; i < m; ++i) {
-        free(V[i]);
-    }
-    free(V);
-}
-
-void sort_diagonal_indices(double **R, int m, int n, int *indices) {
-    // Step 1: Get absolute values of diagonal elements of R and store with their indices
-    typedef struct {
-        double value;
-        int index;
-    } DiagonalPair;
-
-    DiagonalPair *pairs = (DiagonalPair *)malloc(m * sizeof(DiagonalPair));
-
-    for (int i = 0; i < m; ++i) {
-        pairs[i].value = fabs(R[i][i]);
-        pairs[i].index = i;
-    }
-
-    // Step 2: Sort pairs based on the absolute values (descending order)
-    for (int i = 0; i < m - 1; ++i) {
-        for (int j = i + 1; j < m; ++j) {
-            if (pairs[i].value < pairs[j].value) {
-                // Swap pairs
-                DiagonalPair temp = pairs[i];
-                pairs[i] = pairs[j];
-                pairs[j] = temp;
-            }
-        }
-    }
-
-    // Step 3: Extract indices in sorted order
-    for (int i = 0; i < m; ++i) {
-        indices[i] = pairs[i].index;
-    }
-
-    // Free allocated memory
-    free(pairs);
-}
-
-
-void hr_memory_allocation(
+void HROM_ecm_set_element(
         const int       total_num_nodes,
         const int       total_num_elem,
         const int       total_num_snapshot,
@@ -141,7 +39,7 @@ void hr_memory_allocation(
 
 }
 
-void hr_memory_allocation_online(
+void HROM_ecm_memory_allocation_online(
         const int       total_num_nodes,
         const int       total_num_elem,
         const int       total_num_snapshot,
@@ -153,7 +51,7 @@ void hr_memory_allocation_online(
 }
 
 
-void hr_get_selected_elements(
+void HROM_ecm_get_selected_elems(
         BBFE_DATA*     	fe,
         BBFE_BC*     	bc,
         const int       total_num_elem,
@@ -180,54 +78,6 @@ void hr_get_selected_elements(
         hlpod_hr->matrix, 
         hlpod_hr->RH, 
         ans_vec, NNLS_row, total_num_elem, max_ITER, TOL, &residual);
-
-/*
-    double** Q;
-    Q = BB_std_calloc_2d_double(Q, total_num_snapshot * total_num_modes * 2, total_num_elem);
-    double** R;
-    R = BB_std_calloc_2d_double(R, total_num_snapshot * total_num_modes * 2, total_num_elem);
-
-    int NNLS_row = total_num_snapshot * total_num_modes;
-
-    qr_decomposition(
-        hlpod_hr->matrix,
-        total_num_snapshot * total_num_modes * 2,
-        total_num_elem,
-        Q,
-        R);
-
-    printf("QR decomposition");
-
-    int* diagonal_indces;
-    diagonal_indces = BB_std_calloc_1d_int(diagonal_indces, total_num_elem);
-    
-    sort_diagonal_indices(
-        R,
-        total_num_snapshot * total_num_modes,
-        total_num_elem,
-        diagonal_indces);
-    
-    for(int i = 0; i < total_num_snapshot * total_num_modes * 2; i++){
-        //printf("%d, %d\n", i, diagonal_indces[i]);
-    }
-
-    double** NNLS_matrix;
-    NNLS_matrix = BB_std_calloc_2d_double(NNLS_matrix, NNLS_row, total_num_elem);
-    double* NNLS_RH;
-    NNLS_RH = BB_std_calloc_1d_double(NNLS_RH, NNLS_row);
-
-    for(int i = 0; i < NNLS_row; i++){
-        for(int j = 0; j < total_num_elem; j++){
-            NNLS_matrix[i][j] = hlpod_hr->matrix[diagonal_indces[i]][j];
-        }
-        NNLS_RH[i] = hlpod_hr->RH[diagonal_indces[i]];
-    }
-
-        monolis_optimize_nnls_R_with_sparse_solution(
-        NNLS_matrix, 
-        NNLS_RH, 
-        ans_vec, NNLS_row, total_num_elem, max_ITER, TOL, &residual);
-*/    
 
     printf("\n\nmax_iter = %d, tol = %lf, residuals = %lf\n\n", max_ITER, TOL, residual);
 
@@ -385,7 +235,7 @@ void hr_get_selected_elements(
 }
 
 
-void hr_calc_solution(
+void HROM_ecm_calc_solution(
 	BBFE_DATA* 		fe,
 	HLPOD_MAT*      hlpod_mat,
 	double*         HR_T,
@@ -407,7 +257,7 @@ void hr_calc_solution(
 }
 
 
-void hr_monolis_set_matrix(
+void HROM_ecm_monolis_set_matrix(
 	MONOLIS*     	monolis,
 	HLPOD_HR*      hlpod_hr,
     const int 		num_basis)
@@ -444,7 +294,7 @@ void hr_monolis_set_matrix(
 	BB_std_free_1d_int(connectivity, 1);
 }
 
-void hr_to_monollis_rhs(
+void HROM_ecm_to_monollis_rhs(
 	MONOLIS*		monolis,
     HLPOD_HR*       hlpod_rh,
 	const int 		k)
@@ -454,7 +304,7 @@ void hr_to_monollis_rhs(
 	}
 }
 
-void hr_set_selected_elems(
+void HROM_ecm_set_selected_elems(
 		BBFE_DATA*     	fe,
         HLPOD_HR*       hlpod_hr,
         const int		total_num_nodes,
@@ -524,7 +374,7 @@ void hr_set_selected_elems(
 
 
 
-void hr_lb_read_selected_elements(
+void HROM_ecm_read_selected_elems(
     HLPOD_HR*     hlpod_hr,
 	const int num_subdomains,
 	const char* directory)

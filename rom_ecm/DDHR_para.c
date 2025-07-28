@@ -5,7 +5,7 @@ static const int BUFFER_SIZE = 10000;
 static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
 static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 
-void memory_allocation_hr_sol_vec(
+void HROM_ddecm_memory_allocation_sol_vec(
 	    HR_VALUES*      hr_vals,
         const int       total_num_nodes,
         const int       dof)
@@ -13,7 +13,7 @@ void memory_allocation_hr_sol_vec(
     hr_vals->sol_vec = BB_std_calloc_1d_double(hr_vals->sol_vec, total_num_nodes*dof);
 }
 
-void ddhr_memory_allocation_para_online(
+void HROM_ddecm_memory_allocation_para_online(
         HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 	    HLPOD_MAT*      hlpod_mat,
@@ -23,7 +23,7 @@ void ddhr_memory_allocation_para_online(
     hlpod_ddhr->reduced_RH = BB_std_calloc_1d_double(hlpod_ddhr->reduced_RH, hlpod_vals->n_neib_vec);
 }
 
-void ddhr_memory_allocation_para(
+void HROM_ddecm_memory_allocation_para(
         HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*      hlpod_mat,
@@ -46,7 +46,7 @@ void ddhr_memory_allocation_para(
     hlpod_ddhr->RH = BB_std_calloc_2d_double(hlpod_ddhr->RH, 2*total_num_snapshot*hlpod_vals->n_neib_vec +1, num_subdomains);
 }
 
-void ddhr_memory_free_para(
+void HROM_ddecm_memory_free_para(
         HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*      hlpod_mat,
@@ -68,7 +68,7 @@ void ddhr_memory_free_para(
     BB_std_free_2d_double(hlpod_ddhr->RH, 2*total_num_snapshot*hlpod_vals->n_neib_vec +1, num_subdomains);
 }
 
-void ddhr_set_selected_elems_para(
+void HROM_ddecm_set_selected_elems_para_vis(
 		BBFE_DATA*     	fe,
         HLPOD_DDHR*     hlpod_ddhr,
         const int		total_num_nodes,
@@ -160,19 +160,7 @@ void ddhr_set_selected_elems_para(
 
 }
 
-void ddhr_to_monollis_rhs_para(
-	MONOLIS*		monolis,
-    HLPOD_DDHR*     hlpod_ddrh,
-	HLPOD_MAT*    hlpod_mat,
-	const int 		k)
-{
-	for(int i = 0; i < k; i++){
-        monolis->mat.R.B[i] = 0.0;
-		monolis->mat.R.B[i] = hlpod_ddrh->reduced_RH[i];
-	}
-}
-
-void ddhr_to_monollis_rhs_para_pad(
+void HROM_ddecm_to_monollis_rhs_para(
 	MONOLIS*		monolis,
     HLPOD_DDHR*     hlpod_ddrh,
 	HLPOD_MAT*    hlpod_mat,
@@ -185,11 +173,6 @@ void ddhr_to_monollis_rhs_para_pad(
 	for(int k = 0; k < num_2nddd; k++){
 		for(int i = 0; i < hlpod_mat->num_modes_internal[k]; i++){
 			monolis->mat.R.B[index + i] = hlpod_ddrh->reduced_RH[index + i];
-
-            //if(monolis_mpi_get_global_my_rank() == 0){
-            //    printf("k = %d, index = %d, num_modes_internal[k] = %d, reduced_RH[index_column + i] = %e\n",
-            //           k, index, hlpod_mat->num_modes_internal[k], hlpod_ddrh->reduced_RH[index + i]);
-            //}
 		}
 		index += hlpod_mat->num_modes_internal[k];		
 		sum += hlpod_mat->n_internal_vertex_subd[k];
@@ -197,7 +180,7 @@ void ddhr_to_monollis_rhs_para_pad(
 
 }
 
-void lpod_pad_calc_block_solution_local_para_pad(
+void HROM_ddecm_calc_block_solution(
 	MONOLIS_COM*	monolis_com,
 	BBFE_DATA* 		fe,
     HR_VALUES*      hr_vals,

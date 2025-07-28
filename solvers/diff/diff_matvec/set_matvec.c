@@ -120,7 +120,7 @@ void ddhr_set_reduced_mat_para_debug(
 	BB_std_free_1d_double(a_ip, np);
 }
 
-void hr_set_reduced_mat(
+void HROM_ecm_set_reduced_mat(
 		MONOLIS*     monolis,
 		BBFE_DATA*     fe,
 		BBFE_BASIS* basis,
@@ -302,7 +302,7 @@ void hr_set_reduced_mat(
 }
 
 
-void hr_set_D_bc(
+void HROM_ecm_set_D_bc(
 		MONOLIS*     monolis,
 		BBFE_DATA*     fe,
 		BBFE_BASIS* basis,
@@ -406,7 +406,7 @@ void hr_set_D_bc(
 
 
 /*for POD*/
-void hr_set_reduced_vec(
+void HROM_ecm_set_reduced_vec(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
@@ -585,7 +585,7 @@ void hr_set_reduced_vec(
 	BB_std_free_1d_double(f_ip, np);
 }
 
-void ddhr_set_reduced_vec3(
+void HROM_ddecm_set_reduced_vec(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
@@ -798,7 +798,7 @@ void ddhr_set_reduced_vec3(
 	BB_std_free_1d_double(f_ip, np);
 }
 
-void ddhr_set_reduced_mat3(
+void HROM_ddecm_set_reduced_mat(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS* 	basis,
@@ -1018,7 +1018,7 @@ void ddhr_set_reduced_mat3(
 	BB_std_free_1d_double(a_ip, np);
 }
 
-void ddhr_set_D_bc3(
+void HROM_ddecm_set_D_bc(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS* 	basis,
@@ -1369,7 +1369,7 @@ void ddhr_lb_set_reduced_mat_para(
 }
 
 
-void ddhr_lb_set_reduced_mat_para_save_memory(
+void HROM_ddecm_set_reduced_mat_para_save_memory(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS* 	basis,
@@ -1609,7 +1609,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
 
 }
 
-void ddhr_lb_set_D_bc_para(
+void HROM_ddecm_set_D_bc_para(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS* 	basis,
@@ -1734,7 +1734,7 @@ void ddhr_lb_set_D_bc_para(
 }
 
 
-void ddhr_lb_set_reduced_vec_para(
+void HROM_ddecm_set_reduced_vec_para(
 		MONOLIS*     	monolis,
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,

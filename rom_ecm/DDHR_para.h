@@ -6,18 +6,18 @@
 #include "write_std.h"
 #include "write_BB.h"
 
-void memory_allocation_hr_sol_vec(
+void HROM_ddecm_memory_allocation_sol_vec(
 	    HR_VALUES*      hr_vals,
         const int       total_num_nodes,
         const int       dof);
 
-void ddhr_memory_allocation_para_online(
+void HROM_ddecm_memory_allocation_para_online(
         HLPOD_VALUES*   hlpod_vals,
         HLPOD_DDHR*     hlpod_ddhr,
 	    HLPOD_MAT*      hlpod_mat,
         const int       total_num_nodes);
 
-void ddhr_memory_allocation_para(
+void HROM_ddecm_memory_allocation_para(
         HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*     	hlpod_mat,
@@ -27,7 +27,7 @@ void ddhr_memory_allocation_para(
         const int       total_num_modes,
 		const int		num_subdomains);
 
-void ddhr_memory_free_para(
+void HROM_ddecm_memory_free_para(
         HLPOD_VALUES*   hlpod_vals,
 	    HLPOD_DDHR*     hlpod_ddhr,
 		HLPOD_MAT*      hlpod_mat,
@@ -38,27 +38,21 @@ void ddhr_memory_free_para(
 		const int		num_subdomains);
 
 /*for visualization*/
-void ddhr_set_selected_elems_para(
+void HROM_ddecm_set_selected_elems_para_vis(
 		BBFE_DATA*     	fe,
         HLPOD_DDHR*     hlpod_ddhr,
         const int		total_num_nodes,
 		const int		num_subdomains,
 		const char*     directory);
 
-void ddhr_to_monollis_rhs_para(
-		MONOLIS*		monolis,
-		HLPOD_DDHR*     hlpod_ddrh,
-		HLPOD_MAT*      hlpod_mat,
-		const int 		k);
-
-void ddhr_to_monollis_rhs_para_pad(
+void HROM_ddecm_to_monollis_rhs_para(
 		MONOLIS*		monolis,
 		HLPOD_DDHR*     hlpod_ddrh,
 		HLPOD_MAT*      hlpod_mat,
 		const int		num_2nddd,
 		const int		max_num_bases);
 
-void lpod_pad_calc_block_solution_local_para_pad(
+void HROM_ddecm_calc_block_solution(
 	MONOLIS_COM*	monolis_com,
 	BBFE_DATA* 		fe,
     HR_VALUES*      hr_vals,

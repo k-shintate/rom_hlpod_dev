@@ -6,7 +6,7 @@
 
 
 //残差ベクトルのみをNNLSに使う
-void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
+void HROM_ddecm_set_RH_for_NNLS_para(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
         HLPOD_MAT*     hlpod_mat,
@@ -129,7 +129,7 @@ void ddhr_set_matvec_RH_for_NNLS_para_only_residuals(
 }
 
 //残差ベクトルのみをNNLSに使う
-void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
+void HROM_ddecm_set_residuals_for_NNLS_para(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
@@ -287,7 +287,7 @@ void ddhr_set_matvec_residuals_for_NNLS_para_only_residuals(
 }
 
 //残差ベクトルのみをNNLSに使う
-void ddhr_set_matvec_only_residuals_for_NNLS3(
+void HROM_ddecm_set_RH_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,
@@ -474,7 +474,7 @@ void ddhr_set_matvec_only_residuals_for_NNLS3(
 }
 
 //残差ベクトルのみをNNLSに使う
-void ddhr_set_matvec_RH_for_NNLS2_only_residuals(
+void HROM_ddecm_set_residuals_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
         HLPOD_MAT*     hlpod_mat,
@@ -820,7 +820,7 @@ void hr_set_matvec_for_NNLS(
 }
 
 
-void hr_set_matvec_RH_for_NNLS(
+void HROM_ecm_set_RH_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
         HLPOD_MAT*     hlpod_mat,
@@ -932,7 +932,7 @@ void hr_set_matvec_RH_for_NNLS(
 }
 
 
-void hr_set_matvec_residuals_for_NNLS(
+void HROM_ecm_set_residuals_for_NNLS(
 		BBFE_DATA*     	fe,
 		BBFE_BASIS*	 	basis,
     	BBFE_BC*     	bc,

@@ -46,7 +46,7 @@ void ddhr_lb_set_reduced_vec_para_debug(
     const double    dt,
     double       	t);
 
-void ddhr_lb_set_reduced_mat_para_save_memory(
+void HROM_ddecm_set_reduced_mat_para_save_memory(
     MONOLIS*     	monolis,
     BBFE_DATA*     	fe,
 	VALUES*         vals,
@@ -59,7 +59,7 @@ void ddhr_lb_set_reduced_mat_para_save_memory(
     const int 		num_subdomains,
     const double    dt);
 
-void ddhr_lb_set_D_bc_para(
+void HROM_ddecm_set_D_bc_para(
     MONOLIS*     	monolis,
     BBFE_DATA*     	fe,
     VALUES*         vals,
@@ -71,7 +71,7 @@ void ddhr_lb_set_D_bc_para(
     const int 		num_subdomains,
     const double    dt);
 
-void ddhr_lb_set_reduced_vec_para(
+void HROM_ddecm_set_reduced_vec_para(
     MONOLIS*     	monolis,
     BBFE_DATA*     	fe,
     VALUES*         vals,

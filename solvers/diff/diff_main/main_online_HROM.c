@@ -239,7 +239,7 @@ int main (
     HROM_pre(&sys, &(sys.rom), &(sys.hrom));
     HROM_pre_online(&sys, &(sys.rom), &(sys.hrom));
 
-    hlpod_hr_sys_set_bc_id(
+    HROM_set_bc_id(
         &(sys.fe),
         (&sys.bc),
         &(sys.hrom.hlpod_ddhr),
@@ -265,7 +265,7 @@ int main (
         solver_fom(sys, t, step);	
     }
 
-    memory_allocation_hr_sol_vec(&(sys.hrom.hr_vals), sys.fe.total_num_nodes, 1);
+    HROM_ddecm_memory_allocation_sol_vec(&(sys.hrom.hr_vals), sys.fe.total_num_nodes, 1);
 
     ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);
     ROM_BB_vec_copy(sys.vals.T, sys.hrom.hr_vals.sol_vec, sys.fe.total_num_nodes);    
@@ -307,7 +307,7 @@ int main (
             ROM_std_hlpod_output_calc_time(calctime_rom_t1-calctime_rom_t2, t,
 					"calctime/time_rom.txt", sys.cond.directory);
 
-        	HR_output_files(&sys, file_num, t);	
+        	HROM_output_files(&sys, file_num, t);	
 		    //calctime_online += calctime_hr_t2- calctime_hr_t1;
 
 			file_num += 1;

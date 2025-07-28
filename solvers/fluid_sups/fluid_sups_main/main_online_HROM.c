@@ -237,14 +237,14 @@ int main (
     HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
     HROM_pre_online(&sys, &(sys.rom_sups), &(sys.hrom_sups));
 
-    hlpod_hr_sys_set_bc_id(
+    HROM_set_bc_id(
         &(sys.fe),
         (&sys.bc),
         &(sys.hrom_sups.hlpod_ddhr),
         4,
         &(sys.rom_sups.hlpod_mat));
     
-    memory_allocation_hr_sol_vec(&(sys.hrom_sups.hr_vals), sys.fe.total_num_nodes, 4);
+    HROM_ddecm_memory_allocation_sol_vec(&(sys.hrom_sups.hr_vals), sys.fe.total_num_nodes, 4);
    	monolis_initialize(&(sys.monolis_hr));
     monolis_copy_mat_R(&(sys.monolis_hr0), &(sys.monolis_hr));
     /************************/

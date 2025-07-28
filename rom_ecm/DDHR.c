@@ -1,19 +1,11 @@
 
-/*
-#include "std.h"
-#include "DDHR.h"
-#include "hlpod_read.h"
-#include "hlpod_write.h"
-*/
-
-
 #include "DDHR.h"
 
 static const int BUFFER_SIZE = 10000;
 static const char* INPUT_FILENAME_ELEM_ID          = "elem.dat.id";
 static const char* OUTPUT_FILENAME_ECM_ELEM_VTK = "ECM_elem.vtk";
 
-void ddhr_memory_allocation(
+void HROM_ddecm_memory_allocation(
         const int       total_num_nodes,
         const int       total_num_elem,
         const int       total_num_snapshot,
@@ -30,57 +22,7 @@ void ddhr_memory_allocation(
 
 }
 
-void ddhr_set_element(
-        HLPOD_DDHR*     hlpod_ddhr,
-		const int 		num_subdomains,
-		const char*     directory)
-{
-	int id;
-	int tmp;
-    char fname[BUFFER_SIZE];
-    char char_id[BUFFER_SIZE];
-	FILE* fp;
-
-	int* num_elems;
-	num_elems = BB_std_calloc_1d_int(num_elems, num_subdomains);
-
-    for(int m = 0; m < num_subdomains; m++){
-        snprintf(fname, BUFFER_SIZE, "parted.0/%s.%d", INPUT_FILENAME_ELEM_ID, m);
-
-        fp = ROM_BB_read_fopen(fp, fname, directory);
-        fscanf(fp, "%s", char_id);
-        fscanf(fp, "%d %d", &(num_elems[m]), &(tmp));
-        fclose(fp);
-	}
-
-	int max_num_elem = ROM_BB_findMax(num_elems, num_subdomains);
-
-	hlpod_ddhr->elem_id_local = BB_std_calloc_2d_int(hlpod_ddhr->elem_id_local, max_num_elem, num_subdomains);
-	hlpod_ddhr->num_elems = BB_std_calloc_1d_int(hlpod_ddhr->num_elems, num_subdomains);
-
-	//要素数の取得
-    for(int m = 0; m < num_subdomains; m++){
-		hlpod_ddhr->num_elems[m] = num_elems[m];
-	}
-
-    for(int m = 0; m < num_subdomains; m++){	
-        snprintf(fname, BUFFER_SIZE, "parted.0/%s.%d", INPUT_FILENAME_ELEM_ID, m);
-
-        fp = ROM_BB_read_fopen(fp, fname, directory);
-        fscanf(fp, "%s", char_id);
-        fscanf(fp, "%d %d", &(num_elems[m]), &(tmp));
-
-        for(int i = 0; i < hlpod_ddhr->num_elems[m]; i++) {
-            fscanf(fp, "%d", &(hlpod_ddhr->elem_id_local[i][m]));
-        }
-
-        fclose(fp);
-	}
-
-}
-
-
-void ddhr_calc_solution(
+void HROM_ddecm_calc_solution(
 	BBFE_DATA* 		fe,
     HR_VALUES*      hr_vals,
 	HLPOD_MAT*      hlpod_mat,
@@ -124,7 +66,7 @@ void ddhr_calc_solution(
 }
 
 
-void ddhr_monolis_set_matrix2(
+void HROM_ddecm_monolis_set_matrix(
 	MONOLIS*     	monolis,
 	HLPOD_MAT*     hlpod_mat,
 	HLPOD_DDHR*     hlpod_ddhr,
@@ -205,7 +147,7 @@ void ddhr_monolis_set_matrix2(
 
 }
 
-void ddhr_to_monollis_rhs(
+void HROM_ddecm_to_monollis_rhs(
 	MONOLIS*		monolis,
 	HLPOD_MAT*     hlpod_mat,
     HLPOD_DDHR*     hlpod_ddhr,
@@ -225,7 +167,7 @@ void ddhr_to_monollis_rhs(
 
 }
 
-void ddhr_memory_allocation2(
+void HROM_ddecm_memory_allocation2(
         const int       total_num_nodes,
         const int       total_num_elem,
         const int       total_num_snapshot,
@@ -238,7 +180,7 @@ void ddhr_memory_allocation2(
 
 }
 
-void ddhr_set_element2(
+void HROM_ddecm_set_element(
         HLPOD_DDHR*     hlpod_ddhr,
 		const int 		num_subdomains,
 		const char*     directory)
@@ -289,7 +231,7 @@ void ddhr_set_element2(
 
 
 //level1領域の選択された基底(p-adaptive)本数の共有
-void get_neib_subdomain_id_nonpara(
+void HROM_ddecm_get_neib_subdomain_id_nonpara(
     HLPOD_MAT* 	hlpod_mat,
 	HLPOD_DDHR* 	hlpod_ddhr,
     const int       num_subdomains)
@@ -302,7 +244,7 @@ void get_neib_subdomain_id_nonpara(
 }
 
 
-void ddhr_get_selected_elements2(
+void HROM_ddecm_write_selected_elems(
         BBFE_DATA*     	fe,
         BBFE_BC*     	bc,
         const int       total_num_elem,
@@ -330,20 +272,15 @@ void ddhr_get_selected_elements2(
 	int* total_id_selected_elems;
     double* total_elem_weight;
 
-/**/
 	hlpod_ddhr->D_bc_exists = BB_std_calloc_2d_bool(hlpod_ddhr->D_bc_exists, fe->total_num_nodes, num_subdomains);
-
 	hlpod_ddhr->id_selected_elems = BB_std_calloc_2d_int(hlpod_ddhr->id_selected_elems, max_ITER, num_subdomains);
     hlpod_ddhr->id_selected_elems_D_bc = BB_std_calloc_2d_int(hlpod_ddhr->id_selected_elems_D_bc, max_ITER, num_subdomains);
-    
     hlpod_ddhr->elem_weight = BB_std_calloc_2d_double(hlpod_ddhr->elem_weight, max_ITER, num_subdomains);
     hlpod_ddhr->elem_weight_D_bc = BB_std_calloc_2d_double(hlpod_ddhr->elem_weight_D_bc, max_ITER, num_subdomains);
-
 	hlpod_ddhr->D_bc_node_id = BB_std_calloc_2d_int(hlpod_ddhr->D_bc_node_id, max_ITER, num_subdomains);
-
 	hlpod_ddhr->num_selected_elems = BB_std_calloc_1d_int(hlpod_ddhr->num_selected_elems, num_subdomains);
 	hlpod_ddhr->num_selected_elems_D_bc = BB_std_calloc_1d_int(hlpod_ddhr->num_selected_elems_D_bc, num_subdomains);
-/**/
+
 
     for(int m = 0; m < num_subdomains; m++){
         printf("m = %d, num_elems[m] = %d ", m, hlpod_ddhr->num_elems[m]);
@@ -493,7 +430,7 @@ void ddhr_get_selected_elements2(
 }
 
 
-void ddhr_set_selected_elems(
+void HROM_ddecm_set_selected_elems_vis(
 		BBFE_DATA*     	fe,
         HLPOD_DDHR*     hlpod_ddhr,
         const int		total_num_nodes,
@@ -563,7 +500,7 @@ void ddhr_set_selected_elems(
 
 }
 
-void ddhr_lb_read_selected_elements(
+void HROM_ddecm_read_selected_elems(
     HLPOD_DDHR*     hlpod_ddhr,
 	const int num_subdomains,
 	const char* directory)
