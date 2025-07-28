@@ -453,9 +453,6 @@ void solver_fom_collect_snapmat(
     double t,
     const int step)
 {
-
-		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
-
 		monolis_clear_mat_value_R(&(sys.monolis));
 
 		printf("%s --- prediction step ---\n", CODENAME);

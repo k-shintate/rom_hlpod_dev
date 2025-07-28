@@ -216,7 +216,7 @@ int main (
 	for(int i = 0; i < sys.vals.num_cases; i++){
 		ROM_offline_set_reynolds_number(&(sys.vals), i);
 		
-		t = 0.0; step = 0; file_num = 0; count = 0;
+		t = 0.0; step = 0; file_num = 0;
 		
 		while (t < sys.vals.finish_time) {
 			t += sys.vals.dt;
@@ -227,7 +227,7 @@ int main (
 			if(step > (sys.rom_v.hlpod_vals.num_snapshot * sys.vals.snapshot_interval)){
 				break;
 			}
-			solver_fom_collect_snapmat(sys, t, step);
+			solver_fom_collect_snapmat(sys, t, count);
 
 			count ++;
 
