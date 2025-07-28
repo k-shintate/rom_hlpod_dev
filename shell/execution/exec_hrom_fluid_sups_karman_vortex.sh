@@ -11,7 +11,7 @@ num_modes=(5)
 #POD計算領域数
 num_1stdd=(12)
 #並列計算領域数 (=並列数)
-num_parallel=(12)
+num_parallel=(6)
 #基底本数可変の閾値 1.0E-{pa}
 pa=0
 #solver type
