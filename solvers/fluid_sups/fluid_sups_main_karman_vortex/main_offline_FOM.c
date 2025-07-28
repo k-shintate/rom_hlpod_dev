@@ -276,7 +276,7 @@ int main (
 
     printf("sys.vals.finish_time - t_hotstart = %lf\n", ((double)sys.vals.finish_time - t_hotstart));
     /***************/
-
+/*
 	ROM_std_hlpod_offline_memory_allocation_snapmat(
 			&(sys.rom_v),
 			sys.fe.total_num_nodes,
@@ -296,7 +296,7 @@ int main (
             sys.vals.snapshot_interval,
             sys.vals.num_cases,
 			1);
-    
+*/  
     /******************/
 
 	/**********************************************/
@@ -341,6 +341,7 @@ int main (
 				break;
 			}
 			solver_fom_collect_snapmat(sys, t, count);
+            solver_fom(sys, t, count);
 
 			count ++;
 
@@ -369,7 +370,7 @@ int main (
 
 
     /**********************************************/
-
+/*
 	ROM_std_hlpod_set_pod_modes_diag(
 		&(sys.rom_v),
 		&(sys.rom_p),
@@ -381,8 +382,9 @@ int main (
 		"pod_modes_v",
 		"pod_modes_p",
 		sys.cond.directory);
-
+*/
     /*for writing vtk*/
+/*
     ROM_std_hlpod_read_pod_modes_diag(
 		&(sys.rom_v),
 		&(sys.rom_p),
@@ -406,6 +408,7 @@ int main (
 		"pod_modes_vtk/pod_modes_v.vtk",
 		"pod_modes_vtk/pod_modes_p.vtk",
 		sys.cond.directory);
+*/
     /***************/
 
 	BBFE_fluid_finalize(&(sys.fe), &(sys.basis));
