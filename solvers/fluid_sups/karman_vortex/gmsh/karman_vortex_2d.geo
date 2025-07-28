@@ -134,7 +134,7 @@ Transfinite Curve {-21, -22, -24, -23} = 121 Using Progression 0.95;
 Transfinite Surface "*";
 Recombine Surface "*";
 
-extrude_width = -0.2*d;
+extrude_width = -0.04*d;
 Extrude {0, 0, extrude_width} {
    Surface{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
    Layers{1};

@@ -645,7 +645,7 @@ void solver_fom(
 				&(sys.monolis),
 				&(sys.mono_com),
 				sys.monolis.mat.R.X,
-				MONOLIS_ITER_BICGSTAB,
+				MONOLIS_ITER_BICGSTAB_N128,
 				MONOLIS_PREC_DIAG,
 				sys.fe.total_num_nodes,
 				sys.vals.mat_epsilon);
@@ -706,7 +706,7 @@ void solver_fom_collect_snapmat(
 				&(sys.monolis),
 				&(sys.mono_com),
 				sys.monolis.mat.R.X,
-				MONOLIS_ITER_BICGSTAB,
+				MONOLIS_ITER_BICGSTAB_N128,
 				MONOLIS_PREC_DIAG,
 				sys.fe.total_num_nodes,
 				sys.vals.mat_epsilon);

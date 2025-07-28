@@ -33,14 +33,14 @@ mv ../../solvers/fluid_sups/karman_vortex/mesh_karman_vortex/D_bc_p.dat ./
 
 # for parameteric study
 rm -r cond.dat
-./../../../test_thermal/bin/cmd2cond "#density_array" double 1 100.0
+./../../../test_thermal/bin/cmd2cond "#density_array" double 1 1.0
 mv cond.dat density.dat
-./../../../test_thermal/bin/cmd2cond "#viscosity_array" double 1 1
+./../../../test_thermal/bin/cmd2cond "#viscosity_array" double 1 0.01
 mv cond.dat viscosity.dat
 
-./../../../test_thermal/bin/cmd2cond "#target_density" double 1 100.0
+./../../../test_thermal/bin/cmd2cond "#target_density" double 1 1.0
 mv cond.dat target_density.dat
-./../../../test_thermal/bin/cmd2cond "#target_viscosity" double 1 1
+./../../../test_thermal/bin/cmd2cond "#target_viscosity" double 1 0.01
 mv cond.dat target_viscosity.dat
 
 ./../../../test_thermal/bin/cmd2cond "#snapshot_interval" int 1 1 "#rom_finish_time" double 1 200 "#rom_output_interval" int 1 100

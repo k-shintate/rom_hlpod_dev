@@ -337,9 +337,9 @@ int main (
 
 			printf("\n%s ----------------- step %d ----------------\n", CODENAME, step + step_hs);
 
-			if(step > (sys.rom_v.hlpod_vals.num_snapshot * sys.vals.snapshot_interval)){
-				break;
-			}
+			//if(step > (sys.rom_v.hlpod_vals.num_snapshot * sys.vals.snapshot_interval)){
+			//	break;
+			//}
 			//solver_fom_collect_snapmat(sys, t, count);
             solver_fom(sys, t, count);
 
