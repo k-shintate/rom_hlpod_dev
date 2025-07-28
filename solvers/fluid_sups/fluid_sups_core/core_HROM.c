@@ -833,7 +833,7 @@ void HROM_std_hlpod_online_pre(
 
 
 
-void HROM_pre_offline2_inc_svd1(
+void HROM_pre_offline_inc_svd1(
 		FE_SYSTEM* sys,
         ROM*            rom,
         HROM*           hrom,
@@ -873,7 +873,7 @@ void HROM_pre_offline2_inc_svd1(
 
 }
 
-void HROM_pre_offline2_inc_svd2(
+void HROM_pre_offline_inc_svd2(
 		FE_SYSTEM* sys,
         ROM*            rom,
         HROM*           hrom,
@@ -898,7 +898,7 @@ void HROM_pre_offline2_inc_svd2(
 
 }
 
-void HROM_pre_offline2_inc_svd3(
+void HROM_pre_offline_inc_svd3(
 		FE_SYSTEM* sys,
         ROM*            rom,
         HROM*           hrom,

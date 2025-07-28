@@ -18,8 +18,8 @@ directory="result_fluid_sups/${nm}-${np}-${nd}"
 
 cd solvers/fluid_sups
 
-make -f Makefile_HROM clean
-make -f Makefile_HROM
+make -f Makefile_HROM_cavity clean
+make -f Makefile_HROM_cavity
 
 cp -r hlpod_fluid_sups_offline_FOM ./../../$directory
 cp -r hlpod_fluid_sups_offline_ROM ./../../$directory

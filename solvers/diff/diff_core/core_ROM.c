@@ -335,7 +335,6 @@ void solver_rom(
             sys->fe.total_num_nodes,
             1);
 
-
     ROM_std_hlpod_solve_ROM(
             &(sys->monolis),
             &(sys->monolis_rom),

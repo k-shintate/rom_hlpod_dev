@@ -23,8 +23,8 @@ mv result_fluid_sups/tmp/${nm}-${np}-${nd} $directory_online
 
 cd solvers/fluid_sups
 
-make -f Makefile_HROM clean
-make -f Makefile_HROM
+make -f Makefile_HROM_cavity clean
+make -f Makefile_HROM_cavity
 
 cp -r hlpod_fluid_sups_online_HROM ./../../$directory_online
 

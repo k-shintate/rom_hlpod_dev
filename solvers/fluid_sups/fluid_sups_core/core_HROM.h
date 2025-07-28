@@ -132,7 +132,7 @@ void HROM_std_hlpod_online_pre(
         const char*  metagraph,
         const char*  directory);
 
-void HROM_pre_offline2_inc_svd1(
+void HROM_pre_offline_inc_svd1(
 		FE_SYSTEM* sys,
         ROM*            rom,
         HROM*           hrom,
@@ -140,7 +140,7 @@ void HROM_pre_offline2_inc_svd1(
 		const int num_snapshot,
 		const int num_2nd_subdomains);
 
-void HROM_pre_offline2_inc_svd2(
+void HROM_pre_offline_inc_svd2(
 		FE_SYSTEM* sys,
         ROM*            rom,
         HROM*           hrom,
@@ -148,7 +148,7 @@ void HROM_pre_offline2_inc_svd2(
 		const int num_snapshot,
 		const int num_2nd_subdomains);
 
-void HROM_pre_offline2_inc_svd3(
+void HROM_pre_offline_inc_svd3(
 		FE_SYSTEM* sys,
         ROM*            rom,
         HROM*           hrom,

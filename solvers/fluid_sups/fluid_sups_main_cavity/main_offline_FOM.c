@@ -255,10 +255,11 @@ int main (
 
     /******************/
 
-    /*for offline*/
+    /*for offline******/
     ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
 	ROM_offline_set_reynolds_num_cases(&(sys.vals), sys.cond.directory);
 
+    /*for hot start*/
     ROM_offline_set_reynolds_number(&(sys.vals), 0);
     double t_hotstart = 0.0;
     if(sys.rom_prm_p.hot_start == 1){
@@ -274,6 +275,7 @@ int main (
     }
 
     printf("sys.vals.finish_time - t_hotstart = %lf\n", ((double)sys.vals.finish_time - t_hotstart));
+    /***************/
 
 	ROM_std_hlpod_offline_memory_allocation_snapmat(
 			&(sys.rom_v),

@@ -6,6 +6,7 @@ static const char* OPTION_NUM_MODES     = "-nm";
 static const char* OPTION_NUM_1STDD     = "-nd";
 static const char* OPTION_PADAPTIVE     = "-pa";
 static const char* OPTION_SOLVER_TYPE   = "-st";
+static const char* OPTION_HOT_START     = "-hs";
 
 static const char* INPUT_DIRECTORYNAME_METAGRAPH = "metagraph_parted.0/";
 static const char* INPUT_FILENAME_METAGRAPH      = "metagraph.dat";
@@ -14,6 +15,7 @@ static const char* INPUT_FILENAME_COND    = "cond.dat";
 static const char* INPUT_FILENAME_D_BC_V  = "D_bc_v.dat";
 static const char* INPUT_FILENAME_D_BC_P  = "D_bc_p.dat";
 
+const int BUFFER_SIZE = 1024;
 
 void ROM_read_args(
     int 		argc,
@@ -61,11 +63,85 @@ void ROM_read_args(
         rom_prm->solver_type = atof(argv[num+1]);
     }
 
+	num = BB_std_read_args_return_char_num(
+                argc, argv, OPTION_HOT_START);
+    if(num == -1) {
+        rom_prm->hot_start = 0;
+    }
+    else {
+        rom_prm->hot_start = 1;
+        //rom_prm->hot_start_time = atof(argv[num+1]);
+        printf("Hot start is enabled.\n");
+    }
+
 	printf("num_subdomains = %d\n", rom_prm->num_subdomains);
 	printf("num_modes = %d\n", rom_prm->num_modes);
 	printf("rom_epsilon = %lf\n", rom_prm->rom_epsilon);
     printf("solver_type = %d\n", rom_prm->solver_type);
+    printf("hot_start = %d\n", rom_prm->hot_start);
 
+}
+
+double hot_start_read_initialize_val(
+    double*     int_val,
+    const char* input_fname,
+    const char* directory)
+{
+    int BUFFER_SIZE = 1024;
+    int total_num_nodes;
+    int ndof;
+    double t = 0.0;
+	FILE* fp;
+	char fname[BUFFER_SIZE];
+	char id[BUFFER_SIZE];
+
+	fp = BBFE_sys_read_fopen(fp, "hot_start/start_time.dat", directory);
+	fscanf(fp, "%s", id);
+    fscanf(fp, "%lf", &(t));
+    fclose(fp);
+
+	fp = BBFE_sys_read_fopen(fp, input_fname, directory);
+	fscanf(fp, "%s", id);
+    fscanf(fp, "%d %d", &(total_num_nodes), &(ndof));
+    for(int i = 0; i < total_num_nodes; i++) {
+        for(int j = 0; j < ndof; j++) {
+            fscanf(fp, "%lf", &(int_val[i * ndof + j]));
+        }
+    }
+	fclose(fp);
+
+    return t;
+}
+
+void hot_start_write_initialize_val(
+    double*         int_val,
+    const int       total_num_nodes,
+    const int       ndof,
+    const double    time,
+    const char*     output_fname,
+    const char*     directory)
+{
+	FILE* fp;
+	char fname[BUFFER_SIZE];
+	char id[BUFFER_SIZE];
+
+	fp = BBFE_sys_write_fopen(fp, output_fname, directory);
+	fprintf(fp, "initialization\n");
+    fprintf(fp, "%d %d\n", total_num_nodes, ndof);
+    for(int i = 0; i < total_num_nodes; i++) {
+        for(int j = 0; j < ndof; j++) {
+            fprintf(fp, "%e ", int_val[i * ndof + j]);
+        }
+        fprintf(fp, "\n");        
+    }
+	fclose(fp);
+
+    if(monolis_mpi_get_global_my_rank()==0){
+        fp = BBFE_sys_write_fopen(fp, "hot_start/start_time.dat", directory);
+        fprintf(fp, "start_time\n");
+        fprintf(fp, "%lf", time);
+        fclose(fp);
+    }
 }
 
 int main (
@@ -96,7 +172,7 @@ int main (
 			sys.fe.total_num_nodes);
 	
 	filename = monolis_get_global_input_file_name(MONOLIS_DEFAULT_TOP_DIR, MONOLIS_DEFAULT_PART_DIR, INPUT_FILENAME_D_BC_V);
-	BBFE_fluid_sups_read_Dirichlet_bc(
+	BBFE_fluid_sups_read_Dirichlet_bc_karman_vortex(
 			&(sys.bc),
 			filename,
 			sys.cond.directory,
@@ -229,35 +305,51 @@ int main (
             sys.cond.directory);
         
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
-    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
     /********************/
-
 
     /*for ROM set vals***/
     read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                      //set vals
     memory_allocation_nodal_values(&(sys.vals_rom), sys.fe.total_num_nodes);        //set vals
 
-	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
-	initialize_velocity_pressure(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
+	initialize_velocity_pressure_karman_vortex(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
+	initialize_velocity_pressure_karman_vortex(sys.vals_rom.v, sys.vals_rom.p, sys.fe.total_num_nodes);
 
     ROM_std_hlpod_online_memory_allocation_ansvec(&(sys.rom_sups.hlpod_vals), sys.fe.total_num_nodes, 4);
 
 	set_target_parameter(&(sys.vals), sys.cond.directory);
 	set_target_parameter(&(sys.vals_rom), sys.cond.directory);
-    ROM_offline_set_reynolds_num_cases(&(sys.vals_rom), sys.cond.directory);
+
     ROM_offline_set_reynolds_num_cases(&(sys.vals), sys.cond.directory);
+    ROM_offline_set_reynolds_num_cases(&(sys.vals_rom), sys.cond.directory);
     /*********************/
 
     /*for Hyper-reduction*/
-    HROM_offline_read_calc_conditions_inc_svd(&(sys.hrom_sups.hr_vals), sys.cond.directory);
+    /*for hot start*/
+    ROM_offline_set_reynolds_number(&(sys.vals), 0);
+    double t_hotstart = 0.0;
+    if(sys.rom_prm_p.hot_start == 1){
+        char fname[BUFFER_SIZE];         
+        snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
+        double* val = BB_std_calloc_1d_double(val, 4*sys.fe.total_num_nodes);
+        t_hotstart = hot_start_read_initialize_val(val, fname, sys.cond.directory);
+        BB_std_free_1d_double(val, 4*sys.fe.total_num_nodes);
+        printf("Hot start time: %lf\n", t_hotstart);
+    }
+    else{
+        t_hotstart = 0.0;
+    }
 
-	HROM_std_hlpod_offline_set_num_snapmat_inc_svd(
+    printf("sys.vals.finish_time - t_hotstart = %lf\n", ((double)sys.vals.finish_time - t_hotstart));
+    /***************/
+
+    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
+
+	ROM_std_hlpod_offline_set_num_snapmat(
 			&(sys.rom_sups),
-            sys.vals.finish_time,
+            ((double)sys.vals.finish_time - t_hotstart),
             sys.vals.dt,
             sys.vals.snapshot_interval,
-            sys.vals_rom.num_cases,
-            sys.hrom_sups.hr_vals.incsvd_interval);
+            sys.vals_rom.num_cases);
 
     HROM_pre(&sys, &(sys.rom_sups), &(sys.hrom_sups));
     HROM_memory_allocation(&sys, &(sys.rom_sups), &(sys.hrom_sups));
@@ -270,26 +362,42 @@ int main (
         &(sys.rom_sups.hlpod_mat));
     /************************/
 
+
 	double FOM_t2 = monolis_get_time();
 	double ROM_t1 = monolis_get_time();
 
 	double t = 0.0;
 	int file_num = 0;
 	int step_rom = 0;
-    int step_inc_svd = 0;
-    int num_inc_svd = 0;
-    int count = 0;
+    double t_hs = 0.0; //for hot start
+    int step_hs = 0; //for hot start
 
 	for(int i = 0; i < sys.vals.num_cases; i++){
 		ROM_offline_set_reynolds_number(&(sys.vals), i);
         ROM_offline_set_reynolds_number(&(sys.vals_rom), i);
 	
-		t = 0.0; step_rom = 0; step_inc_svd = 0; file_num = 0; count = 0;
-        
-        while (t < sys.vals.rom_finish_time) {
+		t = 0.0; file_num = 0;
+    
+    	if(sys.rom_prm_p.hot_start == 1){
+            char fname[BUFFER_SIZE];         
+            snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
+            double* val = BB_std_calloc_1d_double(val, 4*sys.fe.total_num_nodes);
+            t_hs = hot_start_read_initialize_val(val, fname, sys.cond.directory);
+            step_hs = 0;
+
+            printf("Hot start time: %lf\n", t);
+            printf("Hot start step: %d\n", step_rom);
+            printf("sys.vals.finish_time - t = %lf\n", ((double)sys.vals.finish_time - t));
+
+            BBFE_fluid_sups_renew_velocity(sys.vals.v, val, sys.fe.total_num_nodes);
+            BBFE_fluid_sups_renew_pressure(sys.vals.p, val, sys.fe.total_num_nodes);
+
+            BB_std_free_1d_double(val, 4*sys.fe.total_num_nodes);
+        }
+    
+        while (t < sys.vals.rom_finish_time - t_hs) {
             t += sys.vals.dt;
             step_rom += 1;
-            step_inc_svd += 1;
 
             printf("\n%s ----------------- step-ROM %d ----------------\n", CODENAME, step_rom);
 
@@ -320,19 +428,8 @@ int main (
             /**********************************/
 
             double calctime_hr_t2 = monolis_get_time();
-            HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_inc_svd,t);
+            HROM_set_matvec(&(sys),&(sys.rom_sups),&(sys.hrom_sups),step_rom,t);
             double calctime_hr_t1 = monolis_get_time();
-
-            if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd==0){
-                HROM_pre_offline2_inc_svd1(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
-                step_inc_svd = 0;
-                num_inc_svd ++;
-            }
-            else if(step_rom%sys.hrom_sups.hr_vals.incsvd_interval == 0 && num_inc_svd != 0){
-                HROM_pre_offline2_inc_svd2(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
-                step_inc_svd = 0;
-                num_inc_svd ++;
-            }
 
             double calctime_fem_t2 = monolis_get_time();
             solver_fom(sys, t, step_rom);	
@@ -354,7 +451,7 @@ int main (
         }
     }
 
-    HROM_pre_offline2_inc_svd3(&sys, &(sys.rom_sups), &(sys.hrom_sups), 1,1,1);
+    HROM_pre_offline3(&sys, &(sys.rom_sups), &(sys.hrom_sups));
 
 	BBFE_fluid_finalize(&(sys.fe), &(sys.basis));
 	BBFE_sys_memory_free_Dirichlet_bc(&(sys.bc), sys.fe.total_num_nodes, 4);
@@ -365,7 +462,6 @@ int main (
 
 	if(myrank == 0) {
 		printf("** Total time: %f\n", t2 - t1);
-        printf("** Number of Incremental SVD : %d\n", num_inc_svd);
 	}
 
 	monolis_global_finalize();

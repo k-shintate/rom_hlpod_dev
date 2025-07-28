@@ -9,6 +9,36 @@ void output_cavity_center_vx(
     const char*    method,
     const char*    directory);
 
+void initialize_velocity_pressure_karman_vortex(
+	double** v,
+	double* p,
+	const int total_num_nodes);
+
+void BBFE_fluid_sups_read_Dirichlet_bc_karman_vortex(
+    BBFE_BC*     bc,
+    const char*  filename,
+    const char*  directory,
+    const int    total_num_nodes,
+    const int    block_size);
+
+void output_result_file_karman_vortex(
+    BBFE_DATA*     fe,
+    VALUES*        vals,
+    double         t,
+    const char*    directory);
+
+void output_result_file_karman_vortex_pressure(
+    BBFE_DATA*     fe,
+    VALUES*        vals,
+    double         t,
+    const char*    directory);
+
+void output_result_file_karman_vortex_pressure_inf(
+    BBFE_DATA*     fe,
+    VALUES*        vals,
+    double         t,
+    const char*    directory);
+
 void memory_allocation_nodal_values(
     VALUES*         vals,
     const int       total_num_nodes);

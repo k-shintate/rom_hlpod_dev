@@ -42,20 +42,6 @@ void initialize_velocity_pressure(
     }
 }
 
-void initialize_velocity_pressure_karman_vortex(
-	double**    v,
-	double*     p,
-	const int   total_num_nodes)
-{
-    for (int i = 0; i < total_num_nodes; i++) {
-        v[i][0] = 1.0;
-    }
-
-    for (int i = 0; i < total_num_nodes; i++) {
-        p[i] = 0.0;
-    }
-}
-
 void ROM_offline_set_reynolds_num_cases(
     VALUES*         vals,
     const char*     directory)

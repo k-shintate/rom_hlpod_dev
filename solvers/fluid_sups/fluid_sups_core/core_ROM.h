@@ -12,11 +12,6 @@ void initialize_velocity_pressure(
 	double*         p,
 	const int       total_num_nodes);
 
-void initialize_velocity_pressure_karman_vortex(
-	double**        v,
-	double*         p,
-	const int       total_num_nodes);
-
 void ROM_std_hlpod_online_memory_allocation_ansvec(
     HLPOD_VALUES*	hlpod_vals,
     const int		total_num_nodes,

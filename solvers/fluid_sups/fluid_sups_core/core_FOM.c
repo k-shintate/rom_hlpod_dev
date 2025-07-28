@@ -27,6 +27,13 @@ static const char* INPUT_FILENAME_D_BC_P  = "D_bc_p.dat";
 static const char* OUTPUT_FILENAME_VTK    = "result_%d_%06d.vtk";
 static const char* OUTPUT_FILENAME_CAVITY = "cavity_Re%e.txt";
 
+static const char* OUTPUT_FILENAME_KARMAN_VORTEX_P = "karman_vortex_p_val.dat";
+static const char* OUTPUT_FILENAME_KARMAN_VORTEX_N = "karman_vortex_n_val.dat";
+
+static const char* OUTPUT_FILENAME_KARMAN_VORTEX_CP = "karman_vortex_Cp_%d.dat";
+static const char* OUTPUT_FILENAME_KARMAN_VORTEX_PINF = "karman_vortex_pinf_%d.dat";
+
+double epsilon = 1.0e-4;
 
 // メッシュは各方向41節点40要素 or 51節点50要素 or 101節点100要素 の六面体一次要素限定
 void output_cavity_center_vx(
@@ -60,6 +67,224 @@ void output_cavity_center_vx(
 	*/
 
 	fclose(fp);
+}
+
+
+void initialize_velocity_pressure_karman_vortex(
+	double** v,
+	double* p,
+	const int total_num_nodes)
+{
+    // Initialize velocity array
+    for (int i = 0; i < total_num_nodes; i++) {
+    //    for (int j = 0; j < 3; j++) {
+            v[i][0] = 1.0;
+    //    }
+    }
+
+    // Initialize pressure array
+    for (int i = 0; i < total_num_nodes; i++) {
+        p[i] = 0.0;
+    }
+}
+
+void BBFE_fluid_sups_read_Dirichlet_bc_karman_vortex(
+		BBFE_BC*     bc,
+		const char*  filename,
+		const char*  directory,
+		const int    total_num_nodes,
+		const int    block_size)
+{
+	bc->total_num_nodes = total_num_nodes;
+	bc->block_size      = block_size;
+
+	srand((unsigned)time(NULL));
+
+	BBFE_sys_memory_allocation_Dirichlet_bc(bc, total_num_nodes, bc->block_size);
+	int n = total_num_nodes * bc->block_size;
+
+	for(int i=0; i<n; i++) {
+		bc->D_bc_exists[i]   = false;
+		bc->imposed_D_val[i] = 0.0;
+	}
+
+	FILE* fp;
+	fp = BBFE_sys_read_fopen_without_error(fp, filename, directory);
+	if( fp == NULL ) {
+		printf("%s WARNING: Dirichlet B.C. file, \"%s\", is not found.\n",
+				CODENAME, filename);
+		return;
+	}
+
+	int tmp;
+	BB_std_scan_line(&fp, BUFFER_SIZE,
+			"%d %d", &(bc->num_D_bcs), &(tmp));
+	printf("%s Num. Dirichlet B.C.: %d, Num. block size: %d\n", CODENAME, bc->num_D_bcs, tmp);
+
+	for(int i=0; i<(bc->num_D_bcs); i++) {
+		int node_id;  int block_id;  double val;
+		BB_std_scan_line(&fp, BUFFER_SIZE,
+				"%d %d %lf", &node_id, &block_id, &val);
+
+		int index = (bc->block_size)*node_id + block_id;
+		bc->D_bc_exists[ index ]   = true;
+		
+
+        if (val == 1.0){
+            int r = rand() % 9 + 1;  // 1〜9 の整数を生成
+            bc->imposed_D_val[index] = val * (1 + (double)r * epsilon);
+        }
+	else{
+            bc->imposed_D_val[ index ] = val;
+        }
+
+	}
+
+	fclose(fp);
+}
+
+
+void output_result_file_karman_vortex(
+        BBFE_DATA*     fe,
+		VALUES*        vals,
+        double         t,
+		const char*    directory)
+{
+	double reynolds = vals->density / vals->viscosity;
+	char filename[BUFFER_SIZE];
+
+	snprintf(filename, BUFFER_SIZE, OUTPUT_FILENAME_KARMAN_VORTEX_P);
+
+	FILE* fp;
+	fp = BBFE_sys_write_add_fopen(fp, filename, directory);
+
+    double val = 0.02;
+
+    double lowerx = 1.25 - val;
+    double upperx = 1.25 + val;
+
+    double lowery = 0.5 - val;
+    double uppery = 0.5 + val;
+
+    for (int i = 0; i < fe->total_num_nodes; i++) {
+        if (fe->x[i][0] > lowerx && fe->x[i][0] < upperx 
+            && fe->x[i][1] > lowery && fe->x[i][1] < uppery) {
+            fprintf(fp, "%lf %d %lf %lf %lf %lf %lf\n",
+                    t,
+                    i,
+                    fe->x[i][0],
+                    fe->x[i][1],
+                    vals->v[i][0],
+                    vals->v[i][1],
+                    vals->v[i][2]);
+        }
+    }
+
+	fclose(fp);
+
+	snprintf(filename, BUFFER_SIZE, OUTPUT_FILENAME_KARMAN_VORTEX_N);
+	fp = BBFE_sys_write_add_fopen(fp, filename, directory);
+
+    lowery = -0.5 - val;
+    uppery = -0.5 + val;
+
+    for (int i = 0; i < fe->total_num_nodes; i++) {
+        if (fe->x[i][0] > lowerx && fe->x[i][0] < upperx 
+            && fe->x[i][1] > lowery && fe->x[i][1] < uppery) {
+            fprintf(fp, "%lf %d %lf %lf %lf %lf %lf\n",
+                    t,
+                    i,
+                    fe->x[i][0],
+                    fe->x[i][1],
+                    vals->v[i][0],
+                    vals->v[i][1],
+                    vals->v[i][2]);
+        }
+    }
+
+fclose(fp);
+
+
+}
+
+void output_result_file_karman_vortex_pressure(
+        BBFE_DATA*     fe,
+		VALUES*        vals,
+        double         t,
+		const char*    directory)
+{
+	double reynolds = vals->density / vals->viscosity;
+	char filename[BUFFER_SIZE];
+
+	snprintf(filename, BUFFER_SIZE, OUTPUT_FILENAME_KARMAN_VORTEX_CP, monolis_mpi_get_global_my_rank());
+
+	FILE* fp;
+	fp = BBFE_sys_write_add_fopen(fp, filename, directory);
+
+    double val = 0.000001;
+
+    double lowerr = 0.5 - val;
+    double upperr = 0.5 + val;
+
+
+
+    for (int i = 0; i < fe->total_num_nodes; i++) {
+        double X = fe->x[i][0];
+        double Y = fe->x[i][1];
+        double r = sqrt(X*X + Y*Y);
+
+        if (r > lowerr && r < upperr) {
+            fprintf(fp, "%lf %d %lf %lf %lf\n",
+                    t,
+                    i,
+                    fe->x[i][0],
+                    fe->x[i][1],
+                    vals->p[i]);
+        }
+    }
+
+	fclose(fp);
+}
+
+
+void output_result_file_karman_vortex_pressure_inf(
+        BBFE_DATA*     fe,
+                VALUES*        vals,
+        double         t,
+                const char*    directory)
+{
+        double reynolds = vals->density / vals->viscosity;
+        char filename[BUFFER_SIZE];
+
+        snprintf(filename, BUFFER_SIZE, OUTPUT_FILENAME_KARMAN_VORTEX_PINF, monolis_mpi_get_global_my_rank());
+
+        FILE* fp;
+        fp = BBFE_sys_write_add_fopen(fp, filename, directory);
+
+    double val = 0.1;
+
+    double lowerx = 21.2 - val;
+    double upperx = 21.2 + val;
+
+    double lowery = 8.4 - val;
+    double uppery = 8.4 + val;
+
+    for (int i = 0; i < fe->total_num_nodes; i++) {
+        double X = fe->x[i][0];
+        double Y = fe->x[i][1];
+
+        if (X > lowerx && X < upperx &&
+			Y > lowery && Y < uppery) {
+            fprintf(fp, "%lf %d %lf %lf %lf\n",
+                    t,
+                    i,
+                    fe->x[i][0],
+                    fe->x[i][1],
+                    vals->p[i]);
+        }
+    }
+
+        fclose(fp);
 }
 
 void memory_allocation_nodal_values(
