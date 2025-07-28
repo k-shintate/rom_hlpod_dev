@@ -2,12 +2,12 @@
 
 #mesh
 #一方向分割数
-e=15
+e=20
 #解析領域の大きさ
 ep=1
 
 #podモード数
-num_modes=(5)
+num_modes=(10 20)
 #POD計算領域数
 num_1stdd=(6)
 #並列計算領域数 (=並列数)
@@ -24,9 +24,9 @@ do
     	for np in "${num_parallel[@]}"
     	do
 	
-        . shell/fluid_sups_hrom/meshgen.sh $e $ep $nm $nd $np $pa
-	    . shell/fluid_sups_hrom/merge_graph.sh $e $ep $nm $nd $np $pa
-	    . shell/fluid_sups_hrom/execution_offline.sh $e $ep $nm $nd $np $pa $st
+        . shell/fluid_sups_hrom_cavity/meshgen.sh $e $ep $nm $nd $np $pa
+	    . shell/fluid_sups_hrom_cavity/merge_graph.sh $e $ep $nm $nd $np $pa
+	    . shell/fluid_sups_hrom_cavity/execution_offline.sh $e $ep $nm $nd $np $pa $st
 
         done
 	done

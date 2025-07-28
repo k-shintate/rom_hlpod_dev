@@ -24,7 +24,7 @@ do
     	for np in "${num_parallel[@]}"
     	do
 	
-	    . shell/fluid_sups_hrom/execution_online.sh $e $ep $nm $nd $np $pa $st
+	    . shell/fluid_sups_hrom_cavity/execution_online.sh $e $ep $nm $nd $np $pa $st
 
         done
 	done
