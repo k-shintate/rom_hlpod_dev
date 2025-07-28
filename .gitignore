@@ -8,7 +8,8 @@
 !*.sh
 !*.py
 !*Makefile
-!*Makefile_HROM
+!*Makefile_HROM_cavity
+!*Makefile_HROM_karman_vortex
 !*Makefile_squid
 !*.geo
 !*.md
