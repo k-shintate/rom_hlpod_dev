@@ -165,18 +165,19 @@ int main (
 			argc, argv, sys.cond.directory,
 			sys.vals.num_ip_each_axis);
 
-	const char* filename;	
+	const char* filename;
+
+	memory_allocation_nodal_values(
+			&(sys.vals),
+			sys.fe.total_num_nodes);
+	
 	filename = monolis_get_global_input_file_name(MONOLIS_DEFAULT_TOP_DIR, MONOLIS_DEFAULT_PART_DIR, INPUT_FILENAME_D_BC_V);
-	BBFE_fluid_sups_read_Dirichlet_bc(
+	BBFE_fluid_sups_read_Dirichlet_bc_karman_vortex(
 			&(sys.bc),
 			filename,
 			sys.cond.directory,
 			sys.fe.total_num_nodes,
 			4);
-    
-    memory_allocation_nodal_values(
-			&(sys.vals),
-			sys.fe.total_num_nodes);
 
 	BBFE_elemmat_set_Jacobi_mat(&(sys.fe), &(sys.basis));
 	BBFE_elemmat_set_shapefunc_derivative(&(sys.fe), &(sys.basis));
@@ -186,73 +187,231 @@ int main (
 	//intialize for velocity and pressure
 	initialize_velocity_pressure_karman_vortex(sys.vals.v, sys.vals.p, sys.fe.total_num_nodes);
 
-double t = 0.0;
+    /*for ROM *****************************************/
+	
+    /*for ROM input data*/
+	ROM_read_args(argc, argv, &(sys.rom_prm_p));
+	ROM_read_args(argc, argv, &(sys.rom_prm_v));
+
+    ROM_set_param(
+            &(sys.rom_p),
+            sys.rom_prm_p.num_subdomains,
+            sys.rom_prm_p.num_modes,
+            sys.rom_prm_p.rom_epsilon,
+            sys.rom_prm_p.solver_type);
+    
+    ROM_set_param(
+            &(sys.rom_v),
+            sys.rom_prm_v.num_subdomains,
+            sys.rom_prm_v.num_modes,
+            sys.rom_prm_v.rom_epsilon,
+            sys.rom_prm_v.solver_type);
+    
+    ROM_set_param(
+            &(sys.rom_sups),
+            sys.rom_prm_v.num_subdomains,
+            sys.rom_prm_p.num_modes + sys.rom_prm_v.num_modes,
+            sys.rom_prm_v.rom_epsilon,
+            sys.rom_prm_v.solver_type);
+    
+	ROM_sys_hlpod_fe_set_bc_id(
+            (&sys.bc),
+            sys.fe.total_num_nodes,
+            4,
+            &(sys.rom_sups.rom_bc));
+
+    const char* parted_file_name;
+    parted_file_name = ROM_std_hlpod_get_parted_file_name(sys.rom_prm_v.solver_type);
+
+    const char* metagraph_name;
+    metagraph_name = ROM_std_hlpod_get_metagraph_name(sys.rom_prm_v.solver_type);
+
+	ROM_std_hlpod_pre(
+            &(sys.rom_v),
+			sys.fe.total_num_nodes,
+            sys.mono_com.n_internal_vertex,
+            3,
+            metagraph_name,
+            parted_file_name,
+			sys.cond.directory);
+    
+	ROM_std_hlpod_pre(
+            &(sys.rom_p),
+			sys.fe.total_num_nodes,
+            sys.mono_com.n_internal_vertex,
+            1,
+            metagraph_name,
+            parted_file_name,
+			sys.cond.directory);
+
+	ROM_std_hlpod_pre(
+            &(sys.rom_sups),
+			sys.fe.total_num_nodes,
+            sys.mono_com.n_internal_vertex,
+            4,
+            metagraph_name,
+            parted_file_name,
+			sys.cond.directory);
+
+    /******************/
+
+    /*for offline******/
+    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
+	ROM_offline_set_reynolds_num_cases(&(sys.vals), sys.cond.directory);
+
+    /*for hot start*/
+    ROM_offline_set_reynolds_number(&(sys.vals), 0);
+    double t_hotstart = 0.0;
+    if(sys.rom_prm_p.hot_start == 1){
+        char fname[BUFFER_SIZE];         
+        snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
+        double* val = BB_std_calloc_1d_double(val, 4*sys.fe.total_num_nodes);
+        t_hotstart = hot_start_read_initialize_val(val, fname, sys.cond.directory);
+        BB_std_free_1d_double(val, 4*sys.fe.total_num_nodes);
+        printf("Hot start time: %lf\n", t_hotstart);
+    }
+    else{
+        t_hotstart = 0.0;
+    }
+
+    printf("sys.vals.finish_time - t_hotstart = %lf\n", ((double)sys.vals.finish_time - t_hotstart));
+    /***************/
+/*
+	ROM_std_hlpod_offline_memory_allocation_snapmat(
+			&(sys.rom_v),
+			sys.fe.total_num_nodes,
+            sys.mono_com.n_internal_vertex,
+            ((double)sys.vals.finish_time - t_hotstart),
+            sys.vals.dt,
+            sys.vals.snapshot_interval,
+            sys.vals.num_cases,
+			3);
+
+	ROM_std_hlpod_offline_memory_allocation_snapmat(
+			&(sys.rom_p),
+			sys.fe.total_num_nodes,
+            sys.mono_com.n_internal_vertex,
+            ((double)sys.vals.finish_time - t_hotstart),
+            sys.vals.dt,
+            sys.vals.snapshot_interval,
+            sys.vals.num_cases,
+			1);
+*/  
+    /******************/
+
+	/**********************************************/
+
+	/****************** solver ********************/
+	double t = 0.0;
 	int step = 0;
 	int file_num = 0;
-	while (t < sys.vals.finish_time) {
-		t += sys.vals.dt;
-		step += 1;
+	int count = 0;  //for ROM
+    double t_hs = 0.0; //for hot start
+    int step_hs = 0; //for hot start
 
-		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
+	for(int i = 0; i < sys.vals.num_cases; i++){
+		ROM_offline_set_reynolds_number(&(sys.vals), i);
+		
+		t = 0.0; step = 0; file_num = 0;
 
-		monolis_clear_mat_value_R(&(sys.monolis));
+		if(sys.rom_prm_p.hot_start == 1){
+            char fname[BUFFER_SIZE];         
+            snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
+            double* val = BB_std_calloc_1d_double(val, 4*sys.fe.total_num_nodes);
+            t_hs = hot_start_read_initialize_val(val, fname, sys.cond.directory);
+            step_hs = 0;
 
-		printf("%s --- prediction step ---\n", CODENAME);
+            printf("Hot start time: %lf\n", t);
+            printf("Hot start step: %d\n", step);
+            printf("sys.vals.finish_time - t = %lf\n", ((double)sys.vals.finish_time - t));
 
-		set_element_mat(
-				&(sys.monolis),
-				&(sys.fe),
-				&(sys.basis),
-				&(sys.vals));
-		set_element_vec(
-				&(sys.monolis),
-				&(sys.fe),
-				&(sys.basis),
-				&(sys.vals));
+            BBFE_fluid_sups_renew_velocity(sys.vals.v, val, sys.fe.total_num_nodes);
+            BBFE_fluid_sups_renew_pressure(sys.vals.p, val, sys.fe.total_num_nodes);
 
-		BBFE_sys_monowrap_set_Dirichlet_bc(
-				&(sys.monolis),
-				sys.fe.total_num_nodes,
-				4,
-				&(sys.bc),
-				sys.monolis.mat.R.B);
+            BB_std_free_1d_double(val, 4*sys.fe.total_num_nodes);
+        }
 
-		BBFE_sys_monowrap_solve(
-				&(sys.monolis),
-				&(sys.mono_com),
-				sys.monolis.mat.R.X,
-				MONOLIS_ITER_BICGSTAB,
-				MONOLIS_PREC_DIAG,
-				sys.fe.total_num_nodes,
-				sys.vals.mat_epsilon);
+		while (t < sys.vals.finish_time - t_hs) {
+			t += sys.vals.dt;
+			step += 1;
 
-		BBFE_fluid_sups_renew_velocity(
-				sys.vals.v, 
-				sys.monolis.mat.R.X,
-				sys.fe.total_num_nodes);
-        
-        BBFE_fluid_sups_renew_pressure(
-				sys.vals.p, 
-				sys.monolis.mat.R.X,
-				sys.fe.total_num_nodes);
+			printf("\n%s ----------------- step %d ----------------\n", CODENAME, step + step_hs);
 
-		/**********************************************/
+			//if(step > (sys.rom_v.hlpod_vals.num_snapshot * sys.vals.snapshot_interval)){
+			//	break;
+			//}
+			//solver_fom_collect_snapmat(sys, t, count);
+            solver_fom(sys, t, count);
 
-		if(step%sys.vals.output_interval == 0) {
+			count ++;
 
-			BBFE_fluid_sups_renew_pressure(
-				sys.vals.p, 
-				sys.monolis.mat.R.X,
-				sys.fe.total_num_nodes);
+			if(step%sys.vals.output_interval == 0) {
+				output_files(&sys, file_num, t);
+				file_num += 1;
+			}
 
-			output_files(&sys, file_num, t);
-			file_num += 1;
+            if(step == 100 && sys.rom_prm_p.hot_start == 0){
+                char fname[BUFFER_SIZE];         
+                snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
+                hot_start_write_initialize_val(sys.monolis.mat.R.X, sys.fe.total_num_nodes, 4, t, fname, sys.cond.directory);
+            }
 
-			// cavity
-			//output_result_file_cavity_center_vx(&(sys.vals), sys.cond.directory);
+            if(step == 40000 && sys.rom_prm_p.hot_start == 0){
+                char fname[BUFFER_SIZE];         
+                snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
+                hot_start_write_initialize_val(sys.monolis.mat.R.X, sys.fe.total_num_nodes, 4, t, fname, sys.cond.directory);
+            }
+
+            if(step%10 == 0 && t > 100) {
+				output_result_file_karman_vortex(&(sys.fe), &(sys.vals), t, sys.cond.directory);
+    			BBFE_fluid_sups_renew_pressure(sys.vals.p, sys.monolis.mat.R.X, sys.fe.total_num_nodes);
+				output_result_file_karman_vortex_pressure(&(sys.fe), &(sys.vals), t, sys.cond.directory);
+				output_result_file_karman_vortex_pressure_inf(&(sys.fe), &(sys.vals), t, sys.cond.directory);
+
+			}
 		}
-
 	}
+
+
+    /**********************************************/
+
+	ROM_std_hlpod_set_pod_modes_diag(
+		&(sys.rom_v),
+		&(sys.rom_p),
+		&(sys.rom_sups),
+		sys.fe.total_num_nodes,
+		sys.mono_com.n_internal_vertex,
+		3,
+		1,
+		"pod_modes_v",
+		"pod_modes_p",
+		sys.cond.directory);
+
+    /*for writing vtk*/
+    ROM_std_hlpod_read_pod_modes_diag(
+		&(sys.rom_v),
+		&(sys.rom_p),
+		&(sys.rom_sups),
+		sys.fe.total_num_nodes,
+		sys.mono_com.n_internal_vertex,
+		3,
+		1,
+		"pod_modes_v",
+		"pod_modes_p",
+		sys.cond.directory);
+
+	ROM_sys_hlpod_fe_write_pod_modes_vtk_diag(
+		&(sys.fe),
+		&(sys.rom_sups),
+		sys.fe.total_num_nodes,
+		10,
+		10,
+		3,
+		1,
+		"pod_modes_vtk/pod_modes_v.vtk",
+		"pod_modes_vtk/pod_modes_p.vtk",
+		sys.cond.directory);
+    /***************/
 
 	BBFE_fluid_finalize(&(sys.fe), &(sys.basis));
 	BBFE_sys_memory_free_Dirichlet_bc(&(sys.bc), sys.fe.total_num_nodes, 4);
@@ -270,6 +429,5 @@ double t = 0.0;
 	printf("\n");
 
 	return 0;
-
 }
 
