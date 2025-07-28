@@ -340,7 +340,7 @@ int main (
 			if(step > (sys.rom_v.hlpod_vals.num_snapshot * sys.vals.snapshot_interval)){
 				break;
 			}
-			solver_fom_collect_snapmat(sys, t, count);
+			//solver_fom_collect_snapmat(sys, t, count);
             solver_fom(sys, t, count);
 
 			count ++;
