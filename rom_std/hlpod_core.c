@@ -42,16 +42,24 @@ void ROM_std_hlpod_offline_memory_allocation_snapmat(
         const int       num_case,
         const int	    dof)
 {
-    double quotient = finish_time / dt / snapshot_interval;
-    
-    if (fmod(quotient, 1.0) == 0.0) {
-    	rom->hlpod_vals.num_snapshot = finish_time / dt / snapshot_interval * num_case;
-    	printf("%s: num_snapshot = %d\n", CODENAME, rom->hlpod_vals.num_snapshot);
+    int quotient = finish_time / dt / snapshot_interval;
+
+    if(quotient%10==0){
+        rom->hlpod_vals.num_snapshot = finish_time / dt / snapshot_interval * num_case;
     }
     else{
-        printf("Error: num_snapshot = %d is not integer\n");
-        exit(1);
+        rom->hlpod_vals.num_snapshot = (finish_time / dt / snapshot_interval+1) * num_case;
     }
+
+    
+    //if (fmod(quotient, 1.0) == 0.0) {
+//    	rom->hlpod_vals.num_snapshot = finish_time / dt / snapshot_interval * num_case;
+    	printf("%s: num_snapshot = %d\n", CODENAME, rom->hlpod_vals.num_snapshot);
+    //}
+    //else{
+    //    printf("Error: num_snapshot = %d is not integer\n");
+    //    exit(1);
+    //}
 
     if (monolis_mpi_get_global_comm_size() == 1){
         rom->hlpod_mat.snapmat = BB_std_calloc_2d_double(rom->hlpod_mat.snapmat, total_num_nodes * dof, rom->hlpod_vals.num_snapshot);

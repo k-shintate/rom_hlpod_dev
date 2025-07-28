@@ -45,6 +45,9 @@ typedef struct
     double  rom_epsilon;	    //基底取得閾値
     int     num_subdomains;     //POD計算領域数
     int     solver_type;
+    int     hot_start;
+    double  hot_start_time;
+
 } ROM_PRM;
 
 typedef struct
