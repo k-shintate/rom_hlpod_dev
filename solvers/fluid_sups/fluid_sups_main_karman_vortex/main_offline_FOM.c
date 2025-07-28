@@ -165,19 +165,18 @@ int main (
 			argc, argv, sys.cond.directory,
 			sys.vals.num_ip_each_axis);
 
-	const char* filename;
-
-	memory_allocation_nodal_values(
-			&(sys.vals),
-			sys.fe.total_num_nodes);
-	
+	const char* filename;	
 	filename = monolis_get_global_input_file_name(MONOLIS_DEFAULT_TOP_DIR, MONOLIS_DEFAULT_PART_DIR, INPUT_FILENAME_D_BC_V);
-	BBFE_fluid_sups_read_Dirichlet_bc_karman_vortex(
+	BBFE_fluid_sups_read_Dirichlet_bc(
 			&(sys.bc),
 			filename,
 			sys.cond.directory,
 			sys.fe.total_num_nodes,
 			4);
+    
+    memory_allocation_nodal_values(
+			&(sys.vals),
+			sys.fe.total_num_nodes);
 
 	BBFE_elemmat_set_Jacobi_mat(&(sys.fe), &(sys.basis));
 	BBFE_elemmat_set_shapefunc_derivative(&(sys.fe), &(sys.basis));
@@ -190,6 +189,7 @@ int main (
     /*for ROM *****************************************/
 	
     /*for ROM input data*/
+    /*
 	ROM_read_args(argc, argv, &(sys.rom_prm_p));
 	ROM_read_args(argc, argv, &(sys.rom_prm_v));
 
@@ -252,14 +252,16 @@ int main (
             metagraph_name,
             parted_file_name,
 			sys.cond.directory);
-
+*/
     /******************/
 
     /*for offline******/
-    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
-	ROM_offline_set_reynolds_num_cases(&(sys.vals), sys.cond.directory);
+//    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
+//	ROM_offline_set_reynolds_num_cases(&(sys.vals), sys.cond.directory);
 
     /*for hot start*/
+    double t_hotstart = 0.0;
+/*
     ROM_offline_set_reynolds_number(&(sys.vals), 0);
     double t_hotstart = 0.0;
     if(sys.rom_prm_p.hot_start == 1){
@@ -273,6 +275,7 @@ int main (
     else{
         t_hotstart = 0.0;
     }
+    */
 
     printf("sys.vals.finish_time - t_hotstart = %lf\n", ((double)sys.vals.finish_time - t_hotstart));
     /***************/
@@ -296,7 +299,7 @@ int main (
             sys.vals.snapshot_interval,
             sys.vals.num_cases,
 			1);
-*/  
+*/
     /******************/
 
 	/**********************************************/
@@ -309,11 +312,22 @@ int main (
     double t_hs = 0.0; //for hot start
     int step_hs = 0; //for hot start
 
-	for(int i = 0; i < sys.vals.num_cases; i++){
-		ROM_offline_set_reynolds_number(&(sys.vals), i);
+    printf("Reynolds number: %lf\n", sys.vals.viscosity);
+    printf("Reynolds number: %lf\n", sys.vals.density);
+    output_files(&sys, file_num, t);
+
+    t = monolis_get_time_global_sync();
+    //exit(1);
+
+	//for(int i = 0; i < sys.vals.num_cases; i++){
+		//ROM_offline_set_reynolds_number(&(sys.vals), 0);
+
+        printf("Reynolds number: %lf\n", sys.vals.viscosity);
+        printf("Reynolds number: %lf\n", sys.vals.density);
+
 		
 		t = 0.0; step = 0; file_num = 0;
-
+        /*
 		if(sys.rom_prm_p.hot_start == 1){
             char fname[BUFFER_SIZE];         
             snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
@@ -330,6 +344,7 @@ int main (
 
             BB_std_free_1d_double(val, 4*sys.fe.total_num_nodes);
         }
+        */
 
 		while (t < sys.vals.finish_time - t_hs) {
 			t += sys.vals.dt;
@@ -341,6 +356,8 @@ int main (
 			//	break;
 			//}
 			//solver_fom_collect_snapmat(sys, t, count);
+            printf("step = %d, count = %d\n", step, count);
+            printf("t = %lf\n", t);
             solver_fom(sys, t, count);
 
 			count ++;
@@ -366,7 +383,7 @@ int main (
 				output_result_file_karman_vortex_pressure_inf(&(sys.fe), &(sys.vals), t, sys.cond.directory);
 			}
 		}
-	}
+	//}
 
 
     /**********************************************/

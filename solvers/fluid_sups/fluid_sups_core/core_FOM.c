@@ -14,9 +14,9 @@ const double  DVAL_FINISH_TIME  = 1.0;
 const char* ID_OUTPUT_INTERVAL  = "#output_interval";
 const int DVAL_OUTPUT_INTERVAL  = 1;
 const char*         ID_DENSITY  = "#density";
-const double      DVAL_DENSITY  = 1000.0;
+const double      DVAL_DENSITY  = 1.0;
 const char*       ID_VISCOSITY  = "#viscosity";
-const double    DVAL_VISCOSITY  = 1.0;
+const double    DVAL_VISCOSITY  = 0.01;
 
 const int BUFFER_SIZE = 10000;
 
@@ -24,7 +24,7 @@ static const char* INPUT_FILENAME_COND    = "cond.dat";
 static const char* INPUT_FILENAME_D_BC_V  = "D_bc_v.dat";
 static const char* INPUT_FILENAME_D_BC_P  = "D_bc_p.dat";
 
-static const char* OUTPUT_FILENAME_VTK    = "result_%d_%06d.vtk";
+static const char* OUTPUT_FILENAME_VTK    = "result_%06d.vtk";
 static const char* OUTPUT_FILENAME_CAVITY = "cavity_Re%e.txt";
 
 static const char* OUTPUT_FILENAME_KARMAN_VORTEX_P = "karman_vortex_p_val.dat";
@@ -33,7 +33,7 @@ static const char* OUTPUT_FILENAME_KARMAN_VORTEX_N = "karman_vortex_n_val.dat";
 static const char* OUTPUT_FILENAME_KARMAN_VORTEX_CP = "karman_vortex_Cp_%d.dat";
 static const char* OUTPUT_FILENAME_KARMAN_VORTEX_PINF = "karman_vortex_pinf_%d.dat";
 
-double epsilon = 1.0e-4;
+double epsilon = 1.0e-5;
 
 // メッシュは各方向41節点40要素 or 51節点50要素 or 101節点100要素 の六面体一次要素限定
 void output_cavity_center_vx(
@@ -77,9 +77,7 @@ void initialize_velocity_pressure_karman_vortex(
 {
     // Initialize velocity array
     for (int i = 0; i < total_num_nodes; i++) {
-    //    for (int j = 0; j < 3; j++) {
-            v[i][0] = 1.0;
-    //    }
+        v[i][0] = 1.0;
     }
 
     // Initialize pressure array
@@ -134,7 +132,7 @@ void BBFE_fluid_sups_read_Dirichlet_bc_karman_vortex(
             int r = rand() % 9 + 1;  // 1〜9 の整数を生成
             bc->imposed_D_val[index] = val * (1 + (double)r * epsilon);
         }
-	else{
+    	else{
             bc->imposed_D_val[ index ] = val;
         }
 
@@ -421,10 +419,10 @@ void output_files(
 	snprintf(fname_vtk, BUFFER_SIZE, OUTPUT_FILENAME_VTK, file_num, myrank);
 
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname_vtk);
-/*
+
 	output_result_file_vtk(
 			&(sys->fe), &(sys->vals), filename, sys->cond.directory, t);
-*/
+
 }
 
 void BBFE_fluid_sups_read_Dirichlet_bc(
@@ -617,8 +615,6 @@ void solver_fom(
     double      t,
     const int   step)
 {
-		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
-
 		monolis_clear_mat_value_R(&(sys.monolis));
 
 		set_element_mat(
@@ -639,8 +635,8 @@ void solver_fom(
 				&(sys.bc),
 				sys.monolis.mat.R.B);
 
-		monolis_show_timelog (&(sys.monolis), true);
-		monolis_show_iterlog (&(sys.monolis), true);
+		//monolis_show_timelog (&(sys.monolis), true);
+		//monolis_show_iterlog (&(sys.monolis), true);
 		BBFE_sys_monowrap_solve(
 				&(sys.monolis),
 				&(sys.mono_com),

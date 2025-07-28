@@ -40,12 +40,12 @@ done
 fname="gdb_cmd"
 rm $fname
 touch $fname
-echo "run ./ -nd ${nd} -nm ${nm} -pa ${pa} -st ${st} -hs" >> $fname
+echo "run ./ -nd ${nd} -nm ${nm} -pa ${pa} -st ${st}" >> $fname
 echo "backtrace" >> $fname
 echo "exit" >> $fname
 
+#./hlpod_fluid_sups_offline_FOM ./ -nd $nd -nm $nm -pa $pa -st $st
 mpirun -np $np  ./hlpod_fluid_sups_offline_FOM ./ -nd $nd -nm $nm -pa $pa -st $st
-#mpirun -np $np  ./hlpod_fluid_sups_offline_FOM ./ -nd $nd -nm $nm -pa $pa -st $st -hs
 #mpirun -np ${np}  gdb --command=gdb_cmd ./hlpod_fluid_sups_offline_FOM
 #mpirun -np ${np}  gdb --command=gdb_cmd ./hlpod_fluid_sups_offline_ROM
 #mpirun -np ${np}  gdb --command=gdb_cmd ./hlpod_fluid_sups_online_HROM
