@@ -2,16 +2,16 @@
 
 #mesh
 #一方向分割数
-e=15
+e=20
 #解析領域の大きさ
-ep=5
+ep=1
 
 #podモード数
-num_modes=(5)
+num_modes=(10 20)
 #POD計算領域数
-num_1stdd=(8)
+num_1stdd=(4)
 #並列計算領域数 (=並列数)
-num_parallel=(4 8)
+num_parallel=(4)
 #基底本数可変の閾値 1.0E-{pa}
 pa=0
 #solver type
@@ -24,9 +24,9 @@ do
     	for np in "${num_parallel[@]}"
     	do
 	
-        . shell/diff/meshgen.sh $e $ep $nm $nd $np $pa
-	    . shell/diff/merge_graph.sh $e $ep $nm $nd $np $pa
-	    . shell/diff/execution.sh $e $ep $nm $nd $np $pa $st
+        . shell/fluid_sups_hrom_cavity/meshgen.sh $e $ep $nm $nd $np $pa
+	    . shell/fluid_sups_hrom_cavity/merge_graph.sh $e $ep $nm $nd $np $pa
+	    . shell/fluid_sups_hrom_cavity/execution_offline.sh $e $ep $nm $nd $np $pa $st
 
         done
 	done

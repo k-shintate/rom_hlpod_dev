@@ -15,9 +15,9 @@ LIBS_ROM     = -L./../../lib -lrom_BB -lrom_std -lrom_sys -lrom_ecm
 
 SRC_DIR := ./diff_core ./diff_matvec
 SRC     := $(wildcard $(addsuffix /*.c,$(SRC_DIR)))
-OBJ1    := $(patsubst %.c,%.o,$(SRC)) ./diff_main/main_offline_FOM.o
-OBJ2    := $(patsubst %.c,%.o,$(SRC)) ./diff_main/main_offline_ROM.o
-OBJ3    := $(patsubst %.c,%.o,$(SRC)) ./diff_main/main_online_HROM.o
+OBJ1    := $(patsubst %.c,%.o,$(SRC)) ./diff_main/FOM/main_offline_FOM.o
+OBJ2    := $(patsubst %.c,%.o,$(SRC)) ./diff_main/HROM/main_offline_ROM.o
+OBJ3    := $(patsubst %.c,%.o,$(SRC)) ./diff_main/HROM/main_online_HROM.o
 
 TARGET1 := hlpod_diff_offline_FOM
 TARGET2 := hlpod_diff_offline_ROM

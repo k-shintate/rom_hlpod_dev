@@ -392,6 +392,9 @@ int main (
             BBFE_fluid_sups_renew_velocity(sys.vals.v, val, sys.fe.total_num_nodes);
             BBFE_fluid_sups_renew_pressure(sys.vals.p, val, sys.fe.total_num_nodes);
 
+            BBFE_fluid_sups_renew_velocity(sys.vals_rom.v, val, sys.fe.total_num_nodes);
+            BBFE_fluid_sups_renew_pressure(sys.vals_rom.p, val, sys.fe.total_num_nodes);
+
             BB_std_free_1d_double(val, 4*sys.fe.total_num_nodes);
         }
     

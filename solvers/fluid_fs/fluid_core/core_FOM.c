@@ -508,10 +508,6 @@ void solver_fom(
             sys.mono_corr.mat.R.X,
             sys.fe.total_num_nodes);
 
-
-    if(step%sys.vals.output_interval == 0) {			
-        output_files(&sys, step, t);
-    }
 }
 
 //スナップショットの収集

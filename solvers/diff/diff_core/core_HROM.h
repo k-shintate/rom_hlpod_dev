@@ -28,6 +28,26 @@ void HROM_output_files(
 		int             file_num,
 		double          t);
 
+void HROM_std_hlpod_pre_lpod_para(
+        MONOLIS*     monolis_rom0,
+        MONOLIS_COM* monolis_com,
+        MONOLIS_COM* mono_com_rom,
+        MONOLIS_COM* mono_com_rom_solv,
+        ROM*		 rom,
+        const int    dof,
+        const char*	 directory);
+
+void HROM_std_hlpod_online_pre(
+        MONOLIS*     monolis_rom0,
+        MONOLIS_COM* mono_com,
+        MONOLIS_COM* mono_com_rom,
+        MONOLIS_COM* mono_com_rom_solv,
+        ROM* 		 rom_sups,
+        const int 	 total_num_nodes,
+        const int     dof,
+        const char*  metagraph,
+        const char*  directory);
+
 void HROM_pre_offline(
 		FE_SYSTEM* sys,
         ROM*            rom,

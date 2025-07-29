@@ -1,7 +1,5 @@
 
 #include "core_ROM.h"
-#include "core_HROM.h"
-#include "set_matvec_NNLS.h"
 
 static const char* OPTION_NUM_MODES = "-nm";
 static const char* OPTION_NUM_1STDD = "-nd";
@@ -162,19 +160,7 @@ int main (
 			sys.cond.directory);
     
     /******************/
-
     
-    /*for offline phase*/
-    ROM_offline_read_calc_conditions(&(sys.vals), sys.cond.directory);
-
-	ROM_std_hlpod_offline_set_num_snapmat(
-			&(sys.rom),
-            sys.vals.finish_time,
-            sys.vals.dt,
-            sys.vals.snapshot_interval,
-            1);
-    /******************/
-
 	/*for online phase*/
     read_calc_conditions(&(sys.vals_rom), sys.cond.directory);                  //set vals
 
@@ -229,22 +215,27 @@ int main (
     monolis_copy_mat_nonzero_pattern_R(&(sys.monolis_rom0), &(sys.monolis_rom));
     monolis_com_initialize_by_self(&(sys.mono_com0));
     /******************/
-
+    
     /**************************************************/
 
-    /*for Hyper-reduction*/
-    HROM_pre(&sys, &(sys.rom), &(sys.hrom));
-    HROM_memory_allocation(&sys, &(sys.rom), &(sys.hrom));
-    /*********************/
-
-
     monolis_copy_mat_R(&(sys.monolis0), &(sys.monolis));
-    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);    
 
     int file_num = 0;
     int step = 0;
     double t = 0;
 	while (t < sys.vals.finish_time) {
+		t += sys.vals.dt;
+		step += 1;
+
+		printf("\n%s ----------------- step %d ----------------\n", CODENAME, step);
+        solver_fom(sys, t, step);	
+    }
+
+    ROM_BB_vec_copy(sys.vals.T, sys.vals_rom.T, sys.fe.total_num_nodes);    
+    
+    printf("\n%s ----------------- ROM solver ----------------\n", CODENAME);
+
+	while (t < sys.vals.rom_finish_time) {
 		t += sys.vals.dt;
 		step += 1;
 
@@ -260,22 +251,22 @@ int main (
         double calctime_rom_t2 = monolis_get_time();
 		/**********************************************/
 
-        HROM_set_matvec(&(sys),&(sys.rom),&(sys.hrom),step,t);
-
         if(step%sys.vals.output_interval == 0) {
 			ROM_output_files(&sys, file_num, t);
                         
+            ROM_std_hlpod_write_solver_prm(&(sys.monolis), t, "fem_solver_prm/" , sys.cond.directory);
+			ROM_std_hlpod_write_solver_prm(&(sys.monolis_rom), t, "pod_solver_prm/", sys.cond.directory);
+
+            ROM_std_hlpod_output_calc_time(calctime_fem_t1-calctime_fem_t2, t,
+					"calctime/time_fem.txt", sys.cond.directory);
+            ROM_std_hlpod_output_calc_time(calctime_rom_t1-calctime_rom_t2, t,
+					"calctime/time_rom.txt", sys.cond.directory);
+
 			file_num += 1;
 		}
-    }
 
-   HROM_pre_offline2(&sys, &(sys.rom), &(sys.hrom));
+	}
 
-    if(monolis_mpi_get_global_my_rank() == 0){
-        fp = BBFE_sys_write_fopen(fp, "calctime/time_offline.txt", sys.cond.directory);
-        //fprintf(fp, "%e\n", calctime_offline);
-        fclose(fp);
-    }
 
 	BBFE_convdiff_finalize(&(sys.fe), &(sys.basis), &(sys.bc));
 
@@ -284,7 +275,7 @@ int main (
 
 	monolis_global_finalize();
 
-	double t2 = monolis_get_time_global_sync();
+	double t2 = monolis_get_time();
 	printf("** Total time: %f\n", t2 - t1);
 
 	printf("\n");
