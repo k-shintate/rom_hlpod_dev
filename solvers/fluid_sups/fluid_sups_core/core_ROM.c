@@ -347,7 +347,6 @@ void ROM_add_output_vtk_pressure(
 	BBFE_manusol_calc_nodal_error_scalar(fe, error_p, fem_pressure, rom_pressure);
 	BB_vtk_write_point_vals_scalar(fp, error_p, fe->total_num_nodes, "abs_error-FEM_ROM-Pressure");
 
-	BB_vtk_write_point_vals_scalar(fp, fem_pressure, fe->total_num_nodes, "FEM-Pressure");
 	BB_std_free_1d_double(error_p, fe->total_num_nodes);
 
 	fclose(fp);
@@ -375,7 +374,6 @@ void ROM_add_output_vtk_velocity(
 	
 	/*for velocity*/
 	BB_vtk_write_point_vals_vector(fp, rom_velocity, fe->total_num_nodes, "ROM-Velocity");
-	BB_vtk_write_point_vals_vector(fp, fem_velocity, fe->total_num_nodes, "FEM-Velocity");
 	BB_vtk_write_point_vals_vector(fp, error_v, fe->total_num_nodes, "abs_error-FEM_ROM-Velosity");
 
 	fclose(fp);
@@ -394,7 +392,7 @@ void ROM_output_files(
 	snprintf(fname_vtk, BUFFER_SIZE, ROM_OUTPUT_FILENAME_VTK, file_num);
 
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname_vtk);
-/*
+
 	ROM_output_vtk_shape(
 			&(sys->fe),
 			filename,
@@ -414,7 +412,7 @@ void ROM_output_files(
 			filename,
 			sys->cond.directory,
 			t);
-	*/
+	
 	double L2_error_p = ROM_sys_hlpod_fe_equivval_relative_L2_error_scalar(
 			&(sys->fe),
 			&(sys->basis),

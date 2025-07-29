@@ -7,11 +7,8 @@ const char*     HROM_ID_INC_SVD_INTERVAL    = "#inc_svd_interval";
 const int       INC_SVD_INTERVAL            = 10;
 
 static const char* HROM_INPUT_FILENAME_COND          = "hrom_cond.dat";
-static const char* OUTPUT_FILENAME_VTK          = "result_%06d.vtk";
-static const char* OUTPUT_FILENAME_ASCII_TEMP   = "temparature_%06d.dat";
-static const char* OUTPUT_FILENAME_ASCII_SOURCE = "source_%06d.dat";
 
-static const char* ROM_OUTPUT_FILENAME_VTK          = "rom_result_%06d.vtk";
+static const char* HROM_OUTPUT_FILENAME_VTK          = "hrom_result_%06d.vtk";
 
 
 void HROM_offline_assign_default_values_inc_svd(
@@ -125,8 +122,6 @@ void HROM_add_output_vtk_pressure(
 	fp = ROM_BB_write_add_fopen(fp, filename, directory);
 
 	/*for pressure*/
-	BB_vtk_write_point_vals_scalar(fp, rom_pressure, fe->total_num_nodes, "ROM-Pressure");
-
     BB_vtk_write_point_vals_scalar(fp, hrom_pressure, fe->total_num_nodes, "HROM-Pressure");
 
 	double* error_p;
@@ -140,7 +135,6 @@ void HROM_add_output_vtk_pressure(
 	BBFE_manusol_calc_nodal_error_scalar(fe, error_p, rom_pressure, hrom_pressure);
 	BB_vtk_write_point_vals_scalar(fp, error_p, fe->total_num_nodes, "abs_error-ROM_HROM-Pressure");
 
-	BB_vtk_write_point_vals_scalar(fp, fem_pressure, fe->total_num_nodes, "FEM-Pressure");
 	BB_std_free_1d_double(error_p, fe->total_num_nodes);
 
 	fclose(fp);
@@ -168,8 +162,6 @@ void HROM_add_output_vtk_velocity(
 	}
 	
 	/*for velocity*/
-   	BB_vtk_write_point_vals_vector(fp, fem_velocity, fe->total_num_nodes, "FEM-Velocity");
-	BB_vtk_write_point_vals_vector(fp, rom_velocity, fe->total_num_nodes, "ROM-Velocity");
     BB_vtk_write_point_vals_vector(fp, hrom_velocity, fe->total_num_nodes, "HROM-Velocity");
 
 	BB_vtk_write_point_vals_vector(fp, error_v, fe->total_num_nodes, "abs_error-FEM_ROM-Velosity");
@@ -203,7 +195,7 @@ void HROM_output_files(
 {
 	const char* filename;
 	char fname_vtk[BUFFER_SIZE];
-	snprintf(fname_vtk, BUFFER_SIZE, ROM_OUTPUT_FILENAME_VTK, file_num);
+	snprintf(fname_vtk, BUFFER_SIZE, HROM_OUTPUT_FILENAME_VTK, file_num);
 
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname_vtk);
 
