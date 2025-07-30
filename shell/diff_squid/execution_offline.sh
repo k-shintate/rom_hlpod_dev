@@ -10,11 +10,13 @@ np=$5
 pa=$6
 #solver type
 st=$7
+#計算ノード数
+N_node=$8
+#計算ノード当たりのCPU数
+N_cpu=$9
 
 # 実行ディレクトリ
 directory="result_diff/${nm}-${np}-${nd}"
-
-#. shell/install.sh
 
 cd solvers/diff
 

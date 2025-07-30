@@ -8,6 +8,10 @@ nd=$4
 np=$5
 #基底本数可変の閾値 1.0E-{pa}
 pa=$6
+#計算ノード数
+N_node=$7
+#計算ノード当たりのCPU数
+N_cpu=$8
 
 # 実行ディレクトリ
 directory="result_diff/${nm}-${np}-${nd}"
