@@ -4,15 +4,12 @@
 #include <stddef.h>
 #include "monolis_wrapper_scalapack_c.h"
 
-
-/* ---- 増分 SVD 用の軽量行列（column-major） ---- */
 typedef struct {
   int rows;     /* 行数 */
   int cols;     /* 列数 */
   double *a;    /* a[i + j*rows] = A(i,j) */
 } CMat;
 
-/* ---- 増分 SVD の保持状態 ---- */
 typedef struct {
   int K;          /* 行数 */
   int N;          /* 現在の列数 */
@@ -22,16 +19,11 @@ typedef struct {
   double *sigma;  /* [r] 特異値 */
 } IncSVD;
 
-/* ---- API ---- */
-/* 列ブロック B（K×Delta）を追加して U,Σ,V を更新（Brand 型） */
 void incsvd_update(IncSVD* S, const CMat *B, int r_max, double tol);
 
-/* 行ブロック（ΔK × N）を追加して S を更新 */
 void incsvd_update_rows(IncSVD* S, const CMat *Brow, int r_max, double tol);
 
-
-/* Incremental SVD + 圧縮 NNLS 本体（ユーザ関数） */
-void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
+void HROM_ddecm_write_selected_elems_inc_svd_init_with_first_block(
     MONOLIS_COM*   monolis_com,
     BBFE_DATA*     fe,
     BBFE_BC*       bc,
@@ -46,7 +38,7 @@ void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
     const int      dof,
     const char*    directory);
 
-void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
+void HROM_ddecm_write_selected_elems_inc_svd_update(
     MONOLIS_COM*   monolis_com,
     BBFE_DATA*     fe,
     BBFE_BC*       bc,
@@ -61,7 +53,7 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
     const int      dof,
     const char*    directory);
 
-void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
+void HROM_ddecm_write_selected_elems_inc_svd(
     MONOLIS_COM*   monolis_com,
     BBFE_DATA*     fe,
     BBFE_BC*       bc,

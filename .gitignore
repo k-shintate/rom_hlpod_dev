@@ -8,9 +8,13 @@
 !*.sh
 !*.py
 !*Makefile
+!*Makefile_ROM
 !*Makefile_HROM_cavity
 !*Makefile_HROM_karman_vortex
 !*Makefile_squid
+!*Makefile_ROM_squid
+!*Makefile_HROM_cavity_squid
+!*Makefile_HROM_karman_vortex_squid
 !*.geo
 !*.md
 !.gitignore
@@ -22,4 +26,3 @@ include
 
 # allow some
 !utils/load_balancing/include/
-

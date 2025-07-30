@@ -70,7 +70,6 @@ void ROM_read_args(
     }
     else {
         rom_prm->hot_start = 1;
-        //rom_prm->hot_start_time = atof(argv[num+1]);
         printf("Hot start is enabled.\n");
     }
 

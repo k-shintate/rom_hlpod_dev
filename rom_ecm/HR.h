@@ -38,7 +38,6 @@ void HROM_ecm_calc_solution(
 	BBFE_BC*     	bc,
     int 			num_base);
 
-
 void HROM_ecm_monolis_set_matrix(
     MONOLIS*     	monolis,
     HLPOD_HR*      hlpod_hr,
@@ -54,7 +53,6 @@ void HROM_ecm_set_selected_elems(
     HLPOD_HR*       hlpod_hr,
     const int		total_num_nodes,
     const char*     directory);
-
 
 void HROM_ecm_read_selected_elems(
     HLPOD_HR*     hlpod_hr,

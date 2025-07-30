@@ -107,7 +107,6 @@ void HROM_ddecm_get_neib_num_modes(
     const int       np,
     const int       num_my_modes);
 
-//for arbit dof ddecm
 void HROM_ddecm_get_neib_subdomain_id(
     MONOLIS_COM*  	monolis_com,
     HLPOD_MAT* 	    hlpod_mat,
@@ -143,7 +142,6 @@ void HROM_manusol_set_bc(
     double      (*func)(double, double, double, double), // scalar function(x, y, z, t)
     HLPOD_MAT*	hlpod_mat);
 
-//for arbit dof ddecm
 void HROM_ddecm_get_neib_subdomain_id_2nddd(
 	MONOLIS_COM*  	monolis_com,
 	HLPOD_MAT* 	    hlpod_mat,

@@ -1,9 +1,7 @@
 //todo: NNLS用の関数をまとめる
 
 #include "rom_dataset.h"
-
 #include "core_FOM.h"
-
 
 //残差ベクトルのみをNNLSに使う
 void HROM_ddecm_set_RH_for_NNLS_para(
@@ -245,7 +243,6 @@ void HROM_ddecm_set_residuals_for_NNLS_para(
 }
 
 
-//残差ベクトルのみをNNLSに使う
 void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
 		BBFE_DATA*     	fe,
 		VALUES*         vals,
@@ -288,8 +285,6 @@ void ddhr_set_matvec_RH_for_NNLS_para_volume_const(
             double vol = BBFE_std_integ_calc_volume(
                     np, basis->integ_weight, Jacobian_ip);
             
-            //printf("\n\nvol = %f\n", vol);
-            //printf("hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n] = %f\n", hlpod_ddhr->matrix[2*(hlpod_vals->n_neib_vec)*num_snapshot][m][n]);
             hlpod_ddhr->matrix[(hlpod_vals->n_neib_vec)*num_snapshot][m][n] += vol;
             hlpod_ddhr->RH[(hlpod_vals->n_neib_vec)*num_snapshot][n] += vol; 
         }

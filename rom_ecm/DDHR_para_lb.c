@@ -599,7 +599,6 @@ void HROM_ddecm_write_selected_elems_svd(
     int scalapack_comm;
     monolis_scalapack_comm_initialize(comm, &scalapack_comm);
 
-
 	FILE* fp;
 	char fname[BUFFER_SIZE];
 	char id[BUFFER_SIZE];
@@ -855,9 +854,7 @@ void HROM_ddecm_write_selected_elems_svd(
 
 	}
 
-	/*lbから追加*/
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);
-	/**/
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
@@ -1115,9 +1112,7 @@ void HROM_ddecm_write_selected_elems_para(
 
 	}
 
-	/*lbから追加*/
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);
-	/**/
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
@@ -1138,7 +1133,8 @@ void HROM_ddecm_write_selected_elems_para(
 	double t = monolis_get_time_global_sync();
 }
 
-void ddhr_lb_write_selected_elements_para_1line_arbit_subd(
+
+void HROM_ddecm_write_selected_elems_para_arbit_subd(
 	MONOLIS_COM*  	monolis_com,
 	BBFE_DATA*     	fe,
 	BBFE_BC*     	bc,
@@ -1396,9 +1392,8 @@ void ddhr_lb_write_selected_elements_para_1line_arbit_subd(
 
 	}
 
-	/*lbから追加*/
 	BB_std_free_2d_bool(bool_elem, max_ITER, num_subdomains);
-	/**/
+
 
 	int max_num_elem = ROM_BB_findMax(hlpod_ddhr->num_elems, num_subdomains);
 	BB_std_free_3d_double(hlpod_ddhr->matrix, total_num_snapshot * hlpod_vals->n_neib_vec, max_num_elem, num_subdomains);
@@ -1498,6 +1493,7 @@ void HROM_ecm_get_meta_neib(
 	fclose(fp);
 	/******/
 }
+
 
 void HROM_ddecm_set_neib(
 		MONOLIS_COM*  	monolis_com,
@@ -1631,6 +1627,7 @@ void HROM_ddecm_set_neib(
 
     double t2 = monolis_get_time_global_sync();
 }
+
 
 void HROM_ddecm_set_element_para(
 		BBFE_DATA*     	fe,
@@ -1780,6 +1777,7 @@ void HROM_ddecm_set_element_para(
 	BB_std_free_1d_int(global_elems_id , fe->total_num_elems);
 
 }
+
 
 void HROM_ddecm_get_selected_elema_add(
 	HLPOD_DDHR*     hlpod_ddhr,
@@ -1935,6 +1933,7 @@ void HROM_ddecm_get_selected_elema_add(
 
 }
 
+
 void HROM_ddecm_calc_block_mat_bcsr(
 	MONOLIS*     	monolis,
 	MONOLIS_COM*  	monolis_com,
@@ -2032,6 +2031,7 @@ void HROM_ddecm_calc_block_mat_bcsr(
 	BB_std_free_2d_double(L_in, M, M);
 }
 
+
 /*for visualization*/
 void ddhr_lb_set_selected_elems_para(
 		BBFE_DATA*     	fe,
@@ -2103,6 +2103,7 @@ void ddhr_lb_set_selected_elems_para(
 
 }
 
+
 //level1領域の最大基底本数の共有
 void HROM_ddecm_get_neib_max_num_modes(
 	MONOLIS_COM*  	monolis_com,
@@ -2116,6 +2117,7 @@ void HROM_ddecm_get_neib_max_num_modes(
 	hlpod_mat->max_num_neib_modes[0] = num_my_modes;
 	monolis_mpi_update_I(monolis_com, np, 1, hlpod_mat->max_num_neib_modes);
 }
+
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void HROM_ddecm_get_neib_num_modes(
@@ -2137,7 +2139,7 @@ void HROM_ddecm_get_neib_num_modes(
 	}
 }
 
-//for arbit dof ddecm
+
 void HROM_ddecm_get_neib_subdomain_id(
 	MONOLIS_COM*  	monolis_com,
 	HLPOD_MAT* 	    hlpod_mat,
@@ -2191,6 +2193,7 @@ void HROM_ddecm_get_neib_subdomain_id(
 	BB_std_free_2d_double(neib_vec, np, n_neib_vec);
 }
 
+
 void HROM_ddecm_get_neib_coordinates_pre(
     HLPOD_VALUES* 	hlpod_vals,
 	HLPOD_MAT*	    hlpod_mat,
@@ -2200,6 +2203,7 @@ void HROM_ddecm_get_neib_coordinates_pre(
     const int num_basis = max_num_basis * np;
 	hlpod_mat->mode_coef_1stdd = BB_std_calloc_1d_double(hlpod_mat->mode_coef_1stdd, num_basis);
 }
+
 
 void HROM_get_neib_coordinates(
 	MONOLIS_COM*  	monolis_com,
@@ -2229,7 +2233,6 @@ void HROM_get_neib_coordinates(
 }
 
 
-//for hyper-reduction
 void HROM_set_bc_id(
 		BBFE_DATA* 	fe,
 		BBFE_BC*   	bc,
@@ -2258,8 +2261,6 @@ void HROM_set_bc_id(
 }
 
 
-
-//for arbit dof ddecm
 void HROM_ddecm_get_neib_subdomain_id_2nddd(
 	MONOLIS_COM*  	monolis_com,
 	HLPOD_MAT* 	hlpod_mat,

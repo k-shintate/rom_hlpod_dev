@@ -389,13 +389,11 @@ void HROM_ddecm_write_selected_elems(
             if(bool_elem[h]) {
                 hlpod_ddhr->id_selected_elems_D_bc[index1][m] = total_id_selected_elems[h];
                 hlpod_ddhr->elem_weight_D_bc[index1][m] = total_elem_weight[h];
-                printf("D_bc = %d, elem_weight = %lf \n", hlpod_ddhr->id_selected_elems_D_bc[index1][m], hlpod_ddhr->elem_weight_D_bc[index1][m]);
                 index1++;
             }
             else{
                 hlpod_ddhr->id_selected_elems[index2][m] = total_id_selected_elems[h];
                 hlpod_ddhr->elem_weight[index2][m] = total_elem_weight[h];
-                printf("%d, elem_weight = %lf\n", hlpod_ddhr->id_selected_elems[index2][m], hlpod_ddhr->elem_weight[index2][m]);
                 index2++;
             }
         }

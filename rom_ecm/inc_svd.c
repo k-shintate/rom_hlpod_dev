@@ -10,11 +10,11 @@
 
 static const char* OUTPUT_FILENAME_RANK_INC_SVD = "rank_inc_svd.txt";
 
-/* ========= CMat ユーティリティ ========= */
 static inline CMat cm_alloc(int rows, int cols){
     CMat M = {rows, cols, (double*)calloc((size_t)rows*cols, sizeof(double))};
     return M;
 }
+
 
 static inline void cm_free(CMat *M){ free(M->a); M->a=NULL; M->rows=M->cols=0; }
 static inline double cm_get(const CMat *M, int i, int j){ return M->a[(size_t)i + (size_t)j*M->rows]; }
@@ -55,6 +55,7 @@ static CMat matmul_tn(const CMat *A, const CMat *B){
     return C;
 }
 
+
 static CMat mat_sub(const CMat *A, const CMat *B){
     assert(A->rows==B->rows && A->cols==B->cols);
     CMat C = cm_alloc(A->rows, A->cols);
@@ -62,6 +63,7 @@ static CMat mat_sub(const CMat *A, const CMat *B){
     for(int t=0;t<n;++t) C.a[t] = A->a[t] - B->a[t];
     return C;
 }
+
 
 static CMat concat_cols(const CMat *A, const CMat *B){
     assert(A->rows == B->rows);
@@ -73,6 +75,7 @@ static CMat concat_cols(const CMat *A, const CMat *B){
     return C;
 }
 
+
 static CMat block_diag(const CMat *A, const CMat *B){
     CMat C = cm_alloc(A->rows + B->rows, A->cols + B->cols);
     for(int j=0;j<A->cols;++j) for(int i=0;i<A->rows;++i) cm_set(&C,i,j, cm_get(A,i,j));
@@ -80,18 +83,21 @@ static CMat block_diag(const CMat *A, const CMat *B){
     return C;
 }
 
+
 static CMat eye(int n){
-    CMat Imat = cm_alloc(n,n);              /* "I" は complex.h と衝突するので使わない */
+    CMat Imat = cm_alloc(n,n);
     for(int i=0;i<n;++i) cm_set(&Imat, i, i, 1.0);
     return Imat;
 }
 static CMat zeros(int m, int n){ return cm_alloc(m,n); }
+
 
 static CMat diag_from_vector(const double *sigma, int r){
     CMat S = cm_alloc(r,r);
     for(int i=0;i<r;++i) cm_set(&S, i, i, sigma[i]);
     return S;
 }
+
 
 static CMat block_2x2(const CMat *A11, const CMat *A12, const CMat *A21, const CMat *A22){
     assert(A11->rows==A12->rows && A21->rows==A22->rows);
@@ -105,7 +111,7 @@ static CMat block_2x2(const CMat *A11, const CMat *A12, const CMat *A21, const C
     return K;
 }
 
-/* ========= QR（MGS2） ========= */
+
 static void qr_mgs2(const CMat *E, CMat *Q, CMat *R, double tol){
     int K=E->rows, D=E->cols;
     *Q = cm_alloc(K, D);
@@ -137,7 +143,6 @@ static void qr_mgs2(const CMat *E, CMat *Q, CMat *R, double tol){
 }
 
 
-/* 対称固有分解（Jacobi）: Gin = Q Λ Q^T */
 static void jacobi_eigensymm(const CMat *Gin, double *lam, CMat *Q, int max_sweeps, double tol){
     int n = Gin->rows; 
     CMat G = cm_alloc(n,n); cm_copy(Gin,&G);
@@ -176,7 +181,7 @@ static void jacobi_eigensymm(const CMat *Gin, double *lam, CMat *Q, int max_swee
     cm_free(&G);
 }
 
-/* 固有値降順ソート（Q の列も並べ替え） */
+
 static void sort_eigs_desc(double *lam, CMat *Q){
     int n=Q->cols;
     for(int i=0;i<n-1;++i){
@@ -214,7 +219,7 @@ static void svd_dense(const CMat *Ksmall, CMat *Uhat, double **sigma_out, CMat *
   
 }
 
-/* ========= ランク選択 & トリム ========= */
+
 static int select_rank(const double *sigma, int len, int r_max, double tol){
     int r = 0; double s0 = (len>0? sigma[0]:0.0);
     for(int i=0;i<len && i<r_max; ++i){ if(sigma[i] >= tol*s0) ++r; else break; }
@@ -224,6 +229,7 @@ static int select_rank(const double *sigma, int len, int r_max, double tol){
     printf("select_k_by_cum_threshold: N0=%d, r_max=%d, tol=%.2e, r=%d\n", len, r_max, tol, r);
 
 }
+
 
 static void truncate_uv(CMat *U_new, double **sigma_new, CMat *V_new, int r_keep){
     int m=U_new->rows, nV=V_new->rows;
@@ -242,10 +248,7 @@ static void truncate_uv(CMat *U_new, double **sigma_new, CMat *V_new, int r_keep
 
 
 int select_k_by_cum_threshold(const double* Svals, int N0, int r_max, double tol) {
-    //const int r_full = N0;
     const int upto   = N0;
-
-    // 分母：考慮範囲 [0, upto) の総和
     double total = 0.0;
     for (int i = 0; i < upto; ++i) total += Svals[i];
 
@@ -253,7 +256,6 @@ int select_k_by_cum_threshold(const double* Svals, int N0, int r_max, double tol
 
     int r = 0;
     if (total > 0.0) {
-        // 分子：累積和が tol * total を超える（以上になる）最小の k を探す
         double cum = 0.0;
         for (int i = 0; i < upto; ++i) {
             cum += Svals[i];
@@ -262,14 +264,11 @@ int select_k_by_cum_threshold(const double* Svals, int N0, int r_max, double tol
                 break;
             }
         }
-        // 到達しなかった場合の扱い（tol が大き過ぎる等）
         if (r == 0) r = (tol <= 0.0 ? 1 : upto);
     } else {
-        // すべて 0 等で総和が 0 の場合
         r = 0;
     }
 
-    // 元コード準拠の最低保証（必要なら残す）
     if (r == 0 && upto > 0) r = 1;
 
     printf("select_k_by_cum_threshold: N0=%d, r_max=%d, tol=%.2e, r=%d\n", N0, r_max, tol, r);
@@ -277,7 +276,7 @@ int select_k_by_cum_threshold(const double* Svals, int N0, int r_max, double tol
     return r;
 }
 
-/* ========= 増分 SVD 更新 ========= */
+
 void incsvd_update(IncSVD* S, const CMat *B, int r_max, double tol){
     const int K = S->K;
     const int Delta = B->cols;
@@ -322,7 +321,6 @@ void incsvd_update(IncSVD* S, const CMat *B, int r_max, double tol){
 }
 
 
-/* ========= 初期ブロック（monolis で SVD） ========= */
 static void init_with_first_block_by_monolis(
     IncSVD *S, double **matrixRM, int K, int N0,
     int r_max, double tol, int comm, int scalapack_comm)
@@ -341,16 +339,7 @@ static void init_with_first_block_by_monolis(
     double *Svals = BB_std_calloc_1d_double(Svals, N0);
 
     monolis_scalapack_gesvd_R(K, N0, A0, U, Svals, V, comm, scalapack_comm);
-/*
-    int r_full = (K<N0?K:N0), r=0; double s0 = Svals[0];
-    for (int i=0;i<r_full && i<r_max; ++i){ if (Svals[i] >= tol*s0) ++r; else break; }
-    if (r==0 && r_full>0) r=1;
-
-    r = 100;
-*/
     int r = select_k_by_cum_threshold(Svals, N0, r_max, tol);
-
-    //printf("Incremental SVD: K=%d, N0=%d, r=%d\n", K, N0, r);
 
     S->K = K; S->N = N0; S->r = r;
     S->U = (double*)malloc((size_t)K*r*sizeof(double));
@@ -373,7 +362,7 @@ static void init_with_first_block_by_monolis(
     BB_std_free_1d_double(Svals, N0);
 }
 
-/* Row-major → col-major（ブロック列コピー） */
+
 static CMat copy_block_colmajor_from_rowmajor(double **matrixRM, int K, int N, int j0, int Delta){
     CMat B = cm_alloc(K, Delta);
     for(int j=0;j<Delta;++j){
@@ -383,17 +372,19 @@ static CMat copy_block_colmajor_from_rowmajor(double **matrixRM, int K, int N, i
     return B;
 }
 
-/* row-major 2D alloc/free（NNLS 入力用） */
+
 static double** alloc2d_rowmajor(int rows, int cols){
     double **M = (double**)malloc((size_t)rows*sizeof(double*));
     for(int i=0;i<rows;++i) M[i] = (double*)calloc((size_t)cols,sizeof(double));
     return M;
 }
 
+
 static void free2d_rowmajor(double **M, int rows){
     for(int i=0;i<rows;++i) free(M[i]);
     free(M);
 }
+
 
 static void build_compressed_system_from_incsvd(
     const IncSVD* S,
@@ -432,7 +423,6 @@ static void ensure_svd_states(int num_subdomains){
 }
 
 
-/* N×ΔK の転置行列を作る */
 static CMat cm_transpose_new(const CMat *A){
     CMat T = cm_alloc(A->cols, A->rows);
     for(int j=0;j<A->cols;++j)
@@ -441,7 +431,7 @@ static CMat cm_transpose_new(const CMat *A){
     return T;
 }
 
-/* 行ブロック（ΔK×N）を追加する */
+
 void incsvd_update_rows(IncSVD* S, const CMat *Brow, int r_max, double tol){
     /* 事前条件チェック */
     if (!S || !S->U || !S->V || !S->sigma) return;
@@ -452,16 +442,14 @@ void incsvd_update_rows(IncSVD* S, const CMat *Brow, int r_max, double tol){
     const int K      = S->K;
     const int r      = S->r;
 
-    /* 1) Brow を転置（N×ΔK） */
     CMat B_T = cm_transpose_new(Brow);
 
-    /* 2) 転置状態 St を構築（A^T の SVD 状態：V, U を入れ替え） */
+
     IncSVD St = {0};
     St.K = N;          /* 行数 ← 元の列数 */
     St.N = K;          /* 列数 ← 元の行数 */
     St.r = r;
 
-    /* メモリは“コピー”を作る（所有権を St に渡す） */
     St.U = (double*)malloc((size_t)St.K * r * sizeof(double));   /* ← V(N×r) をコピー */
     St.V = (double*)malloc((size_t)St.N * r * sizeof(double));   /* ← U(K×r) をコピー */
     St.sigma = (double*)malloc((size_t)r * sizeof(double));
@@ -479,7 +467,6 @@ void incsvd_update_rows(IncSVD* S, const CMat *Brow, int r_max, double tol){
     incsvd_update(&St, &B_T, r_max, tol);
 
     /* 4) St を元に S を更新（再転置：U↔V） */
-    /* 旧 S のメモリを退避してから置換 */
     double *oldU = S->U, *oldV = S->V, *oldS = S->sigma;
 
     S->K = K + DeltaK;  /* 行数が増える */
@@ -503,14 +490,13 @@ void incsvd_update_rows(IncSVD* S, const CMat *Brow, int r_max, double tol){
     cm_free(&B_T);
 }
 
-/* row-major(double**) → column-major(CMat) で
-   行ブロック（i0..i0+DeltaK-1, 全列 N）をコピー：Brow(ΔK×N) */
+
 static CMat copy_rowblock_colmajor_from_rowmajor(double **matrixRM, int K, int N, int i0, int DeltaK){
     if (DeltaK <= 0) return cm_alloc(0,0);
-    CMat B = cm_alloc(DeltaK, N);              /* rows=ΔK, cols=N（col-major）*/
-    for(int j=0;j<N;++j){                      /* 列ごとに */
+    CMat B = cm_alloc(DeltaK, N);
+    for(int j=0;j<N;++j){
         for(int i=0;i<DeltaK;++i){
-        int src_i = i0 + i;                    /* 元の行番号 */
+        int src_i = i0 + i;
         B.a[(size_t)i + (size_t)j*DeltaK] = matrixRM[src_i][j];
         }
     }
@@ -518,8 +504,7 @@ static CMat copy_rowblock_colmajor_from_rowmajor(double **matrixRM, int K, int N
 }
 
 
-/* ========= ① 初期化（初期ブロック SVD） ========= */
-void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
+void HROM_ddecm_write_selected_elems_inc_svd_init_with_first_block(
     MONOLIS_COM*   monolis_com,
     BBFE_DATA*     fe,
     BBFE_BC*       bc,
@@ -557,12 +542,11 @@ void ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
         BB_std_free_2d_double(matrix, K, N);
 
     int K0 = g_svd[0].K;
-    printf("Incremental SVD: subdomain %d, K=%d",K0, g_svd[0].r);
 
 }
 
-/* ========= ② 追加列の増分更新 ========= */
-void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
+
+void HROM_ddecm_write_selected_elems_inc_svd_update(
     MONOLIS_COM*   monolis_com,
     BBFE_DATA*     fe,
     BBFE_BC*       bc,
@@ -580,16 +564,14 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
     const int r_max = 300;
     const double svd_tol = 1.0e-6;
 
-    const int K_total = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot  + 1; /* 目標の全行数 */
+    const int K_total = hlpod_ddhr->num_modes_1stdd[0] * total_num_snapshot  + 1;
     const int N       = hlpod_ddhr->num_elems[0];
 
-    /* すでに取り込んだ行数（初期化で K0 行を取り込んだとして）*/
     int K0 = g_svd[0].K;
 
     printf("Incremental SVD: subdomain %d, K_total=%d, N=%d, K0=%d, r=%d\n",
             0, K_total, N, K0, g_svd[0].r);
 
-    /* 元の行列を row-major で用意 */
     double **matrix = BB_std_calloc_2d_double(matrix, K_total, N);
     for (int j=0; j<K_total; ++j){
         for (int i=0; i<N; ++i){
@@ -603,7 +585,7 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
     for (int i0 = 0; i0 < K_total; i0 += g_block_cols){
         int DeltaK = (i0 + g_block_cols <= K_total ? g_block_cols : (K_total - i0));
         CMat Brow = copy_rowblock_colmajor_from_rowmajor(matrix, K_total, N, i0, DeltaK);
-        incsvd_update_rows(&g_svd[0], &Brow, r_max, svd_tol);  /* ← 行追加 */
+        incsvd_update_rows(&g_svd[0], &Brow, r_max, svd_tol);
         cm_free(&Brow);
     }
     g_svd[0].K = K0;
@@ -612,8 +594,8 @@ void ddhr_lb_write_selected_elements_para_1line_incsvd_update(
 
 }
 
-/* ========= ③ 最終化（圧縮 NNLS） ========= */
-void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
+
+void HROM_ddecm_write_selected_elems_inc_svd(
     MONOLIS_COM*   monolis_com,
     BBFE_DATA*     fe,
     BBFE_BC*       bc,
@@ -655,9 +637,6 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
 	fclose(fp);
 
 	int nl = fe->local_num_nodes;
-
-	printf("\n\nmyrank = %d, num_subdomains = %d\n\n", myrank, num_subdomains);
-	printf("\n\nnum_elems1 = %d\n\n", hlpod_ddhr->num_elems[0]);
     double t1 = monolis_get_time_global_sync();
 
 	double residual;
@@ -700,10 +679,8 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
 
     
 	const char* filename;
-	//char fname[BUFFER_SIZE];
 	snprintf(fname, BUFFER_SIZE,"hr_prm/%s", OUTPUT_FILENAME_RANK_INC_SVD);
 	filename = monolis_get_global_output_file_name(MONOLIS_DEFAULT_TOP_DIR, "./", fname);
-	//FILE* fp;
 	fp = ROM_BB_write_fopen(fp, filename, directory);
     fprintf(fp, "RANK_INC_SVD\n", fe->total_num_nodes);
 	fprintf(fp, "%d\n", g_svd[0].r);
@@ -713,15 +690,9 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
     double **G_k = NULL; double *b_k = NULL;
     build_compressed_system_from_incsvd(&g_svd[0], &G_k, &b_k); /* r×N, r */
 
-
-    printf("\n\nmax_iter = %d, tol = %lf, residuals = %lf\n\n", max_ITER, TOL, residual);
-
     double *ans_vec = BB_std_calloc_1d_double(ans_vec, N);
-    //double residual = 0.0;
     monolis_optimize_nnls_R_with_sparse_solution(
         G_k, b_k, ans_vec, g_svd[0].r, N, max_ITER, TOL, &residual);
-
-    printf("\n\nmax_iter = %d, tol = %lf, residuals = %lf\n\n", max_ITER, TOL, residual);
 
     int index = 0;
     for (int i = 0; i < hlpod_ddhr->num_elems[0]; i++) {
@@ -731,8 +702,6 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
     }
 
     total_num_selected_elems[0] = index;
-
-    printf("\n\nnum_selected_elems = %d\n\n", index);
 
     hr_write_NNLS_residual(residual, myrank, 0, directory);
     hr_write_NNLS_num_elems(total_num_selected_elems[0], myrank, 0, directory);
@@ -767,16 +736,12 @@ void ddhr_lb_write_selected_elements_para_1line_incremental_svd(
         }
     }
 
-    printf("\n\n test_num_elem_D_bc = %d \n\n", index);
-
     index = 0;
     for (int h = 0; h < (total_num_selected_elems[0]); h++) {
         if (bool_elem[h][0]) {
             index++;
         }
     }
-
-    printf("\n\n num_elem_D_bc = %d \n\n", index);
 
     //index = D_bcが付与された要素数
     hlpod_ddhr->num_selected_elems[0] = total_num_selected_elems[0] - index;

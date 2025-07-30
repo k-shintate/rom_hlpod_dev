@@ -841,7 +841,7 @@ void HROM_pre_offline_inc_svd1(
         0);
 
 
-    ddhr_lb_write_selected_elements_para_1line_init_with_first_block(
+    HROM_ddecm_write_selected_elems_inc_svd_init_with_first_block(
         &(sys->mono_com_rom_solv),
         &(sys->fe),
         &(sys->bc),
@@ -866,7 +866,7 @@ void HROM_pre_offline_inc_svd2(
 		const int num_snapshot,
 		const int num_2nd_subdomains)
 {
-    ddhr_lb_write_selected_elements_para_1line_incsvd_update(
+    HROM_ddecm_write_selected_elems_inc_svd_update(
         &(sys->mono_com_rom_solv),
         &(sys->fe),
         &(sys->bc),
@@ -891,7 +891,7 @@ void HROM_pre_offline_inc_svd3(
 		const int num_snapshot,
 		const int num_2nd_subdomains)
 {
-    ddhr_lb_write_selected_elements_para_1line_incremental_svd(
+    HROM_ddecm_write_selected_elems_inc_svd(
         &(sys->mono_com_rom_solv),
         &(sys->fe),
         &(sys->bc),
