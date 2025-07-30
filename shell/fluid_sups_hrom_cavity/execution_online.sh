@@ -12,14 +12,14 @@ pa=$6
 st=$7
 
 # 実行ディレクトリ
-directory_offline="result_fluid_sups/${nm}-${np}-${nd}"
-directory_online="result_fluid_sups/online_${nm}-${np}-${nd}"
+directory_offline="result_fluid_sups_cavity/${nm}-${np}-${nd}"
+directory_online="result_fluid_sups_cavity/online_${nm}-${np}-${nd}"
 
 rm -r $directory_online
 #mkdir -p $directory_offline
-mkdir -p result_fluid_sups/tmp
-cp -r result_fluid_sups/${nm}-${np}-${nd} result_fluid_sups/tmp
-mv result_fluid_sups/tmp/${nm}-${np}-${nd} $directory_online
+mkdir -p result_fluid_sups_cavity/tmp
+cp -r result_fluid_sups_cavity/${nm}-${np}-${nd} result_fluid_sups_cavity/tmp
+mv result_fluid_sups_cavity/tmp/${nm}-${np}-${nd} $directory_online
 
 cd solvers/fluid_sups
 

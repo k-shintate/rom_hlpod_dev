@@ -12,7 +12,7 @@ pa=$6
 st=$7
 
 # 実行ディレクトリ
-directory="result_fluid_sups/${nm}-${np}-${nd}"
+directory="result_fluid_sups_karman_vortex/${nm}-${np}-${nd}"
 
 . shell/install.sh
 

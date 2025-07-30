@@ -16,7 +16,7 @@ np=$5
 pa=$6
 
 # 実行ディレクトリ
-directory="result_fluid_sups/${nm}-${np}-${nd}"
+directory="result_fluid_sups_cavity/${nm}-${np}-${nd}"
 
 rm -r $directory
 mkdir -p $directory

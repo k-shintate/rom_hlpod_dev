@@ -16,7 +16,7 @@ np=$5
 pa=$6
 
 # 実行ディレクトリ
-directory="result_fluid_sups/${nm}-${np}-${nd}"
+directory="result_fluid_sups_karman_vortex/${nm}-${np}-${nd}"
 
 cd solvers/fluid_sups/karman_vortex
 . shell/meshgen_karman_vortex_2d.sh
