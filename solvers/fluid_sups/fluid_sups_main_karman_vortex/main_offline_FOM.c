@@ -350,12 +350,6 @@ int main (
 				file_num += 1;
 			}
 
-            if(step == 100 && sys.rom_prm_p.hot_start == 0){
-                char fname[BUFFER_SIZE];         
-                snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());
-                hot_start_write_initialize_val(sys.monolis.mat.R.X, sys.fe.total_num_nodes, 4, t, fname, sys.cond.directory);
-            }
-
             if(step == 40000 && sys.rom_prm_p.hot_start == 0){
                 char fname[BUFFER_SIZE];         
                 snprintf(fname, BUFFER_SIZE, "hot_start/%s.%lf.%d.dat", "velosity_pressure", sys.vals.density, monolis_mpi_get_global_my_rank());

@@ -7,30 +7,29 @@
 #include "write_BB.h"
 
 void HROM_ddecm_get_selected_elems_int_ovl(
-	    HLPOD_DDHR*     hlpod_ddhr,
-		const char*		directory);
+    HLPOD_DDHR*     hlpod_ddhr,
+    const char*		directory);
 
 void HROM_ddecm_read_selected_elems_para(
-		const int 		num_subdomains,
-		const char*		directory);
+    const int 		num_subdomains,
+    const char*		directory);
 
-//1列のみ(残差に関する項のみ：任意列数に拡張する必要あり)
 void HROM_ddecm_write_selected_elems_para(
-		MONOLIS_COM*  	monolis_com,
-        BBFE_DATA*     	fe,
-        BBFE_BC*     	bc,
-        HLPOD_VALUES* 	hlpod_vals,
-	    HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_MAT*      hlpod_mat,
-		HLPOD_META*		hlpod_meta,
-        const int       total_num_elem,
-        const int       total_num_snapshot,
-        const int       total_num_modes,
-		const int 		num_subdomains,
-        const int       max_iter, //NNLS
-        const double    tol,      //NNLS
-        const int       dof,
-		const char*		directory);
+    MONOLIS_COM*  	monolis_com,
+    BBFE_DATA*     	fe,
+    BBFE_BC*     	bc,
+    HLPOD_VALUES* 	hlpod_vals,
+    HLPOD_DDHR*     hlpod_ddhr,
+    HLPOD_MAT*      hlpod_mat,
+    HLPOD_META*		hlpod_meta,
+    const int       total_num_elem,
+    const int       total_num_snapshot,
+    const int       total_num_modes,
+    const int 		num_subdomains,
+    const int       max_iter, //NNLS
+    const double    tol,      //NNLS
+    const int       dof,
+    const char*		directory);
 
 void HROM_ddecm_write_selected_elems_svd(
 	MONOLIS_COM*  	monolis_com,
@@ -50,69 +49,69 @@ void HROM_ddecm_write_selected_elems_svd(
 	const char*		directory);
 
 void HROM_ecm_get_meta_neib(
-		MONOLIS_COM*  	monolis_com,
-		HLPOD_META*		hlpod_meta,
-		const char*     directory);
+    MONOLIS_COM*  	monolis_com,
+    HLPOD_META*		hlpod_meta,
+    const char*     directory);
 
 void HROM_ddecm_set_neib(
-		MONOLIS_COM*  	monolis_com,
-		HLPOD_MAT* 	hlpod_mat,
-        HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_META*		hlpod_meta,
-		const int 		num_subdomains,
-        const int       num_snapshots,
-		const char*     directory);
+    MONOLIS_COM*  	monolis_com,
+    HLPOD_MAT* 	hlpod_mat,
+    HLPOD_DDHR*     hlpod_ddhr,
+    HLPOD_META*		hlpod_meta,
+    const int 		num_subdomains,
+    const int       num_snapshots,
+    const char*     directory);
 
 void HROM_ddecm_set_element_para(
-		BBFE_DATA*     	fe,
-        HLPOD_DDHR*     hlpod_ddhr,
-		const int 		num_subdomains,
-		const char*     directory);
+    BBFE_DATA*     	fe,
+    HLPOD_DDHR*     hlpod_ddhr,
+    const int 		num_subdomains,
+    const char*     directory);
 
 void HROM_ddecm_get_selected_elema_add(
-	    HLPOD_DDHR*     hlpod_ddhr,
-		const int		num_parallel_subdomains,
-		const char*		directory);
+    HLPOD_DDHR*     hlpod_ddhr,
+    const int		num_parallel_subdomains,
+    const char*		directory);
 
 void HROM_ddecm_calc_block_mat_bcsr(
-		MONOLIS*     	monolis,
-		MONOLIS_COM*  	monolis_com,
-        HLPOD_VALUES* 	hlpod_vals,
-		HLPOD_MAT* 	    hlpod_mat,
-		HLPOD_DDHR*     hlpod_ddhr,
-		HLPOD_META*		hlpod_meta,
-		const int 		num_bases,
-		const int		num_2nddd,
-		const char*		directory);
+    MONOLIS*     	monolis,
+    MONOLIS_COM*  	monolis_com,
+    HLPOD_VALUES* 	hlpod_vals,
+    HLPOD_MAT* 	    hlpod_mat,
+    HLPOD_DDHR*     hlpod_ddhr,
+    HLPOD_META*		hlpod_meta,
+    const int 		num_bases,
+    const int		num_2nddd,
+    const char*		directory);
 
 void ddhr_lb_set_selected_elems_para(
-		BBFE_DATA*     	fe,
-        HLPOD_DDHR*     hlpod_ddhr,
-        const int		total_num_nodes,
-		const int		num_subdomains,
-		const char*     directory);
+    BBFE_DATA*     	fe,
+    HLPOD_DDHR*     hlpod_ddhr,
+    const int		total_num_nodes,
+    const int		num_subdomains,
+    const char*     directory);
 
 //level1領域の最大基底本数の共有
 void HROM_ddecm_get_neib_max_num_modes(
-		MONOLIS_COM*  	monolis_com,
-        HLPOD_VALUES* 	hlpod_vals,
-		HLPOD_MAT* 	    hlpod_mat,
-		const int       np,
-		const int       num_modes_pre);
+    MONOLIS_COM*  	monolis_com,
+    HLPOD_VALUES* 	hlpod_vals,
+    HLPOD_MAT* 	    hlpod_mat,
+    const int       np,
+    const int       num_modes_pre);
 
 //level1領域の選択された基底(p-adaptive)本数の共有
 void HROM_ddecm_get_neib_num_modes(
-		MONOLIS_COM*  	monolis_com,
-        HLPOD_VALUES* 	hlpod_vals,
-		HLPOD_MAT* 	    hlpod_mat,
-		const int       np,
-		const int       num_my_modes);
+    MONOLIS_COM*  	monolis_com,
+    HLPOD_VALUES* 	hlpod_vals,
+    HLPOD_MAT* 	    hlpod_mat,
+    const int       np,
+    const int       num_my_modes);
 
 //for arbit dof ddecm
 void HROM_ddecm_get_neib_subdomain_id(
-        MONOLIS_COM*  	monolis_com,
-        HLPOD_MAT* 	    hlpod_mat,
-        const int 		num_modes);
+    MONOLIS_COM*  	monolis_com,
+    HLPOD_MAT* 	    hlpod_mat,
+    const int 		num_modes);
 
 void HROM_ddecm_get_neib_coordinates_pre(
     HLPOD_VALUES* 	hlpod_vals,

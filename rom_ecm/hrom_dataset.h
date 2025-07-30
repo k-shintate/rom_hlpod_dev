@@ -10,11 +10,9 @@
 #include <stdarg.h>
 
 
-//Hyper-reduction (ECM) の計算情報
 typedef struct
 {
 	double* sol_vec;
-
     int    incsvd_interval;
 
 } HR_VALUES;
@@ -68,12 +66,11 @@ typedef struct
 	double** imposed_D_val;
 	bool** D_bc_exists;
 
-//for DDHROM
+//for DDECM
 	int** elem_id_local;
 	int* num_elems;
 
-//for DDHROM_par
-//ovl要素も含んだ全要素数
+//for DDECM_par
 	int* total_num_elems;
 	int** ovl_elem_global_id;
 

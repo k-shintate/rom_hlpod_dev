@@ -69,8 +69,6 @@ void HROM_std_hlpod_offline_set_num_snapmat_inc_svd(
         const int       incsvd_interval)
 {
     double quotient = finish_time / dt / snapshot_interval* num_case / incsvd_interval;
-    //int num_snapshot = finish_time / dt / snapshot_interval * num_case;
-    //int num_incsvd = num_snapshot / incsvd_interval;
 
     printf("%s: finish_time = %f, dt = %f, snapshot_interval = %d, num_case = %d, incsvd_interval = %d\n",
            CODENAME, finish_time, dt, snapshot_interval, num_case, incsvd_interval);
@@ -627,11 +625,6 @@ void HROM_set_matvec(
         int step,
         double t)
 {
-    printf("num_modes_pre: %d\n", rom->hlpod_vals.num_modes_pre);
-    printf("num_2nd_subdomains: %d\n", rom->hlpod_vals.num_2nd_subdomains);
-    printf("num_modes_max: %d\n", rom->hlpod_vals.num_modes_max);
-    printf("num_snapshot: %d\n", rom->hlpod_vals.num_snapshot);
-
     HROM_get_neib_coordinates(
             &(sys->mono_com_rom),
             &(rom->hlpod_vals),

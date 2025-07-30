@@ -2,12 +2,12 @@
 
 #mesh
 #一方向分割数
-e=20
+e=15
 #解析領域の大きさ
 ep=1
 
 #podモード数
-num_modes=(10)
+num_modes=(5)
 #POD計算領域数
 num_1stdd=(4)
 #並列計算領域数 (=並列数)

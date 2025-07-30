@@ -40,18 +40,6 @@ void ROM_std_hlpod_calc_reduced_mat_save_memory(
     const int       num_modes,
     const int 		dof);
 
-void ROM_std_hlpod_calc_reduced_mat_save_memory2(
-    MONOLIS*        monolis,
-    MONOLIS_COM*    monolis_com,
-    MONOLIS_COM*    mono_com0,
-    HLPOD_VALUES*   hlpod_vals,
-    HLPOD_MAT*      hlpod_mat,
-    const int		total_num_nodes,
-    const int       n_neib_vec,
-    const int       num_2nddd,
-    const int       num_modes,
-    const int 		dof);
-
 void ROM_std_hlpod_set_reduced_mat(
     MONOLIS*		monolis,
     HLPOD_MAT*   hlpod_mat,
