@@ -8,13 +8,20 @@ nd=$4
 np=$5
 #基底本数可変の閾値 1.0E-{pa}
 pa=$6
+#solver type
+st=$7
 
 # 実行ディレクトリ
 directory="result_diff/${nm}-${np}-${nd}"
 
-cd $directory
+#. shell/install.sh
 
-fname="merge_graph.sh"
+cd solvers/diff
+
+make -f Makefile_ROM_squid clean
+make -f Makefile_ROM_squid
+
+fname="execution.sh"
 touch $fname
 echo "#!/bin/bash" >> $fname
 echo "#------- qsub option -----------" >>$fname
@@ -30,17 +37,10 @@ echo "module load BaseCPU/2023" >> $fname
 echo "cd \$PBS_O_WORKDIR" >> $fname
 echo "" >> $fname
 
-#重みなし
-echo "cp -r ./parted.0/metagraph.dat ./" >> $fname
-echo "./../../../test_thermal/submodule/monolis/submodule/gedatsu/bin/gedatsu_nodal_graph_partitioner -n $np -i metagraph.dat -d metagraph_parted.0" >> $fname
+echo "cp -r hlpod_diff_offline ./../../$directory" >> $fname
+echo "cp -r hlpod_diff_online ./../../$directory" >> $fname
 
-echo "mkdir merged_graph" >> $fname
-echo "mpirun -np $np ./../../utils/bin/merge_graph ./ -np1 $nd -np2 $np" >> $fname
-echo "mpirun -np $np ./../../utils/bin/merge_graph_bc ./ -np1 $nd -np2 $np -nbc 1 -fbc D_bc" >> $fname
+echo "cd ./../../$directory" >> $fname
 
-# POD計算領域の分割ファイルをparted.1 として扱う
-echo "mv parted.0 parted.1" >> $fname
-# マージ後の分割ファイル (並列計算領域に相当) をparted.0 として扱う (test_thermalやmonolisのデフォルトの分割ファイル名であるため)
-echo "mv merged_graph parted.0" >> $fname
-
+echo "mpirun -np $np  ./hlpod_diff_online ./ -nd $nd -nm $nm -pa $pa -st $st" >> $fname
 echo "cd ../.." >> $fname

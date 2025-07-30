@@ -1,11 +1,5 @@
 #!/bin/bash
 
-#mesh
-#一方向分割数
-e=$1
-#解析領域の大きさ
-ep=$2
-
 #podモード数
 nm=$3
 #POD計算領域数
@@ -14,12 +8,20 @@ nd=$4
 np=$5
 #基底本数可変の閾値 1.0E-{pa}
 pa=$6
+#solver type
+st=$7
 
 # 実行ディレクトリ
 directory="result_diff/${nm}-${np}-${nd}"
 
+#. shell/install.sh
 
-fname="meshgen.sh"
+cd solvers/diff
+
+make -f Makefile_ROM_squid clean
+make -f Makefile_ROM_squid
+
+fname="execution.sh"
 touch $fname
 echo "#!/bin/bash" >> $fname
 echo "#------- qsub option -----------" >>$fname
@@ -35,21 +37,18 @@ echo "module load BaseCPU/2023" >> $fname
 echo "cd \$PBS_O_WORKDIR" >> $fname
 echo "" >> $fname
 
+echo "cp -r hlpod_diff_offline ./../../$directory" >> $fname
+echo "cp -r hlpod_diff_online ./../../$directory" >> $fname
 
-echo "rm -r $directory" >> $fname
-echo "mkdir -p $directory" >> $fname
-echo "cd $directory" >> $fname
+echo "cd ./../../$directory" >> $fname
 
-echo "rm -r cond.dat" >> $fname
-echo "./../../../test_thermal/bin/cmd2cond "#snapshot_interval" int 1 1 "#rom_finish_time" double 1 4.0 "#rom_output_interval" int 1 1" >> $fname
-echo "mv cond.dat rom_cond.dat" >> $fname
+echo "mkdir -p {pod_modes_vtk,pod_modes,fem_solver_prm,pod_solver_prm,calctime}" >> $fname
+echo "for ((i=0; i<${nd}; i++))" >> "$fname"
+echo "do" >> "$fname"
+echo '    mkdir -p "pod_modes/subdomain${i}"' >> "$fname"
+echo "done" >> "$fname"
 
-echo "./../../../test_thermal/bin/cmd2cond "#time_spacing" double 1 0.01 "#output_interval" int 1 1  "#finish_time" double 1 1.0" >> $fname
 
-echo "./../../../test_thermal/bin/meshgen_hex ${e} ${e} ${e} ${ep} ${ep} ${ep}" >> $fname
-echo "./../../../test_thermal/bin/surf_dbc_all 1 1.0" >> $fname
-
-echo "./../../../test_thermal/submodule/monolis/submodule/gedatsu/bin/gedatsu_simple_mesh_partitioner -n ${nd}" >> $fname
-echo "./../../../test_thermal/submodule/monolis/submodule/gedatsu/bin/gedatsu_bc_partitioner_R -n ${nd} -i D_bc.dat -ig node.dat" >> $fname
-
+echo "mpirun -np $np  ./hlpod_diff_offline ./ -nd $nd -nm $nm -pa $pa -st $st" >> $fname
+echo "mpirun -np $np  ./hlpod_diff_online ./ -nd $nd -nm $nm -pa $pa -st $st" >> $fname
 echo "cd ../.." >> $fname
